@@ -1,0 +1,9 @@
+[submodule "standalone"]
+	path = standalone
+	url = git@github.com:biothings/standalone.git
+[submodule "biothings.api"]
+	path = biothings.api
+	url = https://github.com/biothings/biothings.api.git
+[submodule "biothings"]
+	path = biothings
+	url = git@github.com:biothings/biothings.api.git
