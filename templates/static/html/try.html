@@ -1,0 +1,406 @@
+{% extends "main.html" %}
+{% block content %}
+<style type="text/css">
+
+</style>
+<section id="try-app">
+  <div v-if="validAPI" class="container mt-5">
+    <div class="bg-dark">
+      <div class="bg-dark jumbotron text-light text-center">
+        <div v-if="metadata && metadata.src" class="bg-dark p-5">
+          <div style="position:relative;" class="p-5 mb-3">
+            <h1 class="font-weight-bold reflection" :data-text='api' v-text='api'></h1>
+          </div>
+          <small class="text-light mb-4 lighter" v-text='"Version "+metadata.src[getKeyName(metadata.src)]["version"]'></small>
+          <ul class="link-list">
+            <li class="d-inline" v-if='metadata.src[getKeyName(metadata.src)]["url"]'>
+              <small class="">
+                <a rel="noopener" :href='metadata.src[getKeyName(metadata.src)]["url"]' target="_blank" class="link">
+                  Source
+                </a>
+              </small>
+            </li>
+            <li class="d-inline" v-if='metadata.src[getKeyName(metadata.src)]["code"]["url"]'>
+              <small class="">
+                <a rel="noopener" :href='metadata.src[getKeyName(metadata.src)]["code"]["url"]' target="_blank" class="link">
+                  Code
+                </a>
+              </small>
+            </li>
+            <li class="d-inline" v-if='metadata.src[getKeyName(metadata.src)]["license_url"]'>
+              <small class="">
+                <a rel="noopener" :href='metadata.src[getKeyName(metadata.src)]["license_url"]' target="_blank" class="link">
+                  License
+                </a>
+              </small>
+            </li>
+          </ul>
+          <template v-if='metadata.src[getKeyName(metadata.src)]["author"]'>
+            <small class="d-block mt-2">
+              Developed by
+              <a rel="noopener" :href='metadata.src[getKeyName(metadata.src)]["author"]["url"]' target="_blank" class="link">
+                <i class="fab fa-github"></i> <span v-text='metadata.src[getKeyName(metadata.src)]["author"]["name"]'></span>
+              </a>
+            </small>
+          </template>
+          <h3 class="m-3" v-text="numberWithCommas(numberOfDocs)+' documents'"></h3>
+          <div class="m-5 p-1" style="position: relative">
+            <a rel="noopener" target="_blank" class="btn-main" :href="'https://github.com/biothings/pending.api/labels/'+api"><i class="fab fa-github"></i> Give Feedback</a>
+          </div>
+          <div v-if="existingEntity" >
+            <small>Pending for integration with:</small>
+            <div v-if="metadata.biothing_type" class="badge bg-dark d-block p-1 m-2">
+              <a rel="noopener"  v-if="metadata.biothing_type === 'gene'" target="_blank" href="https://mygene.info/"><img alt="myGene"  src="/static/img/mygene-text.svg" height="20px"/></a>
+              <a rel="noopener"  v-if="metadata.biothing_type === 'variant'" target="_blank" href="https://myvariant.info"><img alt="myVariant"  src="/static/img/myvariant-text.svg" height="20px"/></a>
+              <a rel="noopener"  v-if="metadata.biothing_type === 'chemical'" target="_blank" href="https://mychem.info"><img alt="myChem" src="/static/img/mychem-text.svg" height="20px"/></a>
+              <a rel="noopener"  v-if="metadata.biothing_type === 'disease'" class="link" target="_blank" href="http://mydisease.info/">MyDisease.info</a>
+            </div>
+            <div v-if="metadata.doc_type" class="badge bg-dark d-block p-1 m-2">
+              <a rel="noopener"  v-if="metadata.doc_type === 'gene'" target="_blank" href="https://mygene.info/"><img alt="myGene"  src="/static/img/mygene-text.svg" height="20px"/></a>
+              <a rel="noopener"  v-if="metadata.doc_type === 'variant'" target="_blank" href="https://myvariant.info"><img alt="myVariant"  src="/static/img/myvariant-text.svg" height="20px"/></a>
+              <a rel="noopener"  v-if="metadata.doc_type === 'chemical'" target="_blank" href="https://mychem.info"><img alt="myChem" src="/static/img/mychem-text.svg" height="20px"/></a>
+              <a rel="noopener"  v-if="metadata.doc_type === 'disease'" class="link" target="_blank" href="http://mydisease.info/">MyDisease.info</a>
+            </div>
+          </div>
+          <div v-if="!existingEntity">
+            <small>Entity Type:</small>
+            <div v-if="metadata.biothing_type" class="badge bg-dark d-block p-1 m-2">
+              <span v-text="metadata.biothing_type"></span>
+            </div>
+            <div v-if="metadata.doc_type" class="badge bg-dark d-block p-1 m-2">
+              <span v-text="metadata.doc_type"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+      <div class="gradientBox">
+        <div class="bg-dark jumbotron text-light text-center">
+          <h1 class="mb-5">
+            Try It
+          </h1>
+          <form class="d-flex justify-content-start flex-wrap" @submit.prevent="testQuery()">
+            <div class="form-group p-1">
+              <h4 class="text-md-right">pending.biothings.io/<span class="text-light bold" v-text="api"></span></h4>
+            </div>
+            <div class="form-group p-1">
+              <template v-if="querySelectionType==='example'">
+                <select v-model="querySelected" class="form-control scale-in-center" id="exampleFormControlSelect1">
+                  <template v-for="item in exampleQueries">
+                    <option :value="item" v-text="item"></option>
+                  </template>
+                </select>
+              </template>
+              <template v-if="querySelectionType==='own'">
+                <input v-model="querySelected" type="text" class="form-control scale-in-center" id="exampleFormControlInput1" placeholder="enter query here">
+              </template>
+              <button @click="querySelected=''" v-if="querySelected" class="btn btn-outline-dark text-danger mt-2 mr-2" type="button">Clear</button>
+              <button v-if="querySelected" class="btn btn-outline-dark text-light mt-2" type="submit">Submit</button>
+              <label class="text-muted" v-if="!querySelected" for="api">Select a query</label>
+              <div class="form-check text-left mt-3">
+                <input v-model="querySelectionType" class="form-check-input" type="radio" name="exampleRadios" id="exampleRadios1" value="example" checked>
+                <label class="form-check-label" for="exampleRadios1">
+                  Example Queries <button @click='refreshExmaples()' class="btn btn-sm btn-dark ml-3 text-light" type="button" style="zoom:.8">Generate New <i v-if="loadingExamplesQueries" class="fas fa-spinner fa-pulse text-warning"></i></button>
+                </label>
+              </div>
+              <div class="form-check text-left">
+                <input v-model="querySelectionType" class="form-check-input" type="radio" name="exampleRadios" id="exampleRadios2" value="own">
+                <label class="form-check-label" for="exampleRadios2">
+                  Write My Own Query
+                </label>
+              </div>
+            </div>
+          </form>
+          <p class="bold" v-if="success && queryString">
+            <i  class="fas fa-check text-success"></i> <a rel="noopener" target="_blank" :href="'http:'+queryString" v-text="'http:'+queryString" class="m-auto" :class="[ success ? 'text-success' : 'text-danger']" type="text"></a>
+          </p>
+          <div v-show='loading' class="spinner">
+            <div class="cube1"></div>
+            <div class="cube2"></div>
+          </div>
+          <pre v-show="success" id="callResults" class="p-2 text-dark bg-light text-left mt-4 mb-4" style="font-size:1em !important;max-height: 800px;min-height: 800px; overflow: scroll; border-style: inset; border: 2px #5d5d5d solid;border-radius: 5px;">
+
+          </pre>
+        </div>
+      </div>
+
+  </div>
+  <div v-else>
+    <div class="bg-dark jumbotron text-light text-center mt-5">
+      <h1>Nothing to see here...</h1>
+      <h5><span v-text='api'></span> is not a pending API</h5>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+{% block extra_scripts %}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.4.2/vue.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.min.js"></script>
+  <script src="/static/js/renderjson.js"></script>
+  <script src="/static/js/lodash.js"></script>
+  <script>
+    var app = new Vue({
+      el: '#try-app',
+      data: function(){
+        return {
+          api:'',
+          metadata:{},
+          querySelected:'',
+          queryString:'',
+          querySelectionType:'example',
+          success: false,
+          loading: false,
+          loadingExamples: false,
+          loadingExamplesQueries:false,
+          exampleQueries:[
+            '/metadata',
+            '/metadata/fields'
+          ],
+          numberOfDocs:null,
+          validAPI: true,
+          type:'',
+          numberOfExamples:8,
+          existingEntity:false
+        }
+      },
+      watch:{
+        exampleQueries:function(qs){
+          if (qs.length < this.numberOfExamples) {
+            this.generateTestQueriesStart()
+          }
+          if (qs.length > this.numberOfExamples) {
+            this.exampleQueries = this.exampleQueries.slice(0,this.numberOfExamples)
+          }
+        }
+      },
+      methods: {
+        generateTestQueriesStart(){
+          let self = this;
+          // console.log("🤖")
+          self.loadingExamplesQueries = true;
+          if (self.numberOfDocs < 250000000) {
+            let limit = Math.floor(Math.random() * 10000);
+            let size = 100;
+            self.loadingExamples = true
+            if (limit) {
+              if (limit > self.numberOfDocs) {
+                limit = self.numberOfDocs-100;
+              }
+              axios.get('//pending.biothings.io/'+self.api.toLowerCase()+'/query?q=__all__&from='+limit+'&size='+size).then(result=>{
+                let res = result.data.hits
+                let i = 0;
+                let picks = []
+                //make query string query
+                self.generateQuery(res[self.randomNumber(size)]);
+                while ( i < self.numberOfExamples) {
+                  let doc = res[self.randomNumber(size)]
+                  picks.push(doc)
+                  i++;
+                }
+                for (var picksIndex = 0; picksIndex < picks.length; picksIndex++) {
+                  let value = self.getQueryString(picks[picksIndex])
+                  let query ='/query?q='+value
+                  //excludes duplicates and results with undefined terms
+                  if (!self.exampleQueries.includes(query) && !query.includes('undefined')) {
+                    self.exampleQueries.push(query)
+                  }
+                }
+                self.loadingExamples = false
+              }).catch(err=>{
+                throw err;
+                self.generateTestQueriesStart()
+                self.loadingExamples = false
+              })
+            }
+          }else{
+            self.loadExamplesFromMetadata();
+          }
+
+          setTimeout(function(){
+            self.loadingExamplesQueries = false;
+          }, 1000);
+        },
+        getQueryString(obj){
+          let self = this;
+          let string = self.randomProperty(obj);
+          if (string) {
+            if (_.isPlainObject(obj[string])) {
+              string += "."+self.getQueryString(obj[string])
+            }else if (_.isArray(obj[string])) {
+              string += "."+self.getQueryString(obj[string][0])
+            }
+            else if (_.isBoolean(obj[string])) {
+              string += ":"+obj[string]
+            }
+            else if (_.isString(obj[string]) || _.isNumber(obj[string])) {
+              // sanitize end value if it's a string
+              string += ":"+self.sanitizeStringValue(obj[string])
+            }
+            // return string
+            return string
+          }
+        },
+        sanitizeStringValue(string){
+          // checks for spaces and second colons end escapes them
+          if (_.isString(string)) {
+            if (string.indexOf(' ') >= 0) {
+              // If strign has spaces
+              return '"'+string+'"';
+            }else if (string.indexOf(':') >= 0) {
+              let position = string.indexOf(':')
+              // escape backslashes
+              let res = [string.slice(0, position), "\\", string.slice(position)].join('');
+              if (res.includes('http')) {
+                // if string is a url
+                return '"'+encodeURIComponent(res)+'"';
+              }else {
+                // if string has backslashes
+                return res
+              }
+            }
+          }else {
+            // simple string
+            return encodeURIComponent(string)
+          }
+        },
+        generateQuery(dataObject){
+          var self = this;
+          if (dataObject && dataObject.hasOwnProperty("_id")) {
+            let id= dataObject["_id"];
+            let query ='/'+self.type+"/"+id;
+            self.exampleQueries.push(query);
+          }
+        },
+        randomProperty(obj) {
+          if (_.isPlainObject(obj)) {
+            var keys = Object.keys(obj)
+            if (keys.includes('_id')) {
+              var index = keys.indexOf('_id');
+              if (index > -1) {
+                keys.splice(index, 1);
+              }
+            }
+            if (keys.includes('_score')) {
+              var index = keys.indexOf('_score');
+              if (index > -1) {
+                keys.splice(index, 1);
+              }
+            }
+            return keys[ keys.length * Math.random() << 0];
+          }else {
+            return false
+          }
+        },
+        randomNumber(max) {
+          let number = Math.floor(Math.random() * max) + 1
+          return number
+        },
+        loadExamplesFromMetadata(){
+          let self = this;
+          if (self.metadata.example_queries) {
+            self.exampleQueries = self.metadata.example_queries;
+          }
+        },
+        numberWithCommas(x) {
+            return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        },
+        testQuery(){
+          let self = this;
+          if (self.api && self.querySelected) {
+            self.queryString = '//pending.biothings.io/'+self.api.toLowerCase()+self.querySelected
+            self.callApi(self.queryString)
+          }
+        },
+        refreshExmaples(){
+          var self = this;
+          self.exampleQueries =[
+            '/metadata',
+            '/metadata/fields'
+          ];
+          self.generateTestQueriesStart();
+        },
+        callApi(myUrl){
+          let self = this;
+          $('#callResults').html('');
+          self.loading = true;
+          axios.get(myUrl).then(res=>{
+            self.loading = false;
+            renderjson.set_show_to_level(7);
+            $('#callResults').html( renderjson(res.data) );
+            self.success = true;
+          }).catch(err=>{
+            self.loading = false;
+            renderjson.set_show_to_level(7);
+            $('#callResults').html( err );
+            self.success = false;
+            throw err;
+          });
+        },
+        getKeyName(obj){
+          for (var key in obj) {
+            if (key !== 'src_version') {
+              return key;
+            }
+          }
+        },
+        getMetadata(){
+          let self = this;
+          self.pending=[];
+          let safeList = ['gene','chemical','variant','disease']
+          axios.get('//pending.biothings.io/'+self.api+'/metadata').then(res=>{
+            self.metadata = res.data;
+            // console.log('META',res.data)
+            self.numberOfDocs = self.metadata.src[self.getKeyName(self.metadata.src)].stats[self.getKeyName(self.metadata.src)];
+            if (self.metadata.biothing_type) {
+              self.type= self.metadata.biothing_type;
+            }else if (self.metadata.doc_type) {
+              self.type= self.metadata.doc_type;
+            }
+            if (self.metadata.hasOwnProperty('doc_type')) {
+    					if (safeList.includes(self.metadata['doc_type'])) {
+    						self.existingEntity = true
+    					}
+    				}
+    				else if (self.metadata.hasOwnProperty('biothing_type')) {
+    					if (safeList.includes(self.metadata['biothing_type'])) {
+    						self.existingEntity = true
+    					}
+    				}
+            self.generateTestQueriesStart()
+          }).catch(err=>{
+            self.validAPI = false;
+            throw err;
+          })
+
+        },
+        registerServiceWorker(){
+          // Check that service workers are registered
+          if ('serviceWorker' in navigator) {
+            // Use the window load event to keep the page load performant
+            window.addEventListener('load', () => {
+              try{
+                navigator.serviceWorker.register('/static/worker.js').then(function(ServiceWorkerRegistration) {
+                  console.log('Service Worker registered');
+                }).catch(err=>{
+                  console.log('Service Worker registration failed');
+                });
+              }catch(err){
+              }
+            });
+          }
+        }
+      },
+        mounted: function(){
+          this.api  = window.location.pathname.replace('/','').toLowerCase();
+          this.getMetadata();
+          // this.registerServiceWorker();
+
+
+
+
+        }
+    });
+  </script>
+{% endblock %}

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 23.0.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="hero-1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 400 200" style="enable-background:new 0 0 400 200;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:#FFFFFF;}
+	.st1{fill:none;stroke:#FFFFFF;stroke-miterlimit:10;}
+</style>
+<g>
+	<path class="st0" d="M311,31c6.07,0,11,4.93,11,11v116c0,6.07-4.93,11-11,11H95c-6.07,0-11-4.93-11-11V42c0-6.07,4.93-11,11-11H311
+		 M311,30H95c-6.6,0-12,5.4-12,12v116c0,6.6,5.4,12,12,12h216c6.6,0,12-5.4,12-12V42C323,35.4,317.6,30,311,30L311,30z"/>
+</g>
+<g>
+	<path class="st0" d="M172,42c5.51,0,10,4.49,10,10v94c0,5.51-4.49,10-10,10h-65c-5.51,0-10-4.49-10-10V52c0-5.51,4.49-10,10-10H172
+		 M172,40h-65c-6.6,0-12,5.4-12,12v94c0,6.6,5.4,12,12,12h65c6.6,0,12-5.4,12-12V52C184,45.4,178.6,40,172,40L172,40z"/>
+</g>
+<g>
+	<line class="st1" x1="193" y1="52.5" x2="296" y2="52.5"/>
+</g>
+<g>
+	<line class="st1" x1="193" y1="58.5" x2="266" y2="58.5"/>
+</g>
+<g>
+	<line class="st1" x1="193" y1="64.5" x2="249" y2="64.5"/>
+</g>
+<g>
+	<line class="st1" x1="193" y1="70.5" x2="309" y2="70.5"/>
+</g>
+<g>
+	<line class="st1" x1="193" y1="76.5" x2="295" y2="76.5"/>
+</g>
+<g>
+	<line class="st1" x1="193" y1="82.5" x2="262" y2="82.5"/>
+</g>
+<g>
+	<line class="st1" x1="193" y1="88.5" x2="295" y2="88.5"/>
+</g>
+<g>
+	<line class="st1" x1="193" y1="94.5" x2="249" y2="94.5"/>
+</g>
+<g>
+	<line class="st1" x1="193" y1="100.5" x2="229.5" y2="100.5"/>
+</g>
+<g>
+	<line class="st1" x1="193" y1="106.5" x2="249" y2="106.5"/>
+</g>
+<g>
+	<line class="st1" x1="193" y1="112.5" x2="295" y2="112.5"/>
+</g>
+<g>
+	<line class="st1" x1="193" y1="118.5" x2="260" y2="118.5"/>
+</g>
+<g>
+	<line class="st1" x1="193" y1="124.5" x2="249" y2="124.5"/>
+</g>
+<g>
+	<line class="st1" x1="193" y1="130.5" x2="281" y2="130.5"/>
+</g>
+<g>
+	<line class="st1" x1="193" y1="136.5" x2="260" y2="136.5"/>
+</g>
+<g>
+	<line class="st1" x1="193" y1="142.5" x2="302" y2="142.5"/>
+</g>
+<g>
+	<path class="st0" d="M149.7,77l12.7,22l-12.7,22h-25.4l-12.7-22l12.7-22H149.7 M150.28,76h-26.56l-13.28,23l13.28,23h26.56
+		l13.28-23L150.28,76L150.28,76z"/>
+</g>
+<g>
+	<line class="st1" x1="136.5" y1="99.5" x2="172.5" y2="40.5"/>
+</g>
+<line class="st1" x1="172.5" y1="158.5" x2="136.5" y2="99.5"/>
+<line class="st1" x1="94.5" y1="99.5" x2="183.5" y2="100.5"/>
+<circle class="st0" cx="203" cy="156" r="5"/>
+<circle class="st0" cx="226" cy="156" r="5"/>
+<circle class="st0" cx="247" cy="156" r="5"/>
+<rect x="106" y="147" class="st0" width="42" height="4"/>
+<rect x="106" y="139" class="st0" width="19" height="3"/>
+</svg>

@@ -1,0 +1,209 @@
+{% extends "main.html" %}
+{% block content %}
+<section id="index-app">
+	<div class="container-fluid">
+
+		<div id="home" class="jumbotron text-center">
+			<h1 id="logo">
+				Outbreak API
+			</h1>
+			<div>
+				<p class="w-75 m-auto text-dark">
+					Pending BioThings APIs are a collection of community-contributed APIs from various data sources. They were built using
+					<a rel="noopener"  class="link" href="https://biothingsapi.readthedocs.io/en/latest/" target="_blank">BioThings SDK</a> and follow the same design pattern of our official BioThings APIs (<a rel="noopener"  class="link" href="https://mygene.info" target="_blank">MyGene.info</a>,
+					<a rel="noopener" class="link" href="https://myvariant.info" target="_blank">MyVariant.info</a>, <a rel="noopener"  class="link" href="https://mychem.info" target="_blank">MyChem.info</a>, etc). These APIs are also pending to be integrated into the proper official BioThings API based on their entity type.
+				</p>
+			</div>
+		</div>
+
+    <div id="pending" class="jumbotron bg-secondary text-dark text-center">
+      <div class="gradientBox">
+        <div class="bg-secondary jumbotron">
+          <div class="text-dark font-weight-light">
+            <h3>(<span v-text="pending.length"></span>) APIs</h3>
+          </div>
+					<div style="overflow-x:scroll">
+						<table class="table table-dark table-striped table-sm table-hover sortable">
+							<thead class="thead-dark">
+						    <tr>
+						      <th scope="col">Name</th>
+						      <th scope="col" class="d-none d-md-table-cell">Documents</th>
+						      <th scope="col" class="d-none d-md-table-cell">Entity Type</th>
+						      <th scope="col">Try It</th>
+						    </tr>
+						  </thead>
+							<tbody>
+								<template v-for="(api,index) in pending"  v-if="index < shown">
+									<api-box :api="api" :key="index"></api-box>
+								</template>
+							</tbody>
+						</table>
+					</div>
+					<div class="mb-5 w-100 p-3 bg-secondary" v-if="shown < pending.length">
+						<button class="btn btn-outline-dark text-dark" @click="shown = shown+10">Load More</button>
+					</div>
+          <small class="text-muted">
+            <i class="fas fa-exclamation-circle"></i> Disclaimer: Pending APIs available here are meant for testing purposes. We cannot guarantee the reliability of these APIs. Use at your own risk.
+          </small>
+        </div>
+      </div>
+    </div>
+
+	</div>
+</section>
+
+
+
+{% endblock %}
+	{% block extra_scripts %}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.4.2/vue.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.min.js"></script>
+  <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+	<script src="/static/js/sortable.js"></script>
+	<script>
+  AOS.init();
+
+	Vue.component('api-box', {
+  data: function(){
+    return{
+			loading:false,
+			metadata:null,
+			existingEntity:false,
+    }
+  },
+  props: ['api'],
+  methods:{
+		getMetadata(name){
+			let self = this;
+			let safeList = ['gene','chemical','variant','disease']
+			self.loading = true;
+			axios.get('//pending.biothings.io/'+name+'/metadata').then(res=>{
+				self.loading = false;
+				self.metadata = res.data
+				if (self.metadata.hasOwnProperty('doc_type')) {
+					if (safeList.includes(self.metadata['doc_type'])) {
+						self.existingEntity = true
+					}
+				}
+				else if (self.metadata.hasOwnProperty('biothing_type')) {
+					if (safeList.includes(self.metadata['biothing_type'])) {
+						self.existingEntity = true
+					}
+				}
+			}).catch(err=>{
+				self.loading = false;
+				throw err;
+			})
+		},
+		numberWithCommas() {
+			let self = this;
+			let x = null
+			if (self.metadata.hasOwnProperty('src')) {
+				for (var key in self.metadata.src) {
+					if (self.metadata.src[key].hasOwnProperty('stats')) {
+						for (var k in self.metadata.src[key]['stats']) {
+							x += self.metadata.src[key]['stats'][k]
+						}
+					}
+				}
+				if (x) {
+					return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+				}else{
+					return 'N/A'
+				}
+
+			}
+		},
+		numberWithNOCommas() {
+			let self = this;
+			let x = null
+			if (self.metadata.hasOwnProperty('src')) {
+				for (var key in self.metadata.src) {
+					if (self.metadata.src[key].hasOwnProperty('stats')) {
+						for (var k in self.metadata.src[key]['stats']) {
+							x += self.metadata.src[key]['stats'][k]
+						}
+					}
+				}
+				if (x) {
+					return x
+				}else{
+					return 'N/A'
+				}
+
+			}
+		},
+		getFirstKeyName(obj){
+			return Object.keys(obj)[0]
+		},
+  },
+  watch:{
+  },
+  mounted: function(){
+		let self = this;
+		if (self.api["_id"]) {
+			self.getMetadata(self.api["_id"])
+		}
+  },
+  template: `<tr>
+							<td class="text-left">
+								<template v-if='api && api["status"]'>
+									<i class="fas " :title='api["status"]' v-bind:class="[api['status'] === 'running' ? 'text-success fa-check-circle' : 'text-danger fa-exclamation-circle' ]"></i>
+								</template>
+								<span class="font-weight-bold apiTitle d-inline" v-text='api["_id"]'></span>
+								<div v-if='loading' class="d-inline text-warning">
+									Loading ... <i class="fas fa-spinner fa-pulse"></i>
+								</div>
+							</td>
+							<td class="bg-secondary d-none d-md-table-cell">
+								<template v-if="metadata && metadata.src">
+									<small class="badge bg-secondary"  v-text="numberWithCommas()" ></small>
+								</template>
+							</td>
+							<td class=" d-none d-md-table-cell">
+								<template v-if="metadata">
+									<div v-if="metadata.biothing_type" class="badge bg-secondary text-dark d-block p-1">
+										<span v-text="metadata.biothing_type"></span>
+									</div>
+									<div v-if="metadata.doc_type" class="badge bg-secondary text-dark d-block p-1">
+										<span v-text="metadata.doc_type"></span>
+									</div>
+								</template>
+							</td>
+							<td>
+								<div>
+									<a class="btn btn-outline-light" :href="'./'+api['_id']">Try It <i class="fas fa-chevron-right"></i></a>
+								</div>
+							</td>
+						</tr>`
+});
+
+  var app = new Vue({
+    el: '#index-app',
+    data: function(){
+      return {
+         pending:[],
+         shown:20,
+         query:"",
+         apiSelected:'',
+         querySelected:'',
+         queryString:'',
+         querySelectionType:'example',
+         success: false,
+				 apiList:[],
+				 context:{}
+      }
+    },
+    methods: {
+
+    },
+      mounted:function(){
+				let self = this;
+				if ({{Context}}) {
+					self.context = {{Context}}
+					self.pending = self.context.List
+				}
+      }
+  });
+	</script>
+	{% endblock %}

@@ -1,0 +1,28 @@
+<footer id="footer" class="bg-dark noPadding" style="bottom:0;">
+  <div class="copyright text-center text-muted">
+    <ul class="noListStyle listBlock">
+      <li>
+        <a rel="noopener"  class="link text-light" href="http://twitter.com/biothingsapi" target="_blank">
+          </i> Twitter
+        </a>
+      </li>
+      <li>
+        <a rel="noopener"  class="link text-light" href="https://github.com/biothings/biothings.api" target="_blank">
+          </i> Github
+        </a>
+      </li>
+    </ul>
+    <hr />
+    <small class="text-light">
+      All content copyright <a href="http://biothings.io" class="link">BioThings.io</a> © <span id="year"></span> <br /> All rights reserved.
+      <a rel="noopener"  target="_blank" href="http://biothings.io/terms" class="link">Terms of use.</a>
+      <a rel="noopener"  target="_blank" href="http://biothings.io/citation/" class="link">How To Cite</a>
+    </small>
+  </div>
+</footer>
+<script>
+var currentTime = new Date()
+var year = currentTime.getFullYear()
+var myelement = document.getElementById("year");
+    myelement.innerHTML= year;
+</script>
