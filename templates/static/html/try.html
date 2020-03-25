@@ -5,11 +5,11 @@
 </style>
 <section id="try-app">
   <div v-if="validAPI" class="container mt-5">
-    <div class="bg-dark">
-      <div class="bg-dark jumbotron text-light text-center">
-        <div v-if="metadata && metadata.src" class="bg-dark p-5">
-          <div style="position:relative;" class="p-5 mb-3">
-            <h1 class="font-weight-bold reflection" :data-text='api' v-text='api'></h1>
+    <div class="bg-light">
+      <div class="bg-light jumbotron text-dark text-center">
+        <div v-if="metadata && metadata.src" class="bg-light p-5">
+          <div class="p-5 mb-3">
+            <h1 class="font-weight-bold" :data-text='api' v-text='api'></h1>
           </div>
           <small class="text-light mb-4 lighter" v-text='"Version "+metadata.src[getKeyName(metadata.src)]["version"]'></small>
           <ul class="link-list">
@@ -49,13 +49,13 @@
           </div>
           <div v-if="existingEntity" >
             <small>Pending for integration with:</small>
-            <div v-if="metadata.biothing_type" class="badge bg-dark d-block p-1 m-2">
+            <div v-if="metadata.biothing_type" class="badge bg-secondary d-inline p-1 m-2">
               <a rel="noopener"  v-if="metadata.biothing_type === 'gene'" target="_blank" href="https://mygene.info/"><img alt="myGene"  src="/static/img/mygene-text.svg" height="20px"/></a>
               <a rel="noopener"  v-if="metadata.biothing_type === 'variant'" target="_blank" href="https://myvariant.info"><img alt="myVariant"  src="/static/img/myvariant-text.svg" height="20px"/></a>
               <a rel="noopener"  v-if="metadata.biothing_type === 'chemical'" target="_blank" href="https://mychem.info"><img alt="myChem" src="/static/img/mychem-text.svg" height="20px"/></a>
               <a rel="noopener"  v-if="metadata.biothing_type === 'disease'" class="link" target="_blank" href="http://mydisease.info/">MyDisease.info</a>
             </div>
-            <div v-if="metadata.doc_type" class="badge bg-dark d-block p-1 m-2">
+            <div v-if="metadata.doc_type" class="badge bg-secondary d-inline p-1 m-2">
               <a rel="noopener"  v-if="metadata.doc_type === 'gene'" target="_blank" href="https://mygene.info/"><img alt="myGene"  src="/static/img/mygene-text.svg" height="20px"/></a>
               <a rel="noopener"  v-if="metadata.doc_type === 'variant'" target="_blank" href="https://myvariant.info"><img alt="myVariant"  src="/static/img/myvariant-text.svg" height="20px"/></a>
               <a rel="noopener"  v-if="metadata.doc_type === 'chemical'" target="_blank" href="https://mychem.info"><img alt="myChem" src="/static/img/mychem-text.svg" height="20px"/></a>
@@ -76,13 +76,13 @@
     </div>
 
       <div class="gradientBox">
-        <div class="bg-dark jumbotron text-light text-center">
+        <div class="bg-light jumbotron text-dark text-center">
           <h1 class="mb-5">
             Try It
           </h1>
           <form class="d-flex justify-content-start flex-wrap" @submit.prevent="testQuery()">
             <div class="form-group p-1">
-              <h4 class="text-md-right">pending.biothings.io/<span class="text-light bold" v-text="api"></span></h4>
+              <h4 class="text-md-right"><span v-text="window.location.origin"></span>/<span class="text-dark bold" v-text="api"></span></h4>
             </div>
             <div class="form-group p-1">
               <template v-if="querySelectionType==='example'">
@@ -126,8 +126,8 @@
       </div>
 
   </div>
-  <div v-else>
-    <div class="bg-dark jumbotron text-light text-center mt-5">
+  <div v-else style="min-height:80vh;">
+    <div class="bg-light jumbotron text-dark text-center mt-5">
       <h1>Nothing to see here...</h1>
       <h5><span v-text='api'></span> is not a pending API</h5>
     </div>
@@ -188,7 +188,7 @@
               if (limit > self.numberOfDocs) {
                 limit = self.numberOfDocs-100;
               }
-              axios.get('//pending.biothings.io/'+self.api.toLowerCase()+'/query?q=__all__&from='+limit+'&size='+size).then(result=>{
+              axios.get('/'+self.api.toLowerCase()+'/query?q=__all__&from='+limit+'&size='+size).then(result=>{
                 let res = result.data.hits
                 let i = 0;
                 let picks = []
@@ -309,7 +309,7 @@
         testQuery(){
           let self = this;
           if (self.api && self.querySelected) {
-            self.queryString = '//pending.biothings.io/'+self.api.toLowerCase()+self.querySelected
+            self.queryString = '/'+self.api.toLowerCase()+self.querySelected
             self.callApi(self.queryString)
           }
         },
@@ -349,7 +349,7 @@
           let self = this;
           self.pending=[];
           let safeList = ['gene','chemical','variant','disease']
-          axios.get('//pending.biothings.io/'+self.api+'/metadata').then(res=>{
+          axios.get('/'+self.api+'/metadata').then(res=>{
             self.metadata = res.data;
             // console.log('META',res.data)
             self.numberOfDocs = self.metadata.src[self.getKeyName(self.metadata.src)].stats[self.getKeyName(self.metadata.src)];
@@ -375,31 +375,10 @@
           })
 
         },
-        registerServiceWorker(){
-          // Check that service workers are registered
-          if ('serviceWorker' in navigator) {
-            // Use the window load event to keep the page load performant
-            window.addEventListener('load', () => {
-              try{
-                navigator.serviceWorker.register('/static/worker.js').then(function(ServiceWorkerRegistration) {
-                  console.log('Service Worker registered');
-                }).catch(err=>{
-                  console.log('Service Worker registration failed');
-                });
-              }catch(err){
-              }
-            });
-          }
-        }
       },
         mounted: function(){
           this.api  = window.location.pathname.replace('/','').toLowerCase();
           this.getMetadata();
-          // this.registerServiceWorker();
-
-
-
-
         }
     });
   </script>
