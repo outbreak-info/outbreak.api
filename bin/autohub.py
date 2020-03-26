@@ -4,7 +4,7 @@ import logging
 import biothings
 import config
 from biothings.utils.version import set_versions
-from standalone.utils.version import set_standalone_version
+# from standalone.utils.version import set_standalone_version
 
 # shut some mouths...
 logging.getLogger("elasticsearch").setLevel(logging.ERROR)
@@ -15,17 +15,21 @@ logging.getLogger("tornado").setLevel(logging.ERROR)
 
 # fill app & autohub versions
 set_versions(config, ".")
-set_standalone_version(config, "standalone")
+# set_standalone_version(config, "standalone")
 biothings.config_for_app(config)
 # now use biothings' config wrapper
 config = biothings.config
 logging.info("Hub DB backend: %s", config.HUB_DB_BACKEND)
 logging.info("Hub database: %s", config.DATA_HUB_DB_DATABASE)
 
-from standalone.hub import DynamicIndexerFactory
-from hub import PendingHubServer
+from biothings.hub.standalone import AutoHubServer, DynamicIndexerFactory
 
-server = PendingHubServer(
+
+class OutBreakHubServer(AutoHubServer):
+    DEFAULT_FEATURES = AutoHubServer.DEFAULT_FEATURES + ["index", "api"]
+
+
+server = OutBreakHubServer(
     config.VERSION_URLS,
     indexer_factory=DynamicIndexerFactory(config.VERSION_URLS, config.ES_HOST, suffix=""),
     source_list=None, name="Pending API Hub (frontend)",
