@@ -11,7 +11,7 @@ logging.getLogger("elasticsearch").setLevel(logging.ERROR)
 logging.getLogger("urllib3").setLevel(logging.ERROR)
 logging.getLogger("requests").setLevel(logging.ERROR)
 logging.getLogger("tornado").setLevel(logging.ERROR)
-# logging.getLogger("botocore").setLevel(logging.ERROR)
+logging.getLogger("botocore").setLevel(logging.ERROR)
 
 # fill app & autohub versions
 set_versions(config, ".")
