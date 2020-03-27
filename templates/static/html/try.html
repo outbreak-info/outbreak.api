@@ -188,6 +188,7 @@
               if (limit > self.numberOfDocs) {
                 limit = self.numberOfDocs-100;
               }
+              let base ='/';
               if (window.location.hostname ==='localhost') {
                 base = 'https://api.outbreak.info/';
               }else {

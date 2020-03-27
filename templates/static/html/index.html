@@ -77,7 +77,13 @@
 			let self = this;
 			let safeList = ['gene','chemical','variant','disease']
 			self.loading = true;
-			axios.get('//pending.biothings.io/'+name+'/metadata').then(res=>{
+			let base ='/';
+			if (window.location.hostname ==='localhost') {
+				base = 'https://api.outbreak.info/';
+			}else {
+				base ='/';
+			}
+			axios.get(base+name+'/metadata').then(res=>{
 				self.loading = false;
 				self.metadata = res.data
 				if (self.metadata.hasOwnProperty('doc_type')) {
