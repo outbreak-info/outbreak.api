@@ -7,11 +7,21 @@
   --green-light: #85d958;
   --orange-dark: #c63;
   --orange-medium: #fd7400;
-  --orange-light: #ff8e39
+  --orange-light: #ff8e39;
+  --main: #114068;
+  --sec: #126B93;
 }
 
 html{
   scroll-behavior: smooth;
+}
+
+.bg-main{
+  background: var(--main) !important;
+}
+
+.bg-sec{
+  background: var(--sec) !important;
 }
 
 ::selection {
@@ -137,7 +147,7 @@ a.link {
   border-radius: 100%
 }
 
-.variantHero {
+.hero {
   background-repeat: no-repeat;
   background-size: cover;
   background-position: bottom;
@@ -224,18 +234,6 @@ h1, h2, h3, h4, h5, p, a {
 
 .smallCaps {
   font-variant: small-caps
-}
-
-:root {
-  --blue-dark: #36c;
-  --blue-medium: #2a7fe2;
-  --blue-light: #669be8;
-  --green-dark: #40b307;
-  --green-medium: #67cf2e;
-  --green-light: #85d958;
-  --orange-dark: #c63;
-  --orange-medium: #fd7400;
-  --orange-light: #ff8e39
 }
 
 .contentBack {

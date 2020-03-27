@@ -6,9 +6,9 @@
 <section id="try-app">
   <div v-if="validAPI" class="container mt-5">
     <div class="bg-light">
-      <div class="bg-light jumbotron text-dark text-center">
-        <div v-if="metadata && metadata.src" class="bg-light p-5">
-          <div class="p-5 mb-3">
+      <div class="bg-sec text-light jumbotron text-center p-1">
+        <div v-if="metadata && metadata.src" class="bg-sec py-2">
+          <div class="py-2">
             <h1 class="font-weight-bold" :data-text='api' v-text='api'></h1>
           </div>
           <small class="text-light mb-4 lighter" v-text='"Version "+metadata.src[getKeyName(metadata.src)]["version"]'></small>
@@ -16,21 +16,21 @@
             <li class="d-inline" v-if='metadata.src[getKeyName(metadata.src)]["url"]'>
               <small class="">
                 <a rel="noopener" :href='metadata.src[getKeyName(metadata.src)]["url"]' target="_blank" class="link">
-                  Source
+                  <i class="fas fa-link"></i> Source
                 </a>
               </small>
             </li>
             <li class="d-inline" v-if='metadata.src[getKeyName(metadata.src)]["code"]["url"]'>
               <small class="">
                 <a rel="noopener" :href='metadata.src[getKeyName(metadata.src)]["code"]["url"]' target="_blank" class="link">
-                  Code
+                  <i class="fas fa-link"></i> Code
                 </a>
               </small>
             </li>
             <li class="d-inline" v-if='metadata.src[getKeyName(metadata.src)]["license_url"]'>
               <small class="">
                 <a rel="noopener" :href='metadata.src[getKeyName(metadata.src)]["license_url"]' target="_blank" class="link">
-                  License
+                  <i class="fas fa-link"></i> License
                 </a>
               </small>
             </li>
@@ -44,8 +44,8 @@
             </small>
           </template>
           <h3 class="m-3" v-text="numberWithCommas(numberOfDocs)+' documents'"></h3>
-          <div class="m-5 p-1" style="position: relative">
-            <a rel="noopener" target="_blank" class="btn-main" :href="'https://github.com/biothings/pending.api/labels/'+api"><i class="fab fa-github"></i> Give Feedback</a>
+          <div class="my-2 p-1" style="position: relative">
+            <a rel="noopener" target="_blank" class="btn btn-sm btn-outline-light" :href="'https://github.com/biothings/outbreak.api/labels/'+api"><i class="fab fa-github"></i> Give Feedback</a>
           </div>
           <div v-if="existingEntity" >
             <small>Pending for integration with:</small>
@@ -64,10 +64,10 @@
           </div>
           <div v-if="!existingEntity">
             <small>Entity Type:</small>
-            <div v-if="metadata.biothing_type" class="badge bg-dark d-block p-1 m-2">
+            <div v-if="metadata.biothing_type" class="badge badge-dark d-inline p-1 m-2">
               <span v-text="metadata.biothing_type"></span>
             </div>
-            <div v-if="metadata.doc_type" class="badge bg-dark d-block p-1 m-2">
+            <div v-if="metadata.doc_type" class="badge badge-dark d-inline p-1 m-2">
               <span v-text="metadata.doc_type"></span>
             </div>
           </div>
@@ -96,7 +96,7 @@
                 <input v-model="querySelected" type="text" class="form-control scale-in-center" id="exampleFormControlInput1" placeholder="enter query here">
               </template>
               <button @click="querySelected=''" v-if="querySelected" class="btn btn-outline-dark text-danger mt-2 mr-2" type="button">Clear</button>
-              <button v-if="querySelected" class="btn btn-outline-dark text-light mt-2" type="submit">Submit</button>
+              <button v-if="querySelected" class="btn btn-outline-dark mt-2" type="submit">Submit</button>
               <label class="text-muted" v-if="!querySelected" for="api">Select a query</label>
               <div class="form-check text-left mt-3">
                 <input v-model="querySelectionType" class="form-check-input" type="radio" name="exampleRadios" id="exampleRadios1" value="example" checked>
@@ -113,7 +113,7 @@
             </div>
           </form>
           <p class="bold" v-if="success && queryString">
-            <i  class="fas fa-check text-success"></i> <a rel="noopener" target="_blank" :href="'http:'+queryString" v-text="'http:'+queryString" class="m-auto" :class="[ success ? 'text-success' : 'text-danger']" type="text"></a>
+            <i  class="fas fa-check text-success"></i> <a rel="noopener" target="_blank" :href="queryString" v-text="queryString" class="m-auto" :class="[ success ? 'text-success' : 'text-danger']" type="text"></a>
           </p>
           <div v-show='loading' class="spinner">
             <div class="cube1"></div>
@@ -188,7 +188,12 @@
               if (limit > self.numberOfDocs) {
                 limit = self.numberOfDocs-100;
               }
-              axios.get('/'+self.api.toLowerCase()+'/query?q=__all__&from='+limit+'&size='+size).then(result=>{
+              if (window.location.hostname ==='localhost') {
+                base = 'https://api.outbreak.info/';
+              }else {
+                base ='/';
+              }
+              axios.get(base+self.api.toLowerCase()+'/query?q=__all__&from='+limit+'&size='+size).then(result=>{
                 let res = result.data.hits
                 let i = 0;
                 let picks = []
@@ -349,7 +354,13 @@
           let self = this;
           self.pending=[];
           let safeList = ['gene','chemical','variant','disease']
-          axios.get('/'+self.api+'/metadata').then(res=>{
+          let base='/';
+          if (window.location.hostname ==='localhost') {
+            base = 'https://api.outbreak.info/';
+          }else {
+            base ='/';
+          }
+          axios.get(base+self.api+'/metadata').then(res=>{
             self.metadata = res.data;
             // console.log('META',res.data)
             self.numberOfDocs = self.metadata.src[self.getKeyName(self.metadata.src)].stats[self.getKeyName(self.metadata.src)];
