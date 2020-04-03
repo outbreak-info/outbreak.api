@@ -16,8 +16,6 @@ API_COLLECTION = 'api'                     # for api information (running under 
 CMD_COLLECTION = 'cmd'                     # for cmd launched from the hub
 EVENT_COLLECTION = 'event'                 # for event propagation
 
-DATA_TARGET_MASTER_COLLECTION = 'db_master'
-
 # Redis config to cache IDs when doing cold/hot merge
 REDIS_CONNECTION_PARAMS = {}
 
@@ -32,7 +30,7 @@ MAX_RANDOMLY_PICKED = 10
 MAX_DIFF_SIZE = 10 * 1024**2
 
 # ES s3 repository to use snapshot/restore (must be pre-configured in ES)
-SNAPSHOT_REPOSITORY = "pending_repository"
+SNAPSHOT_REPOSITORY = "outbreak_repository"
 
 # cache file format ("": ascii/text uncompressed, or "gz|zip|xz"
 CACHE_FORMAT = "xz"
@@ -95,12 +93,13 @@ SNAPSHOT_CONFIG = {}
 RELEASE_CONFIG = {}
 
 # SSH port for hub console
-HUB_SSH_PORT = 19022
-HUB_API_PORT = 19080
+HUB_SSH_PORT = 19122
+HUB_API_PORT = 19180
+READONLY_HUB_API_PORT = 19181
 
 # Hub name/icon url/version, for display purpose
-HUB_NAME = "Pending (backend)"
-HUB_ICON = "http://biothings.io/static/img/sdk-icon.svg"
+HUB_NAME = "OutBreak API (backend)"
+HUB_ICON = "https://outbreak.info/img/icon-01.1a356632.svg"
 HUB_VERSION = "master"
 
 USE_RELOADER = True # so no need to restart hub when a datasource has changed
@@ -110,14 +109,11 @@ USE_RELOADER = True # so no need to restart hub when a datasource has changed
 ################################################################################
 # The format is a dictionary of 'username': 'cryptedpassword'
 # Generate crypted passwords with 'openssl passwd -crypt'
-HUB_PASSWD = {"guest":"password"}
+# The default value below is for an empty password
+HUB_PASSWD = {"guest":"9RKfd8gDuNf0Q"}
 
 # cached data (it None, caches won't be used at all)
 CACHE_FOLDER = None
-
-# Role, when master, hub will publish data (updates, snapshot, etc...) that
-# other instances can use (production, standalones)
-BIOTHINGS_ROLE = "slave"
 
 
 from biothings.utils.loggers import setup_default_log
@@ -183,6 +179,8 @@ TORNADO_SETTINGS = {
     "max_buffer_size" : 10*1024*1024*1024,
 }
 
+STANDALONE_VERSION = "standalone_v3"
+
 # Path to a folder to store all downloaded files, logs, caches, etc...
 DATA_ARCHIVE_ROOT = ConfigurationError("Define path to folder which will contain all downloaded data, cache files, etc...")
 
@@ -221,4 +219,5 @@ logger = ConfigurationError("Provider a default hub logger instance (use setup_d
 logging.getLogger("elasticsearch").setLevel(logging.ERROR)
 logging.getLogger("urllib3").setLevel(logging.ERROR)
 logging.getLogger("requests").setLevel(logging.ERROR)
+logging.getLogger("botocore").setLevel(logging.ERROR)
 logging.getLogger("boto").setLevel(logging.ERROR)
