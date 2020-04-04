@@ -79,6 +79,6 @@ STATUS_CHECK = {
     'doc_type': 'outbreak_info'
 }
 
-STATIC_PATH = 'templates/static'
+STATIC_PATH = 'web/static'
 
 # JSONLD_CONTEXT_PATH = 'web/context/context.json'
