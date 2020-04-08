@@ -82,3 +82,8 @@ STATUS_CHECK = {
 STATIC_PATH = 'web/static'
 
 # JSONLD_CONTEXT_PATH = 'web/context/context.json'
+
+try:
+    from config_web_local import *
+except ImportError:
+    pass
