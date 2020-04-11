@@ -1,10 +1,5 @@
-from biothings.web.settings.default import *
-from biothings.web.api.es.handlers import BiothingHandler
-from biothings.web.api.es.handlers import MetadataSourceHandler, MetadataFieldHandler
-from biothings.web.api.es.handlers import QueryHandler
-from biothings.web.api.es.handlers import StatusHandler
+# from biothings.web.settings.default import *
 
-from web.handlers import MainHandler, ApiViewHandler
 # from web.api.query_builder import ESQueryBuilder
 # from web.api.query import ESQuery
 # from web.api.transform import ESResultTransformer
@@ -29,17 +24,17 @@ API_VERSION = 'v1'
 # *****************************************************************************
 # App URL Patterns
 # *****************************************************************************
-APP_LIST = [
-    (r"/{}/status".format(API_VERSION), StatusHandler),
-    (r"/{}/outbreak_info/(.+)/?".format(API_VERSION), BiothingHandler),
-    (r"/{}/outbreak_info/?$".format(API_VERSION), BiothingHandler),
-    (r"/{}/query/?".format(API_VERSION), QueryHandler),
-    (r"/{}/metadata/?".format(API_VERSION), MetadataSourceHandler),
-    (r"/{}/metadata/fields/?".format(API_VERSION), MetadataFieldHandler),
-
-    (r"/?", MainHandler),
-    (r"/([^/]+)/?", ApiViewHandler)
-]
+#APP_LIST = [
+#    (r"/{}/status".format(API_VERSION), StatusHandler),
+#    (r"/{}/outbreak_info/(.+)/?".format(API_VERSION), BiothingHandler),
+#    (r"/{}/outbreak_info/?$".format(API_VERSION), BiothingHandler),
+#    (r"/{}/query/?".format(API_VERSION), QueryHandler),
+#    (r"/{}/metadata/?".format(API_VERSION), MetadataSourceHandler),
+#    (r"/{}/metadata/fields/?".format(API_VERSION), MetadataFieldHandler),
+#
+#    (r"/?", MainHandler),
+#    (r"/([^/]+)/?", ApiViewHandler)
+#]
 
 ###############################################################################
 #   app-specific query builder, query, and result transformer classes
