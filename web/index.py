@@ -1,11 +1,11 @@
 from biothings.web.index_base import main
 
-from web.handlers import MainHandler, ApiViewHandler
+from handlers import MainHandler, ApiViewHandler
 
 
 if __name__ == '__main__':
     extra_app_list = [
-        (r"/?", "web.handlers.MainHandler"),
-        (r"/([^/]+)/?", "web.handlers.ApiViewHandler")
+        (r"/?", MainHandler),
+        (r"/([^/]+)/?", ApiViewHandler)
     ]
     main(extra_app_list)
