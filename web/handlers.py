@@ -1,31 +1,37 @@
-import json
-import logging
-import os
-import sys
+"""
+Non-API handlers go here, e.g. the landing page and API page.
+"""
+import os.path
 
-import tornado.gen
-import tornado.httpclient
-import tornado.httpserver
-import tornado.ioloop
 import tornado.web
+from tornado.escape import json_encode
 from jinja2 import Environment, FileSystemLoader
-from tornado.httputil import url_concat
-
-import requests
-
-log = logging.getLogger("pending")
+# import requests
 
 src_path = os.path.split(os.path.split(os.path.abspath(__file__))[0])[0]
-if src_path not in sys.path:
-    sys.path.append(src_path)
+# import sys
+# if src_path not in sys.path:
+#     sys.path.append(src_path)
 
 TEMPLATE_PATH = os.path.join(src_path, 'web/templates')
 templateLoader = FileSystemLoader(searchpath=TEMPLATE_PATH)
 templateEnv = Environment(loader=templateLoader, cache_size=0)
 
 def get_api_list():
-    r = requests.get('https://api.outbreak.info/api/list');
-    return r.json()['result']
+    # import requests
+    # r = requests.get('https://api.outbreak.info/api/list')
+    # res = r.json()['result']
+    res = [
+        {
+            "_id": "covid19",
+            "config": {
+                "doc_type": "outbreak_info"
+            },
+            "description": "COVID19 live outbreak data",
+            "status": "running"
+        }
+    ]
+    return res
 
 class BaseHandler(tornado.web.RequestHandler):
     def return_json(self, data):
@@ -35,10 +41,10 @@ class BaseHandler(tornado.web.RequestHandler):
 
 class MainHandler(BaseHandler):
     def get(self):
-        list = get_api_list()
+        api_list = get_api_list()
         index_file = "index.html"
         index_template = templateEnv.get_template(index_file)
-        index_output = index_template.render(Context=json.dumps({"List": list}))
+        index_output = index_template.render(Context=json_encode({"List": api_list}))
         self.write(index_output)
 
 class ApiViewHandler(BaseHandler):
