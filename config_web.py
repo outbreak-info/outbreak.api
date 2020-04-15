@@ -19,7 +19,10 @@ ES_DOC_TYPE = 'outbreak_info'
 #ES_SCROLL_SIZE = 10
 ES_SCROLL_TIME = '10m'
 
-API_VERSION = 'v1'
+API_PREFIX = "covid19"
+# API_VERSION = 'v1'
+API_VERSION = ''
+
 
 # *****************************************************************************
 # App URL Patterns
