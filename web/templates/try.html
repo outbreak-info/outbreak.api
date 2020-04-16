@@ -13,16 +13,16 @@
           </div>
           <small class="text-light mb-4 lighter" v-text='"Version "+metadata.src[getKeyName(metadata.src)]["version"]'></small>
           <ul class="link-list">
-            <li class="d-inline" v-if='metadata.src[getKeyName(metadata.src)]["url"]'>
+            <li class="d-inline" v-if='metaUrl'>
               <small class="">
-                <a rel="noopener" :href='metadata.src[getKeyName(metadata.src)]["url"]' target="_blank" class="link">
+                <a rel="noopener" :href='metaUrl' target="_blank" class="link">
                   <i class="fas fa-link"></i> Source
                 </a>
               </small>
             </li>
-            <li class="d-inline" v-if='metadata.src[getKeyName(metadata.src)]["code"]["url"]'>
+            <li class="d-inline" v-if='metaUrl'>
               <small class="">
-                <a rel="noopener" :href='metadata.src[getKeyName(metadata.src)]["code"]["url"]' target="_blank" class="link">
+                <a rel="noopener" :href='metaUrl' target="_blank" class="link">
                   <i class="fas fa-link"></i> Code
                 </a>
               </small>
@@ -113,7 +113,7 @@
             </div>
           </form>
           <p class="bold" v-if="success && queryString">
-            <i  class="fas fa-check text-success"></i> <a rel="noopener" target="_blank" :href="queryString" v-text="queryString" class="m-auto" :class="[ success ? 'text-success' : 'text-danger']" type="text"></a>
+            <i  class="fas fa-check text-success"></i> <a rel="noopener" target="_blank" :href="queryString" v-text="window.location.origin+queryString" class="m-auto" :class="[ success ? 'text-success' : 'text-danger']" type="text"></a>
           </p>
           <div v-show='loading' class="spinner">
             <div class="cube1"></div>
@@ -162,7 +162,9 @@
           validAPI: true,
           type:'',
           numberOfExamples:8,
-          existingEntity:false
+          existingEntity:false,
+          metaUrl:'',
+          localMode:false,
         }
       },
       watch:{
@@ -315,7 +317,7 @@
         testQuery(){
           let self = this;
           if (self.api && self.querySelected) {
-            self.queryString = '/'+self.api.toLowerCase()+self.querySelected
+            self.queryString = "/"+self.api.toLowerCase()+self.querySelected
             self.callApi(self.queryString)
           }
         },
@@ -331,6 +333,10 @@
           let self = this;
           $('#callResults').html('');
           self.loading = true;
+          let base ='/';
+          if (self.localMode) {
+            myUrl = 'https://api.outbreak.info'+myUrl;
+          }
           axios.get(myUrl).then(res=>{
             self.loading = false;
             renderjson.set_show_to_level(7);
@@ -356,7 +362,7 @@
           self.pending=[];
           let safeList = ['gene','chemical','variant','disease']
           let base='/';
-          if (window.location.hostname ==='localhost') {
+          if (self.localMode) {
             base = 'https://api.outbreak.info/';
           }else {
             base ='/';
@@ -364,6 +370,9 @@
           axios.get(base+self.api+'/metadata').then(res=>{
             self.metadata = res.data;
             // console.log('META',res.data)
+            if (self.metadata && self.metadata.src[self.getKeyName(self.metadata.src)]["url"]) {
+              self.metaUrl = self.metadata.src[self.getKeyName(self.metadata.src)]["url"];
+            }
             self.numberOfDocs = self.metadata.src[self.getKeyName(self.metadata.src)].stats[self.getKeyName(self.metadata.src)];
             if (self.metadata.biothing_type) {
               self.type= self.metadata.biothing_type;
@@ -390,6 +399,17 @@
       },
         mounted: function(){
           this.api  = window.location.pathname.replace('/','').toLowerCase();
+
+          // http://localhost:8000/covid19?base=localhost
+          // use this param to query prod site instead of localhost
+
+          var url_string = window.location.href
+          var url = new URL(url_string);
+          var param = url.searchParams.get("base");
+          if (param && param === 'localhost') {
+            this.localMode = true;
+          }
+
           this.getMetadata();
         }
     });

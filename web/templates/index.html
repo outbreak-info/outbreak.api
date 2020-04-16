@@ -1,7 +1,7 @@
 {% extends "main.html" %}
 {% block content %}
 <section id="index-app">
-	<div class="container-fluid">
+	<div class="container-fluid" style="min-height:80vh;">
 
 		<div id="home" class="jumbotron text-center">
 			<h1 id="logo">
@@ -18,31 +18,33 @@
 
     <div id="pending" class="jumbotron bg-sec text-dark text-center">
       <div class="gradientBox">
-        <div class="bg-secondary jumbotron">
+        <div class="py-5">
           <div class="text-dark font-weight-light">
             <h3>(<span v-text="pending.length"></span>) APIs</h3>
           </div>
 					<div style="overflow-x:scroll">
-						<table class="table table-dark table-striped table-sm table-hover sortable">
-							<thead class="thead-dark">
-						    <tr>
-						      <th scope="col">Name</th>
-						      <th scope="col" class="d-none d-md-table-cell">Documents</th>
-						      <th scope="col" class="d-none d-md-table-cell">Entity Type</th>
-						      <th scope="col">Try It</th>
-						    </tr>
-						  </thead>
-							<tbody>
-								<template v-for="(api,index) in pending"  v-if="index < shown">
-									<api-box :api="api" :key="index"></api-box>
-								</template>
-							</tbody>
-						</table>
+						<div class="row">
+							<table class="table table-light table-striped table-sm table-hover sortable m-auto col-sm-12 col-md-7">
+								<thead class="thead-light">
+							    <tr>
+							      <th scope="col">Name</th>
+							      <th scope="col" class="d-none d-md-table-cell">Documents</th>
+							      <th scope="col" class="d-none d-md-table-cell">Entity Type</th>
+							      <th scope="col">Try It</th>
+							    </tr>
+							  </thead>
+								<tbody>
+									<template v-for="(api,index) in pending"  v-if="index < shown">
+										<api-box :api="api" :key="index"></api-box>
+									</template>
+								</tbody>
+							</table>
+						</div>
 					</div>
 					<div class="mb-5 w-100 p-3 bg-secondary" v-if="shown < pending.length">
 						<button class="btn btn-outline-dark text-dark" @click="shown = shown+10">Load More</button>
 					</div>
-          <small class="text-muted">
+          <small class="text-light">
             <i class="fas fa-exclamation-circle"></i> Disclaimer: Pending APIs available here are meant for testing purposes. We cannot guarantee the reliability of these APIs. Use at your own risk.
           </small>
         </div>
@@ -69,6 +71,7 @@
 			loading:false,
 			metadata:null,
 			existingEntity:false,
+			localMode:false
     }
   },
   props: ['api'],
@@ -78,7 +81,7 @@
 			let safeList = ['gene','chemical','variant','disease']
 			self.loading = true;
 			let base ='/';
-			if (window.location.hostname ==='localhost') {
+			if (self.localMode) {
 				base = 'https://api.outbreak.info/';
 			}else {
 				base ='/';
@@ -147,9 +150,21 @@
   },
   mounted: function(){
 		let self = this;
+
+		// http://localhost:8000/covid19?base=localhost
+		// use this param to query prod site instead of localhost
+
+		var url_string = window.location.href
+		var url = new URL(url_string);
+		var param = url.searchParams.get("base");
+		if (param && param === 'localhost') {
+			self.localMode = true;
+		}
+
 		if (self.api["_id"]) {
 			self.getMetadata(self.api["_id"])
 		}
+
   },
   template: `<tr>
 							<td class="text-left">
@@ -168,17 +183,17 @@
 							</td>
 							<td class=" d-none d-md-table-cell">
 								<template v-if="metadata">
-									<div v-if="metadata.biothing_type" class="badge bg-secondary text-dark d-inline m-1 p-1">
+									<div v-if="metadata.biothing_type" class="badge alert-secondary text-dark d-inline m-1 p-1">
 										<span v-text="metadata.biothing_type"></span>
 									</div>
-									<div v-if="metadata.doc_type" class="badge bg-secondary text-dark d-block p-1">
+									<div v-if="metadata.doc_type" class="badge alert-secondary text-dark d-block p-1">
 										<span v-text="metadata.doc_type"></span>
 									</div>
 								</template>
 							</td>
 							<td>
 								<div>
-									<a class="btn btn-outline-light" :href="'./'+api['_id']">Try It <i class="fas fa-chevron-right"></i></a>
+									<a class="btn btn-outline-info" :href="'./'+api['_id']">Try It <i class="fas fa-chevron-right"></i></a>
 								</div>
 							</td>
 						</tr>`
