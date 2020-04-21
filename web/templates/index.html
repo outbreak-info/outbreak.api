@@ -4,6 +4,7 @@
 	<div class="container-fluid" style="min-height:80vh;">
 
 		<div id="home" class="jumbotron text-center">
+			<img src="/static/img/logo.png" width="100px" alt="Outbreak API" />
 			<h1 id="logo">
 				Outbreak API
 			</h1>
@@ -16,39 +17,37 @@
 			</div>
 		</div>
 
-    <div id="pending" class="jumbotron bg-sec text-dark text-center">
-      <div class="gradientBox">
-        <div class="py-5">
-          <div class="text-dark font-weight-light">
-            <h3>(<span v-text="pending.length"></span>) APIs</h3>
-          </div>
-					<div style="overflow-x:scroll">
-						<div class="row">
-							<table class="table table-light table-striped table-sm table-hover sortable m-auto col-sm-12 col-md-7">
-								<thead class="thead-light">
-							    <tr>
-							      <th scope="col">Name</th>
-							      <th scope="col" class="d-none d-md-table-cell">Documents</th>
-							      <th scope="col" class="d-none d-md-table-cell">Entity Type</th>
-							      <th scope="col">Try It</th>
-							    </tr>
-							  </thead>
-								<tbody>
-									<template v-for="(api,index) in pending"  v-if="index < shown">
-										<api-box :api="api" :key="index"></api-box>
-									</template>
-								</tbody>
-							</table>
-						</div>
+    <div id="pending" class="jumbotron bg-light text-dark text-center">
+			<div class="py-3">
+				<div class="text-dark font-weight-light">
+					<h3>(<span v-text="pending.length"></span>) APIs</h3>
+				</div>
+				<div style="overflow-x:scroll" class="mb-5">
+					<div class="row">
+						<table class="table table-light table-striped table-sm table-hover sortable m-auto col-sm-12 col-md-7">
+							<thead class="text-light bg-sec">
+								<tr>
+									<th scope="col">Name</th>
+									<th scope="col" class="d-none d-md-table-cell">Documents</th>
+									<th scope="col" class="d-none d-md-table-cell">Entity Type</th>
+									<th scope="col">Try It</th>
+								</tr>
+							</thead>
+							<tbody>
+								<template v-for="(api,index) in pending"  v-if="index < shown">
+									<api-box :api="api" :key="index"></api-box>
+								</template>
+							</tbody>
+						</table>
 					</div>
-					<div class="mb-5 w-100 p-3 bg-secondary" v-if="shown < pending.length">
-						<button class="btn btn-outline-dark text-dark" @click="shown = shown+10">Load More</button>
-					</div>
-          <small class="text-light">
-            <i class="fas fa-exclamation-circle"></i> Disclaimer: Pending APIs available here are meant for testing purposes. We cannot guarantee the reliability of these APIs. Use at your own risk.
-          </small>
-        </div>
-      </div>
+				</div>
+				<div class="mb-5 w-100 p-3 bg-secondary" v-if="shown < pending.length">
+					<button class="btn btn-outline-dark text-dark" @click="shown = shown+10">Load More</button>
+				</div>
+				<small class="text-muted mt-5">
+					<i class="fas fa-exclamation-circle"></i> Disclaimer: Pending APIs available here are meant for testing purposes. We cannot guarantee the reliability of these APIs. Use at your own risk.
+				</small>
+			</div>
     </div>
 
 	</div>
@@ -193,7 +192,7 @@
 							</td>
 							<td>
 								<div>
-									<a class="btn btn-outline-info" :href="'./'+api['_id']">Try It <i class="fas fa-chevron-right"></i></a>
+									<a class="btn btn-outline-dark" :href="'./'+api['_id']">Try It <i class="fas fa-chevron-right"></i></a>
 								</div>
 							</td>
 						</tr>`

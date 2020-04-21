@@ -1,19 +1,35 @@
-<footer id="footer" class="bg-dark noPadding" style="bottom:0;">
-  <div class="copyright text-center text-muted">
-    <ul class="noListStyle listBlock">
-      <li>
-        <a rel="noopener"  class="link text-light" href="https://github.com/biothings/outbreak.api" target="_blank">
-          </i> Github
-        </a>
-      </li>
-    </ul>
-    <hr />
-    <small class="text-light">
-      All content copyright <a href="http://biothings.io" class="link">BioThings.io</a> © <span id="year"></span> <br /> All rights reserved.
-      <a rel="noopener"  target="_blank" href="http://biothings.io/terms" class="link">Terms of use.</a>
-      <a rel="noopener"  target="_blank" href="http://biothings.io/citation/" class="link">How To Cite</a>
-    </small>
-  </div>
+<footer id="footer" class="py-4" style="bottom:0; background:#09253C;">
+  <div class="text-center text-muted">
+        <ul>
+          <li class="d-inline m-2">
+            <a href="mailto:blog@sulab.org" target="_blank" class="text-light">
+              Contact Us
+            </a>
+          </li>
+          <li class="d-inline m-2">
+            <a
+              class="text-light"
+              href="https://outbreak.info/privacy"
+              >Privacy Policy</a
+            >
+          </li>
+          <li class="d-inline m-2">
+            <a
+              class="text-light"
+              href="https://outbreak.info/terms"
+              >Terms</a
+            >
+          </li>
+        </ul>
+        <small>
+          All content copyright
+          <a href="http://sulab.org/" target="_blank" rel="noreferrer">
+            SuLab</a
+          >
+          © <span v-text="year"></span> <br />
+          All rights reserved.
+        </small>
+      </div>
 </footer>
 <script>
 var currentTime = new Date()
