@@ -191,7 +191,7 @@
                 limit = self.numberOfDocs-100;
               }
               let base ='/';
-              if (window.location.hostname ==='localhost') {
+              if (self.localMode) {
                 base = 'https://api.outbreak.info/';
               }else {
                 base ='/';
@@ -406,7 +406,7 @@
           var url_string = window.location.href
           var url = new URL(url_string);
           var param = url.searchParams.get("base");
-          if (param && param === 'localhost') {
+          if (param && param === 'prod') {
             this.localMode = true;
           }
 

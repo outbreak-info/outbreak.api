@@ -156,7 +156,7 @@
 		var url_string = window.location.href
 		var url = new URL(url_string);
 		var param = url.searchParams.get("base");
-		if (param && param === 'localhost') {
+		if (param && param === 'prod') {
 			self.localMode = true;
 		}
 
