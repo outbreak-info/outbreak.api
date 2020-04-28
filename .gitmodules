@@ -1,3 +1,0 @@
-[submodule "biothings.api"]
-	path = biothings.api
-	url = https://github.com/biothings/biothings.api.git
