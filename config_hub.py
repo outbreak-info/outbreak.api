@@ -179,7 +179,7 @@ TORNADO_SETTINGS = {
     "max_buffer_size" : 10*1024*1024*1024,
 }
 
-STANDALONE_VERSION = "standalone_v3"
+STANDALONE_VERSION = {"branch" : "standalone_v3"}
 
 # Path to a folder to store all downloaded files, logs, caches, etc...
 DATA_ARCHIVE_ROOT = ConfigurationError("Define path to folder which will contain all downloaded data, cache files, etc...")
