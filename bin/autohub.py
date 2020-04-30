@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import logging
 
+
 import biothings
 import config
 from biothings.utils.version import set_versions
@@ -22,17 +23,15 @@ config = biothings.config
 logging.info("Hub DB backend: %s", config.HUB_DB_BACKEND)
 logging.info("Hub database: %s", config.DATA_HUB_DB_DATABASE)
 
-from biothings.hub.standalone import AutoHubServer, DynamicIndexerFactory
+from biothings.hub.dataindex.indexer import DynamicIndexerFactory
+from biothings.hub.standalone import AutoHubServer 
 
 
 class OutBreakHubServer(AutoHubServer):
     DEFAULT_FEATURES = AutoHubServer.DEFAULT_FEATURES + ["index", "api"]
 
 
-server = OutBreakHubServer(
-    config.VERSION_URLS,
-    indexer_factory=DynamicIndexerFactory(config.VERSION_URLS, config.ES_HOST, suffix=""),
-    source_list=None, name="Pending API Hub (frontend)",
+server = OutBreakHubServer(source_list=None, name="Outbreak API Hub (frontend)",
     api_config=None, dataupload_config=False, websocket_config=False
 )
 

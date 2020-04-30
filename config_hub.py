@@ -115,6 +115,9 @@ HUB_PASSWD = {"guest":"9RKfd8gDuNf0Q"}
 # cached data (it None, caches won't be used at all)
 CACHE_FOLDER = None
 
+AUTOHUB_INDEXER_FACTORY = "biothings.hub.dataindex.indexer.DynamicIndexerFactory"
+AUTOHUB_ES_HOST = "localhost:9200"
+
 
 from biothings.utils.loggers import setup_default_log
 
@@ -215,9 +218,3 @@ logger = ConfigurationError("Provider a default hub logger instance (use setup_d
 # Usually use default setup
 #logger = setup_default_log("hub", LOG_FOLDER)
 
-# shut some mouths...
-logging.getLogger("elasticsearch").setLevel(logging.ERROR)
-logging.getLogger("urllib3").setLevel(logging.ERROR)
-logging.getLogger("requests").setLevel(logging.ERROR)
-logging.getLogger("botocore").setLevel(logging.ERROR)
-logging.getLogger("boto").setLevel(logging.ERROR)
