@@ -128,7 +128,6 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-config.py
 bin/ssh_host_key
 bin/ssh_host_key.pub
 plugins/
