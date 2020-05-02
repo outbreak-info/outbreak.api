@@ -115,8 +115,25 @@ HUB_PASSWD = {"guest":"9RKfd8gDuNf0Q"}
 # cached data (it None, caches won't be used at all)
 CACHE_FOLDER = None
 
-AUTOHUB_INDEXER_FACTORY = "biothings.hub.dataindex.indexer.DynamicIndexerFactory"
-AUTOHUB_ES_HOST = "localhost:9200"
+STANDALONE_AWS_CREDENTIALS = {
+    "AWS_ACCESS_KEY_ID": "",
+    "AWS_SECRET_ACCESS_KEY": "",
+}
+
+STANDALONE_CONFIG = { 
+    # default config
+    "_default": {
+        "es_host" : "localhost:9200",
+        "index" : "outbreak-covid19-dev",
+        }, 
+    "outbreak-covid19" : {
+        "es_host": "prodserver:9200",
+        "index": "outbreak-covid19",
+        }
+}
+
+#AUTOHUB_INDEXER_FACTORY = "biothings.hub.dataindex.indexer.DynamicIndexerFactory"
+#AUTOHUB_ES_HOST = "localhost:9200"
 
 
 from biothings.utils.loggers import setup_default_log
