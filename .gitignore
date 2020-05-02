@@ -131,3 +131,6 @@ dmypy.json
 bin/ssh_host_key
 bin/ssh_host_key.pub
 plugins/
+
+# Biothings
+config.py
