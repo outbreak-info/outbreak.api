@@ -1,5 +1,5 @@
 # elasticsearch version needs to be enforced here to compatible with both web and hub components
 elasticsearch==6.3.1
 elasticsearch-dsl==6.3.1
--e git+http://github.com/biothings/biothings.api.git@ea04c3affc91deb53526b19f8390da2d2997b996#egg=biothings[hub]
+-e git+http://github.com/biothings/biothings.api.git@1618e16c3cea28eda21255fcce6648413e6a3655#egg=biothings[hub]
 Jinja2>=2.9.6
