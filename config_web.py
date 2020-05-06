@@ -6,7 +6,8 @@ ES_INDEX = 'zenodo_covid'
 ES_DOC_TYPE = 'zenodo'
 ES_INDICES = {
     "covid19":"outbreak-covid19",
-    "zenodo":"zenodo_covid"
+    "litcovid": "outbreak-litcovid",
+    "zenodo":"zenodo_covid",
 }
 
 # *****************************************************************************
