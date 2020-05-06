@@ -2,7 +2,7 @@
 # Elasticsearch variables
 # *****************************************************************************
 ES_HOST = 'localhost:9200'
-ES_INDEX = 'zenodo_covid'
+ES_INDEX = 'zenodo_covid,outbreak-litcovid'
 ES_DOC_TYPE = 'zenodo'
 ES_INDICES = {
     "covid19":"outbreak-covid19",
