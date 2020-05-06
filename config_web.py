@@ -3,7 +3,7 @@
 # *****************************************************************************
 ES_HOST = 'localhost:9200'
 ES_INDEX = 'zenodo_covid,outbreak-litcovid'
-ES_DOC_TYPE = 'zenodo'
+ES_DOC_TYPE = '_all'
 ES_INDICES = {
     "covid19":"outbreak-covid19",
     "litcovid": "outbreak-litcovid",
