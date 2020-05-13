@@ -9,8 +9,11 @@
 				Outbreak API
 			</h1>
 			<div>
+				<p>
+					This site is a collection of APIs developed from the <a href="http://sulab.org/" target="_blank" rel="noreferrer">Su</a> / <a href="http://wulab.io/" target="_blank" rel="noreferrer">Wu</a> Labs at Scripps Research on COVID-19-related data and resources. These APIs provide all the data at outbreak.info(link), which is a resource to collect, share, and integrate COVID-19 and SARS-CoV-2 data critical to for scientific research.
+				</p>
 				<p class="w-75 m-auto text-dark">
-					This site is a collection of community-contributed APIs from various data sources. They were built using
+					 They were built using
 					<a rel="noopener"  class="link" href="https://biothingsapi.readthedocs.io/en/latest/" target="_blank">BioThings SDK</a> and follow the same design pattern of our official BioThings APIs (<a rel="noopener"  class="link" href="https://mygene.info" target="_blank">MyGene.info</a>,
 					<a rel="noopener" class="link" href="https://myvariant.info" target="_blank">MyVariant.info</a>, <a rel="noopener"  class="link" href="https://mychem.info" target="_blank">MyChem.info</a>, etc). These APIs are also pending to be integrated into the proper official BioThings API based on their entity type.
 				</p>
@@ -22,9 +25,9 @@
 				<div class="text-dark font-weight-light">
 					<h3>(<span v-text="pending.length"></span>) APIs</h3>
 				</div>
-				<div style="overflow-x:scroll" class="mb-5">
-					<div class="row">
-						<table class="table table-light table-striped table-sm table-hover sortable m-auto col-sm-12 col-md-7">
+				<div style="overflow-x:hidden;" class="mb-5">
+					<div class="row" style="overflow-x:hidden;">
+						<table class="table table-light table-striped table-sm table-hover sortable m-auto col-sm-12 col-md-7" style="overflow-x:hidden;">
 							<thead class="text-light bg-sec">
 								<tr>
 									<th scope="col">Name</th>
@@ -44,9 +47,6 @@
 				<div class="mb-5 w-100 p-3 bg-secondary" v-if="shown < pending.length">
 					<button class="btn btn-outline-dark text-dark" @click="shown = shown+10">Load More</button>
 				</div>
-				<small class="text-muted mt-5">
-					<i class="fas fa-exclamation-circle"></i> Disclaimer: Pending APIs available here are meant for testing purposes. We cannot guarantee the reliability of these APIs. Use at your own risk.
-				</small>
 			</div>
     </div>
 
