@@ -8,8 +8,7 @@ from web.handlers import MainHandler, ApiViewHandler
 if __name__ == '__main__':
     extra_app_list = [
         (r"/", MainHandler),
-        (r"/v1/(.*)", RedirectHandler, {"url": "/covid19/{0}"}), 
-        (r"/covid19/(.*)", RedirectHandler, {"url": "/resources/covid19/{0}"}),
+        (r"/v1/(.*)", RedirectHandler, {"url": "/covid19/{0}"}),
         (r"/([^/]+)/?", ApiViewHandler)
     ]
     main(extra_app_list)

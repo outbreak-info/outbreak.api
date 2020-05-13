@@ -2,30 +2,15 @@
 # Elasticsearch variables
 # *****************************************************************************
 ES_HOST = 'localhost:9200'
-ES_INDEX = 'zenodo_covid,outbreak-litcovid'
-ES_DOC_TYPE = '_all'
-ES_INDICES = {
-    "covid19":"outbreak-covid19",
-    "litcovid": "outbreak-litcovid",
-    "zenodo":"zenodo_covid",
-}
+ES_INDEX = 'outbreak-covid19'
+ES_DOC_TYPE = 'covid19'
 
 # *****************************************************************************
 # Web Application
 # *****************************************************************************
 
-API_PREFIX = 'resources'
+API_PREFIX = 'covid19'
 API_VERSION = ''
-
-# *****************************************************************************
-# Analytical Statistics
-# *****************************************************************************
-
-GA_ACTION_QUERY_GET = 'query_get'
-GA_ACTION_QUERY_POST = 'query_post'
-GA_ACTION_ANNOTATION_GET = 'outbreak_get'
-GA_ACTION_ANNOTATION_POST = 'outbreak_post'
-GA_TRACKER_URL = 'api.outbreak.info'
 
 # *****************************************************************************
 # Endpoint Specifics
@@ -37,7 +22,3 @@ STATUS_CHECK = {
     'doc_type': 'outbreak_info'
 }
 
-try:
-    from config_web_local import *
-except ImportError:
-    pass
