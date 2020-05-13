@@ -80,9 +80,12 @@
           <h1 class="mb-5">
             Try It
           </h1>
+          <p class="text-center">
+            <button @click="getDocStructure()" class="btn btn-sm btn-outline-secondary mt-2" style="zoom:.8" type="button">See Document Structure</button>
+          </p>
           <form class="d-flex justify-content-start flex-wrap" @submit.prevent="testQuery()">
             <div class="form-group p-1">
-              <h4 class="text-md-right"><span v-text="window.location.origin"></span>/<b>resources</b>/<span class="text-dark bold" v-text="api"></span></h4>
+              <h4 class="text-md-right"><span v-text="window.location.origin"><span class="text-dark bold" v-text="api"></span></h4>
             </div>
             <div class="form-group p-1">
               <template v-if="querySelectionType==='example'">
@@ -113,7 +116,7 @@
             </div>
           </form>
           <p class="bold" v-if="success && queryString">
-            <i  class="fas fa-check text-success"></i> <a rel="noopener" target="_blank" :href="queryString" v-text="successURL" class="m-auto" :class="[ success ? 'text-success' : 'text-danger']" type="text"></a>
+            <i  class="fas fa-check text-success"></i> <a rel="noopener" target="_blank" :href="queryString" v-text="window.location.origin+successURL" class="m-auto" :class="[ success ? 'text-success' : 'text-danger']" type="text"></a>
           </p>
           <div v-show='loading' class="spinner">
             <div class="cube1"></div>
@@ -336,7 +339,7 @@
           self.loading = true;
           let base ='/';
           if (self.localMode) {
-            myUrl = 'https://api.outbreak.info/resources'+myUrl;
+            myUrl = 'https://api.outbreak.info'+myUrl;
           }
           axios.get(myUrl).then(res=>{
             self.successURL = myUrl;
@@ -359,6 +362,29 @@
             }
           }
         },
+        getDocStructure(){
+          let self = this;
+          let base='/';
+          if (self.localMode) {
+            base = 'https://api.outbreak.info/';
+          }else {
+            base ='/';
+          }
+          let myUrl = base+self.api+'/metadata/fields?raw';
+          axios.get(myUrl).then(res=>{
+            self.successURL = myUrl;
+            self.loading = false;
+            renderjson.set_show_to_level(7);
+            $('#callResults').html( renderjson(res.data) );
+            self.success = true;
+          }).catch(err=>{
+            self.loading = false;
+            renderjson.set_show_to_level(7);
+            $('#callResults').html( err );
+            self.success = false;
+            throw err;
+          });
+        },
         getMetadata(){
           let self = this;
           self.pending=[];
@@ -369,7 +395,7 @@
           }else {
             base ='/';
           }
-          axios.get(base+'resources/'+self.api+'/metadata').then(res=>{
+          axios.get(base+self.api+'/metadata').then(res=>{
             self.metadata = res.data;
             // console.log('META',res.data)
             if (self.metadata && self.metadata.src[self.getKeyName(self.metadata.src)]["url"]) {
@@ -401,6 +427,7 @@
       },
         mounted: function(){
           this.api  = window.location.pathname.replace('/','').toLowerCase();
+          console.log("API",this.api)
 
           // http://localhost:8000/covid19?base=localhost
           // use this param to query prod site instead of localhost

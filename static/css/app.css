@@ -25,8 +25,8 @@ html{
 }
 
 ::selection {
-  background-color: black;
-  color: #ffc107
+  background-color: #D13A62;
+  color: white;
 }
 
 .table td, .table th {

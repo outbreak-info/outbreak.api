@@ -29,6 +29,38 @@ def get_api_list():
             },
             "description": "COVID19 live outbreak data",
             "status": "running"
+        },
+        {
+            "_id": "resources/litcovid",
+            "config": {
+                "doc_type": "publication"
+            },
+            "description": "COVID19 publications",
+            "status": "running"
+        },
+        {
+            "_id": "resources/clinical_trials",
+            "config": {
+                "doc_type": "clinicaltrial"
+            },
+            "description": "COVID19 clinical trials",
+            "status": "running"
+        },
+        {
+            "_id": "resources/biorxiv",
+            "config": {
+                "doc_type": "publication"
+            },
+            "description": "COVID19 publications",
+            "status": "running"
+        },
+        {
+            "_id": "resources/zenodo",
+            "config": {
+                "doc_type": "outbreak_resource"
+            },
+            "description": "COVID19 datasets",
+            "status": "running"
         }
     ]
     return res
@@ -48,7 +80,7 @@ class MainHandler(BaseHandler):
         self.write(index_output)
 
 class ApiViewHandler(BaseHandler):
-    def get(self, namespace=None, className=None):
+    def get(self):
         view_file = "try.html"
         view_template = templateEnv.get_template(view_file)
         view_output = view_template.render()
@@ -57,4 +89,5 @@ class ApiViewHandler(BaseHandler):
 APP_LIST = [
     (r"/?", MainHandler),
     (r"/(.+)/?", ApiViewHandler),
+    (r"/(.+)/(.+)/?", ApiViewHandler),
 ]
