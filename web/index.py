@@ -9,6 +9,7 @@ if __name__ == '__main__':
     extra_app_list = [
         (r"/", MainHandler),
         (r"/v1/(.*)", RedirectHandler, {"url": "/covid19/{0}"}),
-        (r"/.+", ApiViewHandler)
+        (r"/try/.+", ApiViewHandler),
+        (r"/try/.+/.+", ApiViewHandler)
     ]
     main(extra_app_list)

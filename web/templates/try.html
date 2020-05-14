@@ -426,7 +426,7 @@
         },
       },
         mounted: function(){
-          this.api  = window.location.pathname.replace('/','').toLowerCase();
+          this.api  = window.location.pathname.replace('/try','').replace('/','').toLowerCase();
           console.log("API",this.api)
 
           // http://localhost:8000/covid19?base=localhost
