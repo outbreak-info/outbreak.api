@@ -22,9 +22,10 @@ API_PREFIX = 'resources'
 API_VERSION = ''
 
 # *****************************************************************************
-# Web Application
+# Query Pipeline
 # *****************************************************************************
 ES_RESULT_TRANSFORM = 'web.pipeline.ResourceTransform'
+ALLOW_NESTED_AGGS = True
 
 # *****************************************************************************
 # Endpoint Specifics
