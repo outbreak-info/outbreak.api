@@ -7,7 +7,7 @@ from biothings.web.settings.default import ANNOTATION_KWARGS, QUERY_KWARGS
 # *****************************************************************************
 ES_HOST = 'localhost:9200'
 ES_INDEX = 'all-resources'
-ES_DOC_TYPE = '_all'
+ES_DOC_TYPE = 'resource'
 ES_INDICES = {
     "zenodo":"zenodo_covid",
     "litcovid": "outbreak-litcovid",
