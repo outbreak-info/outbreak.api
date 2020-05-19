@@ -1,5 +1,10 @@
 {% extends "main.html" %}
 {% block content %}
+<style>
+.text-grey{
+	color: #bcc0c3;
+}
+</style>
 <section id="index-app">
 	<div class="container-fluid" style="min-height:80vh;">
 
@@ -8,41 +13,61 @@
 			<h1 id="logo">
 				Outbreak API
 			</h1>
-			<div>
-				<p>
-					This site is a collection of APIs developed from the <a href="http://sulab.org/" target="_blank" rel="noreferrer">Su</a> / <a href="http://wulab.io/" target="_blank" rel="noreferrer">Wu</a> Labs at Scripps Research on COVID-19-related data and resources. These APIs provide all the data at <a href="https://outbreak.info/" rel="noreferrer" target="_blank">outbreak.info</a>, which is a resource to collect, share, and integrate COVID-19 and SARS-CoV-2 data critical to for scientific research.
-				</p>
-				<p class="w-75 m-auto text-dark">
-					 They were built using
-					<a rel="noopener" href="https://biothingsapi.readthedocs.io/en/latest/" target="_blank">BioThings SDK</a> and follow the same design pattern of our official BioThings APIs (<a rel="noopener" href="https://mygene.info" target="_blank">MyGene.info</a>,
-					<a rel="noopener" href="https://myvariant.info" target="_blank">MyVariant.info</a>, <a rel="noopener" href="https://mychem.info" target="_blank">MyChem.info</a>, etc). These APIs are also pending to be integrated into the proper official BioThings API based on their entity type.
-				</p>
+			<div class="row m-0">
+				<div class="col-sm-12 col-md-4 d-flex justify-content-center align-items-top border-top">
+					<div>
+						<h1><i class="fas fa-info-circle text-grey"></i></h1>
+						<h3>About</h3>
+						<p>
+							This site is a collection of APIs developed from the <a href="http://sulab.org/" target="_blank" rel="noreferrer">Su</a> / <a href="http://wulab.io/" target="_blank" rel="noreferrer">Wu</a> Labs at Scripps Research on COVID-19-related data and resources. These APIs provide all the data at <a href="https://outbreak.info/" rel="noreferrer" target="_blank">outbreak.info</a>, which is a resource to collect, share, and integrate COVID-19 and SARS-CoV-2 data critical to for scientific research.
+						</p>
+					</div>
+				</div>
+				<div class="col-sm-12 col-md-4 d-flex justify-content-center align-items-top border-top">
+					<div>
+						<h1><i class="fas fa-pencil-ruler text-grey"></i></h1>
+						<h3>Design</h3>
+						<p>
+							 They were built using
+							<a rel="noopener" href="https://biothingsapi.readthedocs.io/en/latest/" target="_blank">BioThings SDK</a> and follow the same design pattern of our official BioThings APIs (<a rel="noopener" href="https://mygene.info" target="_blank">MyGene.info</a>,
+							<a rel="noopener" href="https://myvariant.info" target="_blank">MyVariant.info</a>, <a rel="noopener" href="https://mychem.info" target="_blank">MyChem.info</a>, etc). These APIs are also pending to be integrated into the proper official BioThings API based on their entity type.
+						</p>
+					</div>
+				</div>
+				<div class="col-sm-12 col-md-4 d-flex justify-content-center align-items-top border-top">
+					<div>
+						<h1><i class="fas fa-book text-grey"></i></h1>
+						<h3>Docs</h3>
+						<p>
+							Since these APIs follow the same design pattern as our BioThings APIs, you may refer tho the following <a rel="noopener" href="https://mygene.info" target="_blank">MyGene.info</a> API <a href="https://docs.mygene.info/en/latest/index.html" target="_blank" rel="noreferrer">documentation</a> as a guide on how to use these APIs. Additionally, you may try the live APIs on the <a href="#TryIt">Try It</a> pages below.
+						</p>
+					</div>
+				</div>
 			</div>
 		</div>
 
     <div id="pending" class="jumbotron bg-light text-dark text-center">
 			<div class="py-3">
 				<div class="text-dark font-weight-light">
+					<h1 id="TryIt">Try It</h1>
 					<h3>(<span v-text="pending.length"></span>) APIs</h3>
 				</div>
-				<div style="overflow-x:hidden;" class="mb-5">
-					<div class="row" style="overflow-x:hidden;">
-						<table class="table table-light table-striped table-sm table-hover sortable m-auto col-sm-12 col-md-7" style="overflow-x:hidden;">
-							<thead class="text-light bg-sec">
-								<tr>
-									<th scope="col">Name</th>
-									<th scope="col" class="d-none d-md-table-cell">Documents</th>
-									<th scope="col" class="d-none d-md-table-cell">Entity Type</th>
-									<th scope="col">Try It</th>
-								</tr>
-							</thead>
-							<tbody>
-								<template v-for="(api,index) in pending"  v-if="index < shown">
-									<api-box :api="api" :key="index"></api-box>
-								</template>
-							</tbody>
-						</table>
-					</div>
+				<div style="overflow-x:hidden;" class="mb-5 container">
+					<table class="table table-light table-striped table-sm table-hover sortable m-auto" style="overflow-x:hidden;">
+						<thead class="text-light bg-sec">
+							<tr>
+								<th scope="col">Status/Name</th>
+								<th scope="col" class="d-none d-md-table-cell">Documents</th>
+								<th scope="col" class="d-none d-md-table-cell">Entity Type</th>
+								<th scope="col">Try It</th>
+							</tr>
+						</thead>
+						<tbody>
+							<template v-for="(api,index) in pending"  v-if="index < shown">
+								<api-box :api="api" :key="index"></api-box>
+							</template>
+						</tbody>
+					</table>
 				</div>
 				<div class="mb-5 w-100 p-3 bg-secondary" v-if="shown < pending.length">
 					<button class="btn btn-outline-dark text-dark" @click="shown = shown+10">Load More</button>

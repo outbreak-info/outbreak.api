@@ -85,7 +85,7 @@
           </p>
           <form class="d-flex justify-content-start flex-wrap" @submit.prevent="testQuery()">
             <div class="form-group p-1">
-              <h4 class="text-md-right"><span v-text="window.location.origin"><span class="text-dark bold" v-text="api"></span></h4>
+              <h4 class="text-md-right"><span v-text="window.location.origin+'/'+api"><span class="text-dark bold" v-text="api"></span></h4>
             </div>
             <div class="form-group p-1">
               <template v-if="querySelectionType==='example'">
@@ -132,7 +132,7 @@
   <div v-else style="min-height:80vh;">
     <div class="bg-light jumbotron text-dark text-center mt-5">
       <h1>Nothing to see here...</h1>
-      <h5><span v-text='api'></span> is not a pending API</h5>
+      <h5><span v-text='api'></span> is not an API</h5>
     </div>
   </div>
 </section>
@@ -316,7 +316,12 @@
           }
         },
         numberWithCommas(x) {
-            return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            try {
+              return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            } catch (e) {
+              return x.toString();
+            }
+
         },
         testQuery(){
           let self = this;
@@ -401,7 +406,20 @@
             if (self.metadata && self.metadata.src[self.getKeyName(self.metadata.src)]["url"]) {
               self.metaUrl = self.metadata.src[self.getKeyName(self.metadata.src)]["url"];
             }
-            self.numberOfDocs = self.metadata.src[self.getKeyName(self.metadata.src)].stats[self.getKeyName(self.metadata.src)];
+
+            try {
+              let stats = self.metadata.src[self.getKeyName(self.metadata.src)]['stats'];
+
+              for (var key in stats) {
+                self.numberOfDocs += stats[key]
+              }
+            } catch (e) {
+              self.numberOfDocs = self.metadata.src[self.getKeyName(self.metadata.src)].stats[self.getKeyName(self.metadata.src)];
+            }
+            finally{
+              console.log('# docs:', self.numberOfDocs)
+            }
+
             if (self.metadata.biothing_type) {
               self.type= self.metadata.biothing_type;
             }else if (self.metadata.doc_type) {
