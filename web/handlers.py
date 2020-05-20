@@ -31,37 +31,45 @@ def get_api_list():
             "status": "running"
         },
         {
-            "_id": "resources/litcovid",
+            "_id": "resources",
             "config": {
-                "doc_type": "publication"
+                "doc_type": "resource"
             },
-            "description": "COVID19 publications",
+            "description": "COVID19 collection of datasets, publications ,clinical trials, protocols, and more.",
             "status": "running"
         },
-        {
-            "_id": "resources/clinical_trials",
-            "config": {
-                "doc_type": "clinicaltrial"
-            },
-            "description": "COVID19 clinical trials",
-            "status": "running"
-        },
-        {
-            "_id": "resources/biorxiv",
-            "config": {
-                "doc_type": "publication"
-            },
-            "description": "COVID19 publications",
-            "status": "running"
-        },
-        {
-            "_id": "resources/zenodo",
-            "config": {
-                "doc_type": "outbreak_resource"
-            },
-            "description": "COVID19 datasets",
-            "status": "running"
-        }
+        # {
+        #     "_id": "resources/litcovid",
+        #     "config": {
+        #         "doc_type": "publication"
+        #     },
+        #     "description": "COVID19 publications",
+        #     "status": "running"
+        # },
+        # {
+        #     "_id": "resources/clinical_trials",
+        #     "config": {
+        #         "doc_type": "clinicaltrial"
+        #     },
+        #     "description": "COVID19 clinical trials",
+        #     "status": "running"
+        # },
+        # {
+        #     "_id": "resources/biorxiv",
+        #     "config": {
+        #         "doc_type": "publication"
+        #     },
+        #     "description": "COVID19 publications",
+        #     "status": "running"
+        # },
+        # {
+        #     "_id": "resources/zenodo",
+        #     "config": {
+        #         "doc_type": "outbreak_resource"
+        #     },
+        #     "description": "COVID19 datasets",
+        #     "status": "running"
+        # }
     ]
     return res
 

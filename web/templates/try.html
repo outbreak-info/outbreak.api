@@ -85,13 +85,13 @@
           </p>
           <form class="d-flex justify-content-start flex-wrap" @submit.prevent="testQuery()">
             <div class="form-group p-1">
-              <h4 class="text-md-right"><span v-text="window.location.origin+'/'+api"><span class="text-dark bold" v-text="api"></span></h4>
+              <h4 class="text-md-right"><span v-text="window.location.origin+'/'"></span><b v-text="api"></b></h4>
             </div>
             <div class="form-group p-1">
               <template v-if="querySelectionType==='example'">
                 <select v-model="querySelected" class="form-control scale-in-center" id="exampleFormControlSelect1">
                   <template v-for="item in exampleQueries">
-                    <option :value="item" v-text="item"></option>
+                    <option :value="item" v-text="trunc(item)"></option>
                   </template>
                 </select>
               </template>
@@ -204,8 +204,10 @@
                 let res = result.data.hits
                 let i = 0;
                 let picks = []
-                //make query string query
+
+                //make type query
                 self.generateQuery(res[self.randomNumber(size)]);
+
                 while ( i < self.numberOfExamples) {
                   let doc = res[self.randomNumber(size)]
                   picks.push(doc)
@@ -338,6 +340,14 @@
           ];
           self.generateTestQueriesStart();
         },
+        trunc(s){
+
+          try {
+            return s.substring(0,80)+"..."
+          } catch (e) {
+            return s
+          }
+        },
         callApi(myUrl){
           let self = this;
           $('#callResults').html('');
@@ -402,18 +412,22 @@
           }
           axios.get(base+self.api+'/metadata').then(res=>{
             self.metadata = res.data;
-            // console.log('META',res.data)
+            console.log('META',res.data)
             if (self.metadata && self.metadata.src[self.getKeyName(self.metadata.src)]["url"]) {
               self.metaUrl = self.metadata.src[self.getKeyName(self.metadata.src)]["url"];
             }
 
             try {
-              let stats = self.metadata.src[self.getKeyName(self.metadata.src)]['stats'];
+              self.numberOfDocs = self.metadata.stats.total
 
-              for (var key in stats) {
-                self.numberOfDocs += stats[key]
-              }
+              // console.log("first case",self.getKeyName(self.metadata.src))
+              // let stats = self.metadata.src[self.getKeyName(self.metadata.src)]['stats'];
+              //
+              // for (var key in stats) {
+              //   self.numberOfDocs += stats[key]
+              // }
             } catch (e) {
+              console.log("second case")
               self.numberOfDocs = self.metadata.src[self.getKeyName(self.metadata.src)].stats[self.getKeyName(self.metadata.src)];
             }
             finally{
