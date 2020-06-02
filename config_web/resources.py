@@ -6,13 +6,13 @@ from biothings.web.settings.default import ANNOTATION_KWARGS, QUERY_KWARGS
 # Elasticsearch variables
 # *****************************************************************************
 ES_HOST = 'localhost:9200'
-ES_INDEX = 'all-resources'
+ES_INDEX = 'outbreak-resources-*'
 ES_DOC_TYPE = 'resource'
 ES_INDICES = {
-    "zenodo":"zenodo_covid",
-    "litcovid": "outbreak-litcovid",
-    "biorxiv":"outbreak-biorxiv",
-    "clinical_trials":"outbreak-clinical_trials",
+    "zenodo":"outbreak-resources-zenodo",
+    "litcovid": "outbreak-resources-litcovid",
+    "biorxiv":"outbreak-resources-biorxiv",
+    "clinical_trials":"outbreak-resources-clinical_trials",
 }
 
 # *****************************************************************************
@@ -25,6 +25,7 @@ API_VERSION = ''
 # Query Pipeline
 # *****************************************************************************
 ES_RESULT_TRANSFORM = 'web.pipeline.ResourceTransform'
+ES_QUERY_BUILDER = 'web.pipeline.QueryBuilder'
 ALLOW_NESTED_AGGS = True
 
 # *****************************************************************************
