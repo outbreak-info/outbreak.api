@@ -50,5 +50,19 @@ if __name__ == "__main__":
                 }
             ]
         })
+        client.indices.put_template("resources-common", {
+            "index_patterns": [
+                "outbreak-resources-*"
+            ],
+            "settings": {
+                "index": {
+                    "number_of_shards": "1",
+                    "number_of_replicas": "0",
+                    "default_pipeline": "resources-common"
+                }
+            },
+            "mappings": {},
+            "aliases": {}
+        })
     except RequestError as exc:
         pprint(exc.info, width=200)
