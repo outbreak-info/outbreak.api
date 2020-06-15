@@ -1,7 +1,7 @@
 from pprint import pprint
 
 from elasticsearch import Elasticsearch
-from elasticsearch.exceptions import RequestError
+from elasticsearch.exceptions import TransportError
 
 if __name__ == "__main__":
     try:
@@ -25,15 +25,15 @@ if __name__ == "__main__":
                                         date = LocalDate.parse(ctx[field], DateTimeFormatter.ISO_LOCAL_DATE);
                                     }
                                     catch(Exception e) {
-                                        return false
+                                        return false;
                                     }
                                     if (date.isBefore(now)) {
                                         ctx.date = ctx[field];
                                         return true;
                                     }
-                                    return false
+                                    return false;
                                 }
-                                return false
+                                return false;
                             }
                             LocalDate now = LocalDate.parse(ctx._timestamp, DateTimeFormatter.ISO_ZONED_DATE_TIME);
                             if(validDate(ctx, 'dateModified', now)){ return }
@@ -64,5 +64,6 @@ if __name__ == "__main__":
             "mappings": {},
             "aliases": {}
         })
-    except RequestError as exc:
-        pprint(exc.info, width=200)
+    except TransportError as exc:
+        pprint(exc.info, indent=4, width=500)
+
