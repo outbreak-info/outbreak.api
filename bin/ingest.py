@@ -2,10 +2,17 @@ from pprint import pprint
 
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import TransportError
+from tornado.options import options, parse_command_line
+
+
+options.define('host', default="localhost:9200")
+options.define('pattern', default="outbreak-resources-*")
+
 
 if __name__ == "__main__":
+    parse_command_line()
     try:
-        client = Elasticsearch()
+        client = Elasticsearch(options.host)
         client.ingest.put_pipeline('resources-common', {
             "description": "compose date field",
             "processors": [
@@ -27,11 +34,11 @@ if __name__ == "__main__":
                                     catch(Exception e) {
                                         return false;
                                     }
-                                    if (date.isBefore(now)) {
-                                        ctx.date = ctx[field];
-                                        return true;
+                                    if (date.isAfter(now)) {
+                                        return false;
                                     }
-                                    return false;
+                                    ctx.date = ctx[field];
+                                    return true;
                                 }
                                 return false;
                             }
@@ -52,7 +59,7 @@ if __name__ == "__main__":
         })
         client.indices.put_template("resources-common", {
             "index_patterns": [
-                "outbreak-resources-*"
+                options.pattern
             ],
             "settings": {
                 "index": {
