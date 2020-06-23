@@ -113,6 +113,7 @@
 			axios.get(base+name+'/metadata').then(res=>{
 				self.loading = false;
 				self.metadata = res.data
+				console.log(self.metadata)
 				if (self.metadata.hasOwnProperty('doc_type')) {
 					if (safeList.includes(self.metadata['doc_type'])) {
 						self.existingEntity = true
@@ -207,12 +208,20 @@
 							</td>
 							<td class=" d-none d-md-table-cell">
 								<template v-if="metadata">
-									<div v-if="metadata.biothing_type" class="badge alert-secondary text-dark d-inline m-1 p-1">
-										<span v-text="metadata.biothing_type"></span>
+									<template v-if='api["config"]["doc_type"]'>
+									<div class="badge alert-secondary text-dark d-inline m-1 p-1">
+										<span v-text='api["config"]["doc_type"]'></span>
 									</div>
-									<div v-if="metadata.doc_type" class="badge alert-secondary text-dark d-block p-1">
-										<span v-text="metadata.doc_type"></span>
-									</div>
+									</template>
+									<template v-else>
+										<div v-if="metadata.biothing_type" class="badge alert-secondary text-dark d-inline m-1 p-1">
+											<span v-text="metadata.biothing_type"></span>
+										</div>
+										<div v-if="metadata.doc_type" class="badge alert-secondary text-dark d-block p-1">
+											<spanv-text="metadata.doc_type"></span>
+										</div>
+									</template>
+
 								</template>
 							</td>
 							<td>

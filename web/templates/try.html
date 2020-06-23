@@ -7,70 +7,84 @@
   <div v-if="validAPI" class="container mt-5">
     <div class="bg-light">
       <div class="bg-sec text-light jumbotron text-center p-1">
-        <div v-if="metadata && metadata.src" class="bg-sec py-2">
-          <div class="py-2">
-            <h1 class="font-weight-bold" :data-text='api' v-text='api'></h1>
-          </div>
-          <small class="text-light mb-4 lighter" v-text='"Version "+metadata.src[getKeyName(metadata.src)]["version"]'></small>
-          <ul class="link-list">
-            <li class="d-inline" v-if='metaUrl'>
-              <small class="">
-                <a rel="noopener" :href='metaUrl' target="_blank" class="link">
-                  <i class="fas fa-link"></i> Source
-                </a>
-              </small>
-            </li>
-            <li class="d-inline" v-if='metaUrl'>
-              <small class="">
-                <a rel="noopener" :href='metaUrl' target="_blank" class="link">
-                  <i class="fas fa-link"></i> Code
-                </a>
-              </small>
-            </li>
-            <li class="d-inline" v-if='metadata.src[getKeyName(metadata.src)]["license_url"]'>
-              <small class="">
-                <a rel="noopener" :href='metadata.src[getKeyName(metadata.src)]["license_url"]' target="_blank" class="link">
-                  <i class="fas fa-link"></i> License
-                </a>
-              </small>
-            </li>
-          </ul>
-          <template v-if='metadata.src[getKeyName(metadata.src)]["author"]'>
-            <small class="d-block mt-2">
-              Developed by
-              <a rel="noopener" :href='metadata.src[getKeyName(metadata.src)]["author"]["url"]' target="_blank" class="link">
-                <i class="fab fa-github"></i> <span v-text='metadata.src[getKeyName(metadata.src)]["author"]["name"]'></span>
-              </a>
-            </small>
+        <div class="py-2">
+          <h1 class="font-weight-bold" :data-text='api' v-text='api'></h1>
+        </div>
+        <p v-if="api == 'resources'">
+          Resources API is a collection of multiple data types and sources that includes:
+        </p>
+        <div v-if="metadata && metadata.src" class="bg-sec py-2 d-flex justify-content-center">
+          <template v-for="(meta,api) in metadata.src" >
+            <div class="col-sm-4 bg-main p-1 border-bottom">
+              <h4 class="font-weight-bold" :data-text='api' v-text='api'></h4>
+              <small v-if="metadata.src[api]['version']" class="text-light mb-4 lighter" v-text='"Version "+metadata.src[api]["version"]'></small>
+              <ul class="link-list">
+                <li class="d-inline" v-if="metadata.src[api]['url']">
+                  <small class="">
+                    <a rel="noopener" :href="metadata.src[api]['url']" target="_blank" class="link">
+                      <i class="fas fa-link"></i> Source
+                    </a>
+                  </small>
+                </li>
+                <li class="d-inline" v-if="metadata.src[api]['code'] && metadata.src[api]['code']['repo']">
+                  <small class="">
+                    <a rel="noopener" :href="metadata.src[api]['code']['repo']" target="_blank" class="link">
+                      <i class="fas fa-link"></i> Code
+                    </a>
+                  </small>
+                </li>
+                <li class="d-inline" v-if='metadata.src[api]["license"]'>
+                  <small class="">
+                    <a rel="noopener" :href='metadata.src[api]["license"]' target="_blank" class="link">
+                      <i class="fas fa-link"></i> License
+                    </a>
+                  </small>
+                </li>
+              </ul>
+              <template v-if='metadata.src[api]["author"]'>
+                <small class="d-block mt-2">
+                  Developed by
+                  <a rel="noopener" :href='metadata.src[api]["author"]["url"]' target="_blank" class="link">
+                    <i class="fab fa-github"></i> <span v-text='metadata.src[api]["author"]["name"]'></span>
+                  </a>
+                </small>
+              </template>
+              <template v-if='metadata.src[api]["stats"]'>
+                <template v-for="(docs,doctype) in metadata.src[api]['stats']">
+                  <h5 class="m-3">
+                    <b class="text-info" v-text="numberWithCommas(docs)"></b> documents
+                  </h5>
+                </template>
+              </template>
+              <div class="my-2 p-1" style="position: relative">
+                <a rel="noopener" target="_blank" class="btn btn-sm btn-outline-light" :href="'https://github.com/biothings/outbreak.api/labels/'+api"><i class="fab fa-github"></i> Give Feedback</a>
+              </div>
+              <div v-if="existingEntity" >
+                <small>Entity Type:</small>
+                <div v-if="metadata.biothing_type" class="badge bg-secondary d-inline p-1 m-2">
+                  <a rel="noopener"  v-if="metadata.biothing_type === 'gene'" target="_blank" href="https://mygene.info/"><img alt="myGene"  src="/static/img/mygene-text.svg" height="20px"/></a>
+                  <a rel="noopener"  v-if="metadata.biothing_type === 'variant'" target="_blank" href="https://myvariant.info"><img alt="myVariant"  src="/static/img/myvariant-text.svg" height="20px"/></a>
+                  <a rel="noopener"  v-if="metadata.biothing_type === 'chemical'" target="_blank" href="https://mychem.info"><img alt="myChem" src="/static/img/mychem-text.svg" height="20px"/></a>
+                  <a rel="noopener"  v-if="metadata.biothing_type === 'disease'" class="link" target="_blank" href="http://mydisease.info/">MyDisease.info</a>
+                </div>
+                <div v-if="metadata.doc_type" class="badge bg-secondary d-inline p-1 m-2">
+                  <a rel="noopener"  v-if="metadata.doc_type === 'gene'" target="_blank" href="https://mygene.info/"><img alt="myGene"  src="/static/img/mygene-text.svg" height="20px"/></a>
+                  <a rel="noopener"  v-if="metadata.doc_type === 'variant'" target="_blank" href="https://myvariant.info"><img alt="myVariant"  src="/static/img/myvariant-text.svg" height="20px"/></a>
+                  <a rel="noopener"  v-if="metadata.doc_type === 'chemical'" target="_blank" href="https://mychem.info"><img alt="myChem" src="/static/img/mychem-text.svg" height="20px"/></a>
+                  <a rel="noopener"  v-if="metadata.doc_type === 'disease'" class="link" target="_blank" href="http://mydisease.info/">MyDisease.info</a>
+                </div>
+              </div>
+              <div v-if="!existingEntity">
+                <small>Entity Type:</small>
+                <div v-if="metadata.biothing_type" class="badge badge-dark d-inline p-1 m-2">
+                  <span v-text="metadata.biothing_type"></span>
+                </div>
+                <div v-if="metadata.doc_type" class="badge badge-dark d-inline p-1 m-2">
+                  <span v-text="metadata.doc_type"></span>
+                </div>
+              </div>
+            </div>
           </template>
-          <h3 class="m-3" v-text="numberWithCommas(numberOfDocs)+' documents'"></h3>
-          <div class="my-2 p-1" style="position: relative">
-            <a rel="noopener" target="_blank" class="btn btn-sm btn-outline-light" :href="'https://github.com/biothings/outbreak.api/labels/'+api"><i class="fab fa-github"></i> Give Feedback</a>
-          </div>
-          <div v-if="existingEntity" >
-            <small>Pending for integration with:</small>
-            <div v-if="metadata.biothing_type" class="badge bg-secondary d-inline p-1 m-2">
-              <a rel="noopener"  v-if="metadata.biothing_type === 'gene'" target="_blank" href="https://mygene.info/"><img alt="myGene"  src="/static/img/mygene-text.svg" height="20px"/></a>
-              <a rel="noopener"  v-if="metadata.biothing_type === 'variant'" target="_blank" href="https://myvariant.info"><img alt="myVariant"  src="/static/img/myvariant-text.svg" height="20px"/></a>
-              <a rel="noopener"  v-if="metadata.biothing_type === 'chemical'" target="_blank" href="https://mychem.info"><img alt="myChem" src="/static/img/mychem-text.svg" height="20px"/></a>
-              <a rel="noopener"  v-if="metadata.biothing_type === 'disease'" class="link" target="_blank" href="http://mydisease.info/">MyDisease.info</a>
-            </div>
-            <div v-if="metadata.doc_type" class="badge bg-secondary d-inline p-1 m-2">
-              <a rel="noopener"  v-if="metadata.doc_type === 'gene'" target="_blank" href="https://mygene.info/"><img alt="myGene"  src="/static/img/mygene-text.svg" height="20px"/></a>
-              <a rel="noopener"  v-if="metadata.doc_type === 'variant'" target="_blank" href="https://myvariant.info"><img alt="myVariant"  src="/static/img/myvariant-text.svg" height="20px"/></a>
-              <a rel="noopener"  v-if="metadata.doc_type === 'chemical'" target="_blank" href="https://mychem.info"><img alt="myChem" src="/static/img/mychem-text.svg" height="20px"/></a>
-              <a rel="noopener"  v-if="metadata.doc_type === 'disease'" class="link" target="_blank" href="http://mydisease.info/">MyDisease.info</a>
-            </div>
-          </div>
-          <div v-if="!existingEntity">
-            <small>Entity Type:</small>
-            <div v-if="metadata.biothing_type" class="badge badge-dark d-inline p-1 m-2">
-              <span v-text="metadata.biothing_type"></span>
-            </div>
-            <div v-if="metadata.doc_type" class="badge badge-dark d-inline p-1 m-2">
-              <span v-text="metadata.doc_type"></span>
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -283,7 +297,13 @@
           var self = this;
           if (dataObject && dataObject.hasOwnProperty("_id")) {
             let id= dataObject["_id"];
-            let query ='/'+self.type+"/"+id;
+            let query =''
+            if (self.api == 'resources') {
+              query ="/resource/"+id;
+            }else{
+              query ='/'+self.type+"/"+id;
+            }
+
             self.exampleQueries.push(query);
           }
         },
@@ -418,14 +438,7 @@
             }
 
             try {
-              self.numberOfDocs = self.metadata.stats.total
-
-              // console.log("first case",self.getKeyName(self.metadata.src))
-              // let stats = self.metadata.src[self.getKeyName(self.metadata.src)]['stats'];
-              //
-              // for (var key in stats) {
-              //   self.numberOfDocs += stats[key]
-              // }
+              self.numberOfDocs = self.metadata.stats.total;
             } catch (e) {
               console.log("second case")
               self.numberOfDocs = self.metadata.src[self.getKeyName(self.metadata.src)].stats[self.getKeyName(self.metadata.src)];
