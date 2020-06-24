@@ -9,10 +9,9 @@ ES_HOST = 'localhost:9200'
 ES_INDEX = 'outbreak-resources-*'
 ES_DOC_TYPE = 'resource'
 ES_INDICES = {
-    "zenodo":"outbreak-resources-zenodo",
-    "litcovid": "outbreak-resources-litcovid",
-    "biorxiv":"outbreak-resources-biorxiv",
-    "clinical_trials":"outbreak-resources-clinical_trials",
+    "publication":"outbreak-resources-publication",
+    "clinicaltrial": "outbreak-resources-clinicaltrial",
+    "dataset":"outbreak-resources-dataset",
 }
 
 # *****************************************************************************
