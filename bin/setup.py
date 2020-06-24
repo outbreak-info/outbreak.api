@@ -71,6 +71,42 @@ if __name__ == "__main__":
             "mappings": {},
             "aliases": {}
         })
+        client.indices.update_aliases({
+            "actions": [
+                {
+                    "add": {
+                        "index": "outbreak-resources-*",
+                        "alias": "outbreak-resources-publication",
+                        "filter": {
+                            "term": {
+                                "@type": "Publication"
+                            }
+                        }
+                    }
+                },
+                {
+                    "add": {
+                        "index": "outbreak-resources-*",
+                        "alias": "outbreak-resources-clinicaltrial",
+                        "filter": {
+                            "term": {
+                                "@type": "ClinicalTrial"
+                            }
+                        }
+                    }
+                },
+                {
+                    "add": {
+                        "index": "outbreak-resources-*",
+                        "alias": "outbreak-resources-dataset",
+                        "filter": {
+                            "term": {
+                                "@type": "Dataset"
+                            }
+                        }
+                    }
+                }
+            ]
+        })
     except TransportError as exc:
         pprint(exc.info, indent=4, width=500)
-
