@@ -8,14 +8,16 @@
 <section id="index-app">
 	<div class="container-fluid" style="min-height:80vh;">
 
+		<img alt="Outbreak API" src="static/img/back-01.png" width="100%" class="mt-3"/>
 		<div id="home" class="jumbotron text-center">
-			<img src="/static/img/logo.png" width="100px" alt="Outbreak API" />
-			<h1 id="logo">
-				Outbreak API
-			</h1>
+			<div class="p-3">
+				<a href="#pending">
+					<h1>Try It</h1>
+				</a>
+			</div>
 			<div class="row m-0">
 				<div class="col-sm-12 col-md-4 d-flex justify-content-center align-items-top border-top">
-					<div>
+					<div class="p-2">
 						<h1><i class="fas fa-info-circle text-grey"></i></h1>
 						<h3>About</h3>
 						<p>
@@ -24,7 +26,7 @@
 					</div>
 				</div>
 				<div class="col-sm-12 col-md-4 d-flex justify-content-center align-items-top border-top">
-					<div>
+					<div class="p-2">
 						<h1><i class="fas fa-pencil-ruler text-grey"></i></h1>
 						<h3>Design</h3>
 						<p>
@@ -35,11 +37,11 @@
 					</div>
 				</div>
 				<div class="col-sm-12 col-md-4 d-flex justify-content-center align-items-top border-top">
-					<div>
+					<div class="p-2">
 						<h1><i class="fas fa-book text-grey"></i></h1>
 						<h3>Docs</h3>
 						<p>
-							Since these APIs follow the same design pattern as our BioThings APIs, you may refer tho the following <a rel="noopener" href="https://mygene.info" target="_blank">MyGene.info</a> API <a href="https://docs.mygene.info/en/latest/index.html" target="_blank" rel="noreferrer">documentation</a> as a guide on how to use these APIs. Additionally, you may try the live APIs on the <a href="#TryIt">Try It</a> pages below.
+							Since these APIs follow the same design pattern as our BioThings APIs, you may refer tho the following <a rel="noopener" href="https://mychem.info" target="_blank">MyChem.info</a> API <a href="https://docs.mychem.info/en/latest/doc/chem_query_service.html" target="_blank" rel="noreferrer">documentation</a> as a guide on how to use these APIs. Additionally, you may try the live APIs on the <a href="#TryIt">Try It</a> pages below.
 						</p>
 					</div>
 				</div>
@@ -49,25 +51,13 @@
     <div id="pending" class="jumbotron bg-light text-dark text-center">
 			<div class="py-3">
 				<div class="text-dark font-weight-light">
-					<h1 id="TryIt">Try It</h1>
-					<h3>(<span v-text="pending.length"></span>) APIs</h3>
+					<h1 id="TryIt">Outbreak APIs</h1>
+					<small>(<span v-text="pending.length"></span>) APIs</small>
 				</div>
-				<div style="overflow-x:hidden;" class="mb-5 container">
-					<table class="table table-light table-striped table-sm table-hover sortable m-auto" style="overflow-x:hidden;">
-						<thead class="text-light bg-sec">
-							<tr>
-								<th scope="col">Status/Name</th>
-								<th scope="col" class="d-none d-md-table-cell">Documents</th>
-								<th scope="col" class="d-none d-md-table-cell">Entity Type</th>
-								<th scope="col">Try It</th>
-							</tr>
-						</thead>
-						<tbody>
-							<template v-for="(api,index) in pending"  v-if="index < shown">
-								<api-box :api="api" :key="index"></api-box>
-							</template>
-						</tbody>
-					</table>
+				<div class="mb-5 container d-flex justify-content-center">
+					<template v-for="(api,index) in pending">
+						<api-box :api="api" :desc="api.description" :key="index"></api-box>
+					</template>
 				</div>
 				<div class="mb-5 w-100 p-3 bg-secondary" v-if="shown < pending.length">
 					<button class="btn btn-outline-dark text-dark" @click="shown = shown+10">Load More</button>
@@ -98,7 +88,7 @@
 			localMode:false
     }
   },
-  props: ['api'],
+  props: ['api','desc'],
   methods:{
 		getMetadata(name){
 			let self = this;
@@ -191,8 +181,8 @@
 		}
 
   },
-  template: `<tr>
-							<td class="text-left">
+  template: `<div class="border rounded m-1 p-3">
+							<h2 class="text-center">
 								<template v-if='api && api["status"]'>
 									<i class="fas " :title='api["status"]' v-bind:class="[api['status'] === 'running' ? 'text-success fa-check-circle' : 'text-danger fa-exclamation-circle' ]"></i>
 								</template>
@@ -200,13 +190,16 @@
 								<div v-if='loading' class="d-inline text-warning">
 									Loading ... <i class="fas fa-spinner fa-pulse"></i>
 								</div>
-							</td>
-							<td class="d-none d-md-table-cell">
+							</h2>
+							<p template v-if="desc" v-text="desc">
+
+							</p>
+							<p class="text-center">
 								<template v-if="metadata && metadata.src">
-									<small v-text="numberWithCommas()" ></small>
+									<span v-text="numberWithCommas()" ></span> documents
 								</template>
-							</td>
-							<td class=" d-none d-md-table-cell">
+							</p>
+							<div class="text-center">
 								<template v-if="metadata">
 									<template v-if='api["config"]["doc_type"]'>
 									<div class="badge alert-secondary text-dark d-inline m-1 p-1">
@@ -221,15 +214,12 @@
 											<spanv-text="metadata.doc_type"></span>
 										</div>
 									</template>
-
 								</template>
-							</td>
-							<td>
-								<div>
-									<a class="btn btn-outline-dark" :href="'./try/'+api['_id']">Try It <i class="fas fa-chevron-right"></i></a>
-								</div>
-							</td>
-						</tr>`
+							</div>
+							<div class="text-center p-2">
+								<a class="btn btn-outline-dark" :href="'./try/'+api['_id']">Try It <i class="fas fa-chevron-right"></i></a>
+							</div>
+						</div>`
 });
 
   var app = new Vue({

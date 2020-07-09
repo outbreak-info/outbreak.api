@@ -94,8 +94,25 @@ class ApiViewHandler(BaseHandler):
         view_output = view_template.render()
         self.write(view_output)
 
+class TemplateHandler(BaseHandler):
+
+    def initialize(self, filename, status_code=200,):
+
+        self.filename = filename
+        self.status = status_code
+
+    def get(self, **kwargs):
+
+        template = self.env.get_template(self.filename)
+        output = template.render(Context=json.dumps(kwargs))
+
+        self.set_status(self.status)
+        self.write(output)
+
 APP_LIST = [
     (r"/?", MainHandler),
+    # (r"/?", TemplateHandler, {"filename": "index.html"}),
     (r"/(.+)/?", ApiViewHandler),
     (r"/(.+)/(.+)/?", ApiViewHandler),
+    # (r"/best-practices/?", TemplateHandler, {"filename": "guide-intro.html"}),
 ]

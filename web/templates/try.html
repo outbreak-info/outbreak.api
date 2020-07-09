@@ -11,49 +11,49 @@
           <h1 class="font-weight-bold" :data-text='api' v-text='api'></h1>
         </div>
         <p v-if="api == 'resources'">
-          Resources API is a collection of multiple data types and sources that includes:
+          Resources API is a collection of multiple sources that includes:
         </p>
         <div v-if="metadata && metadata.src" class="bg-sec py-2 d-flex justify-content-center">
-          <template v-for="(meta,api) in metadata.src" >
-            <div class="col-sm-4 bg-main p-1 border-bottom">
-              <h4 class="font-weight-bold" :data-text='api' v-text='api'></h4>
-              <small v-if="metadata.src[api]['version']" class="text-light mb-4 lighter" v-text='"Version "+metadata.src[api]["version"]'></small>
+          <template v-for="(meta,apiname) in metadata.src" >
+            <div class="col-sm-4 bg-main p-1 border rounded m-1">
+              <small class="font-weight-bold" :data-text='apiname' v-text='apiname'></small>
+              <small v-if="metadata.src[apiname]['version']" class="text-muted mb-4 lighter d-block" v-text='"Version "+metadata.src[apiname]["version"]'></small>
               <ul class="link-list">
-                <li class="d-inline" v-if="metadata.src[api]['url']">
+                <li class="d-inline" v-if="metadata.src[apiname]['url']">
                   <small class="">
-                    <a rel="noopener" :href="metadata.src[api]['url']" target="_blank" class="link">
-                      <i class="fas fa-link"></i> Source
+                    <a rel="noopener" :href="metadata.src[apiname]['url']" target="_blank" class="link">
+                      Source
                     </a>
                   </small>
                 </li>
-                <li class="d-inline" v-if="metadata.src[api]['code'] && metadata.src[api]['code']['repo']">
+                <li class="d-inline" v-if="metadata.src[apiname]['code'] && metadata.src[apiname]['code']['repo']">
                   <small class="">
-                    <a rel="noopener" :href="metadata.src[api]['code']['repo']" target="_blank" class="link">
-                      <i class="fas fa-link"></i> Code
+                    <a rel="noopener" :href="metadata.src[apiname]['code']['repo']" target="_blank" class="link">
+                      Code
                     </a>
                   </small>
                 </li>
-                <li class="d-inline" v-if='metadata.src[api]["license"]'>
+                <li class="d-inline" v-if='metadata.src[apiname]["license"]'>
                   <small class="">
-                    <a rel="noopener" :href='metadata.src[api]["license"]' target="_blank" class="link">
-                      <i class="fas fa-link"></i> License
+                    <a rel="noopener" :href='metadata.src[apiname]["license"]' target="_blank" class="link">
+                      License
                     </a>
                   </small>
                 </li>
               </ul>
-              <template v-if='metadata.src[api]["author"]'>
+              <template v-if='metadata.src[apiname]["author"]'>
                 <small class="d-block mt-2">
                   Developed by
-                  <a rel="noopener" :href='metadata.src[api]["author"]["url"]' target="_blank" class="link">
-                    <i class="fab fa-github"></i> <span v-text='metadata.src[api]["author"]["name"]'></span>
+                  <a rel="noopener" :href='metadata.src[apiname]["author"]["url"]' target="_blank" class="link">
+                    <i class="fab fa-github"></i> <span v-text='metadata.src[apiname]["author"]["name"]'></span>
                   </a>
                 </small>
               </template>
-              <template v-if='metadata.src[api]["stats"]'>
-                <template v-for="(docs,doctype) in metadata.src[api]['stats']">
-                  <h5 class="m-3">
+              <template v-if='metadata.src[apiname]["stats"]'>
+                <template v-for="(docs,doctype) in metadata.src[apiname]['stats']">
+                  <small class="m-3">
                     <b class="text-info" v-text="numberWithCommas(docs)"></b> documents
-                  </h5>
+                  </small>
                 </template>
               </template>
               <div class="my-2 p-1" style="position: relative">
@@ -432,7 +432,7 @@
           }
           axios.get(base+self.api+'/metadata').then(res=>{
             self.metadata = res.data;
-            console.log('META',res.data)
+            // console.log('META',res.data)
             if (self.metadata && self.metadata.src[self.getKeyName(self.metadata.src)]["url"]) {
               self.metaUrl = self.metadata.src[self.getKeyName(self.metadata.src)]["url"];
             }
@@ -440,11 +440,11 @@
             try {
               self.numberOfDocs = self.metadata.stats.total;
             } catch (e) {
-              console.log("second case")
+              // console.log("second case")
               self.numberOfDocs = self.metadata.src[self.getKeyName(self.metadata.src)].stats[self.getKeyName(self.metadata.src)];
             }
             finally{
-              console.log('# docs:', self.numberOfDocs)
+              // console.log('# docs:', self.numberOfDocs)
             }
 
             if (self.metadata.biothing_type) {
@@ -467,16 +467,13 @@
             self.validAPI = false;
             throw err;
           })
-
         },
       },
         mounted: function(){
           this.api  = window.location.pathname.replace('/try','').replace('/','').toLowerCase();
-          console.log("API",this.api)
-
+          // console.log("API",this.api)
           // http://localhost:8000/covid19?base=localhost
           // use this param to query prod site instead of localhost
-
           var url_string = window.location.href
           var url = new URL(url_string);
           var param = url.searchParams.get("base");
