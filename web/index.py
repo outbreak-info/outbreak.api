@@ -6,10 +6,9 @@ from web.handlers import MainHandler, ApiViewHandler
 
 
 if __name__ == '__main__':
-    extra_app_list = [
+    main(app_handlers=[
         (r"/", MainHandler),
         (r"/v1/(.*)", RedirectHandler, {"url": "/covid19/{0}"}),
         (r"/try/.+", ApiViewHandler),
         (r"/try/.+/.+", ApiViewHandler)
-    ]
-    main(extra_app_list)
+    ]) # additionals

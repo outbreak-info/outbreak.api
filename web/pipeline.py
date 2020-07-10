@@ -28,6 +28,16 @@ class QueryBuilder(ESQueryBuilder):
         search = search.update_from_dict(query)
         return search
 
+    
+    def _apply_extras(self, search, options):
+
+        search = super()._apply_extras(search, options)
+
+        if options._type:
+            search = search.filter('term', **{'@type':options._type})
+
+        return search
+
 
 class ResourceTransform(ESResultTransform):
     """
