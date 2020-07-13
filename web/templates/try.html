@@ -104,9 +104,16 @@
             <div class="form-group p-1">
               <template v-if="querySelectionType==='example'">
                 <select v-model="querySelected" class="form-control scale-in-center" id="exampleFormControlSelect1">
-                  <template v-for="item in exampleQueries">
-                    <option :value="item" v-text="trunc(item)"></option>
-                  </template>
+                  <optgroup label="examples">
+                    <template v-for="item in exampleQueries">
+                      <option :value="item" v-text="trunc(item)"></option>
+                    </template>
+                  </optgroup>
+                  <optgroup v-if="api == 'resources'" label="query by specific document type">
+                    <template v-for="item in specialQueries">
+                      <option :value="item" v-text="trunc(item)"></option>
+                    </template>
+                  </optgroup>
                 </select>
               </template>
               <template v-if="querySelectionType==='own'">
@@ -182,7 +189,8 @@
           existingEntity:false,
           metaUrl:'',
           localMode:false,
-          successURL:''
+          successURL:'',
+          specialQueries:[]
         }
       },
       watch:{
@@ -300,12 +308,21 @@
             let query =''
             if (self.api == 'resources') {
               query ="/resource/"+id;
+              // also generate specialQueries
             }else{
               query ='/'+self.type+"/"+id;
             }
 
             self.exampleQueries.push(query);
           }
+        },
+        generateSpecial(){
+          var self = this;
+
+          self.specialQueries.push('/dataset/dataverseDVN_0D1XX6');
+          self.specialQueries.push('/publication/query?q=covid19');
+          self.specialQueries.push('/presentationdigitaldocument/query?q=coronavirus');
+
         },
         randomProperty(obj) {
           if (_.isPlainObject(obj)) {
@@ -361,10 +378,13 @@
           self.generateTestQueriesStart();
         },
         trunc(s){
-
-          try {
-            return s.substring(0,80)+"..."
-          } catch (e) {
+          if (s.length > 79) {
+            try {
+              return s.substring(0,80)+"..."
+            } catch (e) {
+              return s
+            }
+          }else {
             return s
           }
         },
@@ -471,6 +491,9 @@
       },
         mounted: function(){
           this.api  = window.location.pathname.replace('/try','').replace('/','').toLowerCase();
+          if (this.api == 'resources') {
+            this.generateSpecial();
+          }
           // console.log("API",this.api)
           // http://localhost:8000/covid19?base=localhost
           // use this param to query prod site instead of localhost
