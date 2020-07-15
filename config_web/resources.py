@@ -15,6 +15,7 @@ ES_DOC_TYPE = 'resource'
 # *****************************************************************************
 API_PREFIX = 'resources'
 API_VERSION = ''
+APP_LIST = deepcopy(APP_LIST)
 APP_LIST += [
     (r"/{pre}/{ver}/([^\/]+)/query/?", 'web.handlers.OutbreakQueryHandler'),
     (r"/{pre}/{ver}/([^\/]+)/([^\/]+)/?", 'web.handlers.OutbreakBiothingHandler'),
