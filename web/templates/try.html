@@ -1,90 +1,29 @@
 {% extends "main.html" %}
 {% block content %}
 <style type="text/css">
-
+.pointer{
+  cursor: pointer;
+}
 </style>
 <section id="try-app">
   <div v-if="validAPI" class="container mt-5">
     <div class="bg-light">
-      <div class="bg-sec text-light jumbotron text-center p-1">
+      <div class="bg-sec text-light jumbotron text-center p-2">
         <div class="py-2">
           <h1 class="font-weight-bold" :data-text='api' v-text='api'></h1>
         </div>
         <p v-if="api == 'resources'">
-          Resources API is a collection of multiple sources that includes:
+          Resources API is a collection of multiple sources and document types. Sources include:
         </p>
-        <div v-if="metadata && metadata.src" class="bg-sec py-2 d-flex justify-content-center">
+        <div v-if="metadata && metadata.src" class="bg-sec py-2 d-flex justify-content-center align-items-start flex-wrap mb-4">
           <template v-for="(meta,apiname) in metadata.src" >
-            <div class="col-sm-4 bg-main p-1 border rounded m-1">
-              <small class="font-weight-bold" :data-text='apiname' v-text='apiname'></small>
-              <small v-if="metadata.src[apiname]['version']" class="text-muted mb-4 lighter d-block" v-text='"Version "+metadata.src[apiname]["version"]'></small>
-              <ul class="link-list">
-                <li class="d-inline" v-if="metadata.src[apiname]['url']">
-                  <small class="">
-                    <a rel="noopener" :href="metadata.src[apiname]['url']" target="_blank" class="link">
-                      Source
-                    </a>
-                  </small>
-                </li>
-                <li class="d-inline" v-if="metadata.src[apiname]['code'] && metadata.src[apiname]['code']['repo']">
-                  <small class="">
-                    <a rel="noopener" :href="metadata.src[apiname]['code']['repo']" target="_blank" class="link">
-                      Code
-                    </a>
-                  </small>
-                </li>
-                <li class="d-inline" v-if='metadata.src[apiname]["license"]'>
-                  <small class="">
-                    <a rel="noopener" :href='metadata.src[apiname]["license"]' target="_blank" class="link">
-                      License
-                    </a>
-                  </small>
-                </li>
-              </ul>
-              <template v-if='metadata.src[apiname]["author"]'>
-                <small class="d-block mt-2">
-                  Developed by
-                  <a rel="noopener" :href='metadata.src[apiname]["author"]["url"]' target="_blank" class="link">
-                    <i class="fab fa-github"></i> <span v-text='metadata.src[apiname]["author"]["name"]'></span>
-                  </a>
-                </small>
-              </template>
-              <template v-if='metadata.src[apiname]["stats"]'>
-                <template v-for="(docs,doctype) in metadata.src[apiname]['stats']">
-                  <small class="m-3">
-                    <b class="text-info" v-text="numberWithCommas(docs)"></b> documents
-                  </small>
-                </template>
-              </template>
-              <div class="my-2 p-1" style="position: relative">
-                <a rel="noopener" target="_blank" class="btn btn-sm btn-outline-light" :href="'https://github.com/biothings/outbreak.api/labels/'+api"><i class="fab fa-github"></i> Give Feedback</a>
-              </div>
-              <div v-if="existingEntity" >
-                <small>Entity Type:</small>
-                <div v-if="metadata.biothing_type" class="badge bg-secondary d-inline p-1 m-2">
-                  <a rel="noopener"  v-if="metadata.biothing_type === 'gene'" target="_blank" href="https://mygene.info/"><img alt="myGene"  src="/static/img/mygene-text.svg" height="20px"/></a>
-                  <a rel="noopener"  v-if="metadata.biothing_type === 'variant'" target="_blank" href="https://myvariant.info"><img alt="myVariant"  src="/static/img/myvariant-text.svg" height="20px"/></a>
-                  <a rel="noopener"  v-if="metadata.biothing_type === 'chemical'" target="_blank" href="https://mychem.info"><img alt="myChem" src="/static/img/mychem-text.svg" height="20px"/></a>
-                  <a rel="noopener"  v-if="metadata.biothing_type === 'disease'" class="link" target="_blank" href="http://mydisease.info/">MyDisease.info</a>
-                </div>
-                <div v-if="metadata.doc_type" class="badge bg-secondary d-inline p-1 m-2">
-                  <a rel="noopener"  v-if="metadata.doc_type === 'gene'" target="_blank" href="https://mygene.info/"><img alt="myGene"  src="/static/img/mygene-text.svg" height="20px"/></a>
-                  <a rel="noopener"  v-if="metadata.doc_type === 'variant'" target="_blank" href="https://myvariant.info"><img alt="myVariant"  src="/static/img/myvariant-text.svg" height="20px"/></a>
-                  <a rel="noopener"  v-if="metadata.doc_type === 'chemical'" target="_blank" href="https://mychem.info"><img alt="myChem" src="/static/img/mychem-text.svg" height="20px"/></a>
-                  <a rel="noopener"  v-if="metadata.doc_type === 'disease'" class="link" target="_blank" href="http://mydisease.info/">MyDisease.info</a>
-                </div>
-              </div>
-              <div v-if="!existingEntity">
-                <small>Entity Type:</small>
-                <div v-if="metadata.biothing_type" class="badge badge-dark d-inline p-1 m-2">
-                  <span v-text="metadata.biothing_type"></span>
-                </div>
-                <div v-if="metadata.doc_type" class="badge badge-dark d-inline p-1 m-2">
-                  <span v-text="metadata.doc_type"></span>
-                </div>
-              </div>
-            </div>
+            <resource-details :key="apiname" :apiname="apiname" :meta="meta" :api="api" :metadata="metadata"></resource-details>
           </template>
+        </div>
+        <div v-if="api == 'resources'" class="alert alert-light p-1 rounded text-center w-75 m-auto">
+          <h5 class="m-2">
+            This API also allows you to <a href="/try-by-doctype/resources"><b>search by document type</b></a>. Try it!
+          </h5>
         </div>
       </div>
     </div>
@@ -165,6 +104,124 @@
   <script src="/static/js/renderjson.js"></script>
   <script src="/static/js/lodash.js"></script>
   <script>
+
+    Vue.component('resource-details', {
+    data: function(){
+      return{
+        existingEntity: false,
+        expand:false
+      }
+    },
+    props: ['apiname','api','meta','metadata'],
+    methods:{
+      numberWithCommas(x) {
+          try {
+            return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+          } catch (e) {
+            return x.toString();
+          }
+
+      },
+    },
+    watch:{
+
+    },
+    mounted: function(){
+      var self = this;
+      if (self.api !== 'resources') {
+        self.expand = true
+      }
+    },
+    computed: {
+
+
+    },
+    template:
+    `<div class="col-sm-4 bg-main p-1 border rounded">
+      <h6>
+        <small class="font-weight-bold" :data-text='apiname' v-text='apiname'></small>
+        <template v-if="api =='resources'">
+          <span class="pointer" @click="expand=!expand">
+            <i v-if="!expand" class="fas fa-plus-circle text-primary"></i>
+            <i v-else class="fas fa-minus-circle text-danger"></i>
+          </span>
+        </template>
+      </h6>
+      <span v-if='metadata.src[apiname]["stats"]'>
+        <template v-for="(docs,doctype) in metadata.src[apiname]['stats']">
+          <small class="d-block">
+            <b class="text-info" v-text="numberWithCommas(docs)"></b>
+          </small>
+          <small class="d-block text-muted">documents</small>
+        </template>
+      </span>
+
+
+      <div v-show="expand">
+        <small v-if="metadata.src[apiname]['version']" class="text-muted mb-4 lighter d-block" v-text='"Version "+metadata.src[apiname]["version"]'></small>
+        <ul class="link-list">
+          <li class="d-inline" v-if="metadata.src[apiname]['url']">
+            <small class="">
+              <a rel="noopener" :href="metadata.src[apiname]['url']" target="_blank" class="link">
+                Source
+              </a>
+            </small>
+          </li>
+          <li class="d-inline" v-if="metadata.src[apiname]['code'] && metadata.src[apiname]['code']['repo']">
+            <small class="">
+              <a rel="noopener" :href="metadata.src[apiname]['code']['repo']" target="_blank" class="link">
+                Code
+              </a>
+            </small>
+          </li>
+          <li class="d-inline" v-if='metadata.src[apiname]["license"]'>
+            <small class="">
+              <a rel="noopener" :href='metadata.src[apiname]["license"]' target="_blank" class="link">
+                License
+              </a>
+            </small>
+          </li>
+        </ul>
+        <template v-if='metadata.src[apiname]["author"]'>
+          <small class="d-block mt-2">
+            Developed by
+            <a rel="noopener" :href='metadata.src[apiname]["author"]["url"]' target="_blank" class="link">
+              <i class="fab fa-github"></i> <span v-text='metadata.src[apiname]["author"]["name"]'></span>
+            </a>
+          </small>
+        </template>
+
+        <div class="my-2 p-1" style="position: relative">
+          <a rel="noopener" target="_blank" class="btn btn-sm btn-outline-light" :href="'https://github.com/biothings/outbreak.api/labels/'+api"><i class="fab fa-github"></i> Give Feedback</a>
+        </div>
+        <div v-if="existingEntity" >
+          <small>Entity Type:</small>
+          <div v-if="metadata.biothing_type" class="badge bg-secondary d-inline p-1 m-2">
+            <a rel="noopener"  v-if="metadata.biothing_type === 'gene'" target="_blank" href="https://mygene.info/"><img alt="myGene"  src="/static/img/mygene-text.svg" height="20px"/></a>
+            <a rel="noopener"  v-if="metadata.biothing_type === 'variant'" target="_blank" href="https://myvariant.info"><img alt="myVariant"  src="/static/img/myvariant-text.svg" height="20px"/></a>
+            <a rel="noopener"  v-if="metadata.biothing_type === 'chemical'" target="_blank" href="https://mychem.info"><img alt="myChem" src="/static/img/mychem-text.svg" height="20px"/></a>
+            <a rel="noopener"  v-if="metadata.biothing_type === 'disease'" class="link" target="_blank" href="http://mydisease.info/">MyDisease.info</a>
+          </div>
+          <div v-if="metadata.doc_type" class="badge bg-secondary d-inline p-1 m-2">
+            <a rel="noopener"  v-if="metadata.doc_type === 'gene'" target="_blank" href="https://mygene.info/"><img alt="myGene"  src="/static/img/mygene-text.svg" height="20px"/></a>
+            <a rel="noopener"  v-if="metadata.doc_type === 'variant'" target="_blank" href="https://myvariant.info"><img alt="myVariant"  src="/static/img/myvariant-text.svg" height="20px"/></a>
+            <a rel="noopener"  v-if="metadata.doc_type === 'chemical'" target="_blank" href="https://mychem.info"><img alt="myChem" src="/static/img/mychem-text.svg" height="20px"/></a>
+            <a rel="noopener"  v-if="metadata.doc_type === 'disease'" class="link" target="_blank" href="http://mydisease.info/">MyDisease.info</a>
+          </div>
+        </div>
+        <div v-if="!existingEntity">
+          <small>Entity Type:</small>
+          <div v-if="metadata.biothing_type" class="badge badge-dark d-inline p-1 m-2">
+            <span v-text="metadata.biothing_type"></span>
+          </div>
+          <div v-if="metadata.doc_type" class="badge badge-dark d-inline p-1 m-2">
+            <span v-text="metadata.doc_type"></span>
+          </div>
+        </div>
+      </div>
+    </div>`
+    });
+
     var app = new Vue({
       el: '#try-app',
       data: function(){
@@ -315,14 +372,6 @@
 
             self.exampleQueries.push(query);
           }
-        },
-        generateSpecial(){
-          var self = this;
-
-          self.specialQueries.push('/dataset/dataverseDVN_0D1XX6');
-          self.specialQueries.push('/publication/query?q=covid19');
-          self.specialQueries.push('/presentationdigitaldocument/query?q=coronavirus');
-
         },
         randomProperty(obj) {
           if (_.isPlainObject(obj)) {
@@ -491,17 +540,13 @@
       },
         mounted: function(){
           this.api  = window.location.pathname.replace('/try','').replace('/','').toLowerCase();
-          if (this.api == 'resources') {
-            this.generateSpecial();
-          }
-          // console.log("API",this.api)
-          // http://localhost:8000/covid19?base=localhost
-          // use this param to query prod site instead of localhost
+
           var url_string = window.location.href
           var url = new URL(url_string);
           var param = url.searchParams.get("base");
-          if (param && param === 'prod') {
+          if (param && param === 'prod' || window.location.hostname == 'localhost') {
             this.localMode = true;
+            console.log('localMode',this.localMode)
           }
 
           this.getMetadata();

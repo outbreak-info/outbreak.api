@@ -24,6 +24,10 @@ html{
   background: var(--sec) !important;
 }
 
+.bg-out{
+  background-color: #D13A62;
+}
+
 ::selection {
   background-color: #D13A62;
   color: white;

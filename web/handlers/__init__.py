@@ -1,2 +1,2 @@
-from .jinja import MainHandler, ApiViewHandler
+from .jinja import MainHandler, ApiViewHandler, SpecialHandler
 from .api import OutbreakBiothingHandler, OutbreakQueryHandler

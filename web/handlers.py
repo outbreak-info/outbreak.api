@@ -6,7 +6,6 @@ import os.path
 import tornado.web
 from tornado.escape import json_encode
 from jinja2 import Environment, FileSystemLoader
-# import requests
 
 src_path = os.path.split(os.path.split(os.path.abspath(__file__))[0])[0]
 # import sys
@@ -18,9 +17,7 @@ templateLoader = FileSystemLoader(searchpath=TEMPLATE_PATH)
 templateEnv = Environment(loader=templateLoader, cache_size=0)
 
 def get_api_list():
-    # import requests
-    # r = requests.get('https://api.outbreak.info/api/list')
-    # res = r.json()['result']
+
     res = [
         {
             "_id": "covid19",
@@ -38,39 +35,8 @@ def get_api_list():
             "description": "COVID19 collection of datasets, publications ,clinical trials, protocols, and more.",
             "status": "running"
         },
-        # {
-        #     "_id": "resources/litcovid",
-        #     "config": {
-        #         "doc_type": "publication"
-        #     },
-        #     "description": "COVID19 publications",
-        #     "status": "running"
-        # },
-        # {
-        #     "_id": "resources/clinical_trials",
-        #     "config": {
-        #         "doc_type": "clinicaltrial"
-        #     },
-        #     "description": "COVID19 clinical trials",
-        #     "status": "running"
-        # },
-        # {
-        #     "_id": "resources/biorxiv",
-        #     "config": {
-        #         "doc_type": "publication"
-        #     },
-        #     "description": "COVID19 publications",
-        #     "status": "running"
-        # },
-        # {
-        #     "_id": "resources/zenodo",
-        #     "config": {
-        #         "doc_type": "outbreak_resource"
-        #     },
-        #     "description": "COVID19 datasets",
-        #     "status": "running"
-        # }
     ]
+
     return res
 
 class BaseHandler(tornado.web.RequestHandler):
@@ -94,6 +60,13 @@ class ApiViewHandler(BaseHandler):
         view_output = view_template.render()
         self.write(view_output)
 
+class SpecialHandler(BaseHandler):
+    def get(self):
+        view_file = "try-resources.html"
+        view_template = templateEnv.get_template(view_file)
+        view_output = view_template.render()
+        self.write(view_output)
+
 class TemplateHandler(BaseHandler):
 
     def initialize(self, filename, status_code=200,):
@@ -111,8 +84,7 @@ class TemplateHandler(BaseHandler):
 
 APP_LIST = [
     (r"/?", MainHandler),
-    # (r"/?", TemplateHandler, {"filename": "index.html"}),
     (r"/(.+)/?", ApiViewHandler),
+    (r"/try/resources/?", SpecialHandler),
     (r"/(.+)/(.+)/?", ApiViewHandler),
-    # (r"/best-practices/?", TemplateHandler, {"filename": "guide-intro.html"}),
 ]

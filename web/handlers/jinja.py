@@ -50,3 +50,10 @@ class ApiViewHandler(BaseHandler):
         view_template = templateEnv.get_template(view_file)
         view_output = view_template.render()
         self.write(view_output)
+
+class SpecialHandler(BaseHandler):
+    def get(self):
+        view_file = "try-resources.html"
+        view_template = templateEnv.get_template(view_file)
+        view_output = view_template.render()
+        self.write(view_output)
