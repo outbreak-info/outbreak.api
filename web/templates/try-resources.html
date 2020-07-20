@@ -59,7 +59,7 @@
           // console.log('saveMetadata',state.metadata)
         },
         saveSubApis(state,payload){
-          const notInclude =['creativework','outbreak:dataset','website','imageobject','mediaobject']
+          const notInclude =['creativework','outbreak:dataset','website','imageobject','mediaobject','presentationdigitaldocument']
           let array = payload['sub'];
 
           for (var i = 0; i < array.length; i++) {
