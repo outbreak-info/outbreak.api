@@ -103,7 +103,6 @@
 			axios.get(base+name+'/metadata').then(res=>{
 				self.loading = false;
 				self.metadata = res.data
-				console.log(self.metadata)
 				if (self.metadata.hasOwnProperty('doc_type')) {
 					if (safeList.includes(self.metadata['doc_type'])) {
 						self.existingEntity = true
