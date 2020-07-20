@@ -15,7 +15,7 @@
         <p v-if="api == 'resources'">
           Resources API is a collection of multiple sources and document types. Sources include:
         </p>
-        <div v-if="metadata && metadata.src" class="bg-sec py-2 d-flex justify-content-center align-items-start flex-wrap mb-4">
+        <div v-if="metadata && metadata.src" class="bg-sec py-2 d-flex justify-content-center align-items-start flex-wrap mb-4 align-items-stretch">
           <template v-for="(meta,apiname) in metadata.src" >
             <resource-details :key="apiname" :apiname="apiname" :meta="meta" :api="api" :metadata="metadata"></resource-details>
           </template>
@@ -142,8 +142,8 @@
         <small class="font-weight-bold" :data-text='apiname' v-text='apiname'></small>
         <template v-if="api =='resources'">
           <span class="pointer" @click="expand=!expand">
-            <i v-if="!expand" class="fas fa-plus-circle text-primary"></i>
-            <i v-else class="fas fa-minus-circle text-danger"></i>
+            <i v-if="!expand" class="fas fa-info-circle text-primary fa-xs" title="more info"></i>
+            <i v-else class="fas fa-minus-circle text-danger fa-xs" title="hide"></i>
           </span>
         </template>
       </h6>

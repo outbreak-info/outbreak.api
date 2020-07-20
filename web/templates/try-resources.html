@@ -14,7 +14,10 @@
         <template v-for="(sub,i) in subAPIS">
           <li class="nav-item" :key="i">
             <a class="nav-link text-center" :class="[sub.term == selectedAPI ? 'bg-out':'bg-sec']" href="#" @click="selectThis(sub)">
-              <h6 class="text-light" v-text="sub.term"></h6>
+              <h6 class="text-light">
+                <span v-text="sub.term"></span>
+                <span v-if="sub.term == 'resource'">*</span>
+              </h6>
               <small class="text-light" v-text="numberWithCommas(sub.count)+' docs'"></small>
             </a>
           </li>
@@ -398,6 +401,9 @@
         <span v-text="name"></span>
         <i v-if="loading" class="fas fa-spinner fa-pulse text-danger"></i>
       </h3>
+      <p v-if="name == 'resource'" class="text-center">
+        *<small><b>resource</b> is the general type that combines of all other document types. eg. dataset, protocol, etc.</small>
+      </p>
       <div class="gradientBox">
         <div class="bg-light jumbotron text-dark text-center" v-if="name">
           <h1 class="mb-5">
