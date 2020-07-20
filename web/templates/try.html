@@ -48,11 +48,6 @@
                       <option :value="item" v-text="trunc(item)"></option>
                     </template>
                   </optgroup>
-                  <optgroup v-if="api == 'resources'" label="query by specific document type">
-                    <template v-for="item in specialQueries">
-                      <option :value="item" v-text="trunc(item)"></option>
-                    </template>
-                  </optgroup>
                 </select>
               </template>
               <template v-if="querySelectionType==='own'">
