@@ -6,7 +6,7 @@ logger = config.logger
 
 # This will add a new console command "auto_archive".
 # It is a private command only accessible from the ssh console
-def auto_archive(build_config_name, days=7, dryrun=True):
+def auto_archive(build_config_name, days=3, dryrun=True):
     """
     Archive any builds which build date is older than today's date
     by "days" day.
@@ -32,7 +32,13 @@ def auto_archive(build_config_name, days=7, dryrun=True):
 
 # the following line set the schedule to run it regularly in the event loop
 # multiple schedules can be added for different build configs
-schedule("0 1 * * *", auto_archive, "covid19", dryrun=False)   # 5pm daily, 1am UTC
+schedule("0 17 * * *", auto_archive, "covid19", dryrun=False)   # 5pm daily, 1am UTC
+schedule("0 18 * * *", auto_archive, "litcovid", dryrun=False)  # 6pm daily, 2am UTC
+schedule("0 18 * * *", auto_archive, "biorxiv", dryrun=False)   # 6pm daily, 2am UTC
+schedule("0 18 * * *", auto_archive, "clinical_trials", dryrun=False)   # 6pm daily, 2am UTC
+schedule("0 18 * * *", auto_archive, "pdb", dryrun=False)       # 6pm daily, 2am UTC
+schedule("0 18 * * *", auto_archive, "figshare", dryrun=False)  # 6pm daily, 2am UTC
+schedule("0 18 * * *", auto_archive, "protocolsio", dryrun=False)   # 6pm daily, 2am UTC
 
 
 # optionally, we can expose command as an API endpoint
