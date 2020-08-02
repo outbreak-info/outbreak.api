@@ -13,11 +13,15 @@ def auto_archive(build_config_name, days=3, dryrun=True):
     """
     logger.info("Auto-archive builds older than %s days" % days)
     builds = lsmerge(build_config_name)
-    today = datetime.datetime.now()
+    today = datetime.datetime.now().astimezone()
     at_least_one = False
     for bid in builds:
         build = bm.build_info(bid)
-        bdate = dtparser.parse(build["_meta"]["build_date"])
+        try:
+            bdate = dtparser.parse(build["_meta"]["build_date"]).astimezone()
+        except KeyError:
+            logger.warning('Build "{}" missing "_meta" key.'.format(bid))
+            continue
         deltadate = today - bdate
         if deltadate.days > days:
             logger.info("Archiving build %s (older than %s)" % (bid, deltadate))
@@ -39,6 +43,7 @@ schedule("0 18 * * *", auto_archive, "clinical_trials", dryrun=False)   # 6pm da
 schedule("0 18 * * *", auto_archive, "pdb", dryrun=False)       # 6pm daily, 2am UTC
 schedule("0 18 * * *", auto_archive, "figshare", dryrun=False)  # 6pm daily, 2am UTC
 schedule("0 18 * * *", auto_archive, "protocolsio", dryrun=False)   # 6pm daily, 2am UTC
+schedule("0 18 * * *", auto_archive, "dataverse", dryrun=False)   # 6pm daily, 2am UTC
 
 
 # optionally, we can expose command as an API endpoint
