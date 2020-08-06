@@ -1,87 +1,140 @@
 {% extends "main.html" %}
 {% block content %}
 <style type="text/css">
-.pointer{
-  cursor: pointer;
-}
+  .pointer {
+    cursor: pointer;
+  }
 </style>
-<section id="try-app">
+<section id="try-app" class="mb-5">
   <div v-if="validAPI" class="container mt-5">
     <div class="bg-light">
-      <div class="bg-sec text-light jumbotron text-center p-2">
+      <div class="text-light jumbotron text-center p-2" style="background:#09253C;">
         <div class="py-2">
           <h1 class="font-weight-bold" :data-text='api' v-text='api'></h1>
         </div>
-        <p v-if="api == 'resources'">
-          Resources API is a collection of multiple sources and document types. Sources include:
-        </p>
-        <div v-if="metadata && metadata.src" class="bg-sec py-2 d-flex justify-content-center align-items-start flex-wrap mb-4 align-items-stretch">
-          <template v-for="(meta,apiname) in metadata.src" >
-            <resource-details :key="apiname" :apiname="apiname" :meta="meta" :api="api" :metadata="metadata"></resource-details>
-          </template>
-        </div>
-        <div v-if="api == 'resources'" class="alert alert-light p-1 rounded text-center w-75 m-auto">
-          <h5 class="m-2">
-            This API also allows you to <a href="/try-by-doctype/resources"><b>search by document type</b></a>. Try it!
-          </h5>
-        </div>
+        <template v-if="api == 'resources'">
+          <div class="row m-0">
+            <div class="col-sm-12">
+              <p v-if="api == 'resources'">
+                Resources API is a collection of multiple sources and entity types. Sources include:
+              </p>
+            </div>
+            <div v-if="metadata && metadata.src" class="col-sm-12 col-md-8">
+              <table class="table table-sm table-striped">
+                <thead>
+                  <td>
+                    <small class="text-muted">source | details</small>
+                  </td>
+                  <td>
+                    <small class="text-muted">documents</small>
+                  </td>
+                  <td>
+                    <small class="text-muted">entity type(s)</small>
+                  </td>
+                </thead>
+                <template v-for="(meta,apiname) in metadata.src">
+                  <list-details :key="apiname" :apiname="apiname" :meta="meta" :api="api" :metadata="metadata"></list-details>
+                </template>
+              </table>
+              <div class="my-2 p-1" style="position: relative">
+                <a rel="noopener" target="_blank" class="btn btn-sm btn-outline-light" :href="'https://github.com/biothings/outbreak.api/labels/'+api"><i class="fab fa-github"></i> Give Feedback</a>
+              </div>
+            </div>
+            <div class="col-sm-12 col-md-4">
+              <canvas v-if="api == 'resources'" class="m-auto" id="myChart" width="275px" height="100px"></canvas>
+            </div>
+          </div>
+        </template>
+        <template v-else>
+          <div v-if="metadata && metadata.src" class="py-2 d-flex justify-content-center align-items-start flex-wrap mb-4 align-items-stretch">
+            <template v-for="(meta,apiname) in metadata.src">
+              <resource-details :key="apiname" :apiname="apiname" :meta="meta" :api="api" :metadata="metadata"></resource-details>
+            </template>
+          </div>
+        </template>
       </div>
     </div>
 
-      <div class="gradientBox">
-        <div class="bg-light jumbotron text-dark text-center">
-          <h1 class="mb-5">
-            Try It
-          </h1>
-          <p class="text-center">
-            <button @click="getDocStructure()" class="btn btn-sm btn-outline-secondary mt-2" style="zoom:.8" type="button">See Document Structure</button>
-          </p>
-          <form class="d-flex justify-content-start flex-wrap" @submit.prevent="testQuery()">
-            <div class="form-group p-1">
-              <h4 class="text-md-right"><span v-text="window.location.origin+'/'"></span><b v-text="api"></b></h4>
-            </div>
-            <div class="form-group p-1">
-              <template v-if="querySelectionType==='example'">
-                <select v-model="querySelected" class="form-control scale-in-center" id="exampleFormControlSelect1">
-                  <optgroup label="examples">
-                    <template v-for="item in exampleQueries">
-                      <option :value="item" v-text="trunc(item)"></option>
-                    </template>
-                  </optgroup>
-                </select>
-              </template>
-              <template v-if="querySelectionType==='own'">
-                <input v-model="querySelected" type="text" class="form-control scale-in-center" id="exampleFormControlInput1" placeholder="enter query here">
-              </template>
-              <button @click="querySelected=''" v-if="querySelected" class="btn btn-outline-dark text-danger mt-2 mr-2" type="button">Clear</button>
-              <button v-if="querySelected" class="btn btn-outline-dark mt-2" type="submit">Submit</button>
-              <label class="text-muted" v-if="!querySelected" for="api">Select a query</label>
-              <div class="form-check text-left mt-3">
-                <input v-model="querySelectionType" class="form-check-input" type="radio" name="exampleRadios" id="exampleRadios1" value="example" checked>
-                <label class="form-check-label" for="exampleRadios1">
-                  Example Queries <button @click='refreshExmaples()' class="btn btn-sm btn-dark ml-3 text-light" type="button" style="zoom:.8">Generate New <i v-if="loadingExamplesQueries" class="fas fa-spinner fa-pulse text-warning"></i></button>
-                </label>
-              </div>
-              <div class="form-check text-left">
-                <input v-model="querySelectionType" class="form-check-input" type="radio" name="exampleRadios" id="exampleRadios2" value="own">
-                <label class="form-check-label" for="exampleRadios2">
-                  Write My Own Query
-                </label>
-              </div>
-            </div>
-          </form>
-          <p class="bold" v-if="success && queryString">
-            <i  class="fas fa-check text-success"></i> <a rel="noopener" target="_blank" :href="queryString" v-text="window.location.origin+successURL" class="m-auto" :class="[ success ? 'text-success' : 'text-danger']" type="text"></a>
-          </p>
-          <div v-show='loading' class="spinner">
-            <div class="cube1"></div>
-            <div class="cube2"></div>
+    <div v-if="api == 'resources'">
+      <div class="bg-light">
+        <ul class="nav nav-tabs">
+          <template v-for="(sub,i) in subAPIS">
+            <li class="nav-item" :key="i">
+              <a class="nav-link text-center" :class="[sub.term == selectedAPI ? 'bg-out':'bg-sec']" href="#" @click="selectThis(sub)">
+                <h6 class="text-light">
+                  <template v-if="sub.term == 'resource'">
+                    resource (all entities combined)
+                  </template>
+                  <template v-else>
+                    <span v-text="sub.term"></span>
+                  </template>
+                </h6>
+                <small class="text-light" v-text="numberWithCommas(sub.count)+' docs'"></small>
+              </a>
+            </li>
+          </template>
+        </ul>
+      </div>
+      <div>
+        <try-it-box></try-it-box>
+      </div>
+    </div>
+
+    <div class="gradientBox" v-else>
+      <div class="bg-light jumbotron text-dark text-center">
+        <h1 class="mb-5">
+          Try It
+        </h1>
+        <p class="text-center">
+          <button @click="getDocStructure()" class="btn btn-sm btn-outline-secondary mt-2" style="zoom:.8" type="button">See Document Structure</button>
+        </p>
+        <form class="d-flex justify-content-start flex-wrap" @submit.prevent="testQuery()">
+          <div class="form-group p-1">
+            <h4 class="text-md-right"><span v-text="window.location.origin+'/'"></span><b v-text="api"></b></h4>
           </div>
-          <pre v-show="success" id="callResults" class="p-2 text-dark bg-light text-left mt-4 mb-4" style="font-size:1em !important;max-height: 800px;min-height: 800px; overflow: scroll; border-style: inset; border: 2px #5d5d5d solid;border-radius: 5px;">
+          <div class="form-group p-1">
+            <template v-if="querySelectionType==='example'">
+              <select v-model="querySelected" class="form-control scale-in-center" id="exampleFormControlSelect1">
+                <optgroup label="examples">
+                  <template v-for="item in exampleQueries">
+                    <option :value="item" v-text="trunc(item)"></option>
+                  </template>
+                </optgroup>
+              </select>
+            </template>
+            <template v-if="querySelectionType==='own'">
+              <input v-model="querySelected" type="text" class="form-control scale-in-center" id="exampleFormControlInput1" placeholder="enter query here">
+            </template>
+            <button @click="querySelected=''" v-if="querySelected" class="btn btn-outline-dark text-danger mt-2 mr-2" type="button">Clear</button>
+            <button v-if="querySelected" class="btn btn-outline-dark mt-2" type="submit">Submit</button>
+            <label class="text-muted" v-if="!querySelected" for="api">Select a query</label>
+            <div class="form-check text-left mt-3">
+              <input v-model="querySelectionType" class="form-check-input" type="radio" name="exampleRadios" id="exampleRadios1" value="example" checked>
+              <label class="form-check-label" for="exampleRadios1">
+                Example Queries <button @click='refreshExmaples()' class="btn btn-sm btn-dark ml-3 text-light" type="button" style="zoom:.8">Generate New <i v-if="loadingExamplesQueries" class="fas fa-spinner fa-pulse text-warning"></i></button>
+              </label>
+            </div>
+            <div class="form-check text-left">
+              <input v-model="querySelectionType" class="form-check-input" type="radio" name="exampleRadios" id="exampleRadios2" value="own">
+              <label class="form-check-label" for="exampleRadios2">
+                Write My Own Query
+              </label>
+            </div>
+          </div>
+        </form>
+        <p class="bold" v-if="success && queryString">
+          <i class="fas fa-check text-success"></i> <a rel="noopener" target="_blank" :href="queryString" v-text="window.location.origin+successURL" class="m-auto" :class="[ success ? 'text-success' : 'text-danger']" type="text"></a>
+        </p>
+        <div v-show='loading' class="spinner">
+          <div class="cube1"></div>
+          <div class="cube2"></div>
+        </div>
+        <pre v-show="success" id="callResults" class="p-2 text-dark bg-light text-left mt-4 mb-4"
+          style="font-size:1em !important;max-height: 800px;min-height: 800px; overflow: scroll; border-style: inset; border: 2px #5d5d5d solid;border-radius: 5px;">
 
           </pre>
-        </div>
       </div>
+    </div>
 
   </div>
   <div v-else style="min-height:80vh;">
@@ -94,53 +147,504 @@
 
 {% endblock %}
 {% block extra_scripts %}
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.4.2/vue.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.min.js"></script>
-  <script src="/static/js/renderjson.js"></script>
-  <script src="/static/js/lodash.js"></script>
-  <script>
+<script src="https://unpkg.com/vuex"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.4.2/vue.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.min.js"></script>
+<script src="/static/js/renderjson.js"></script>
+<script src="/static/js/lodash.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
+<script src="https://unpkg.com/tippy.js@3/dist/tippy.all.min.js"></script>
+<script>
+  const store = new Vuex.Store({
+    state: {
+      'metadata': Object,
+      'subAPIS': [],
+      'selectedAPI': '',
+      'numberOfDocs': 0,
+      'localMode': Boolean,
+      'numberOfExamples': 8,
+    },
+    strict: true,
+    mutations: {
+      saveMetadata(state, payload) {
+        state.metadata = payload['metadata'];
+        // console.log('saveMetadata',state.metadata)
+      },
+      saveSubApis(state, payload) {
+        const notInclude = ['creativework', 'outbreak:dataset', 'website', 'imageobject', 'mediaobject', 'presentationdigitaldocument']
+        let array = payload['sub'];
 
-    Vue.component('resource-details', {
-    data: function(){
-      return{
-        existingEntity: false,
-        expand:false,
-        entityTypes:[]
+        for (var i = 0; i < array.length; i++) {
+          if (!notInclude.includes(array[i]['term'])) {
+            state.subAPIS.push(array[i])
+          }
+        }
+
+        if (state.metadata && state.metadata['biothing_type']) {
+          let main = {
+            'term': state.metadata['biothing_type'],
+            'count': state.metadata['stats']['total'],
+          }
+          state.subAPIS.unshift(main)
+        }
+        // console.log('saveSubApis',state.subAPIS)
+      },
+      selectThis(state, payload) {
+        state.selectedAPI = payload['api'];
+        state.numberOfDocs = payload['count'];
+        // console.log('selectedAPI',state.selectedAPI)
+        // console.log('numberOfDocs',state.numberOfDocs)
+      },
+      localMode(state, payload) {
+        state.localMode = payload['localMode'];
+        // console.log('localMode',state.localMode)
+      },
+
+    },
+    getters: {
+      getSelectedAPI: (state) => {
+        return state.selectedAPI
+      },
+      getSelectedAPIDocs: (state) => {
+        return state.numberOfDocs
+      },
+      getSubApis: (state) => {
+        return state.subAPIS
+      },
+      getMode: (state) => {
+        return state.localMode
+      },
+      numberOfExamples: (state) => {
+        return state.numberOfExamples
       }
     },
-    props: ['apiname','api','meta','metadata'],
-    methods:{
-      numberWithCommas(x) {
-          try {
-            return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-          } catch (e) {
-            return x.toString();
+    actions: {
+      recenterGraph({
+        commit,
+        state
+      }) {
+        this.cy.fit();
+      },
+    }
+  });
+
+
+
+  Vue.component('try-it-box', {
+    data: function() {
+      return {
+        loading: false,
+        exampleQueries: [],
+        api: 'resources',
+        querySelectionType: 'example',
+        querySelected: '',
+        queryString: '',
+        success: false,
+      }
+    },
+    props: [],
+    methods: {
+      generateTestQueriesStart() {
+        let self = this;
+        self.loading = true;
+        self.exampleQueries = []
+
+        if (self.numberOfDocs < 250000000) {
+          let limit = Math.floor(Math.random() * 10000);
+          let size = 100;
+          self.loading = true
+          if (limit) {
+            if (limit > self.numberOfDocs) {
+              limit = self.numberOfDocs - 100;
+            }
+            let base = '/';
+            if (self.localMode) {
+              base = 'https://api.outbreak.info/resources/';
+            } else {
+              base = '/';
+            }
+            axios.get(base + self.name.toLowerCase() + '/query?q=__all__&from=' + limit + '&size=' + size).then(result => {
+              let res = result.data.hits
+              let i = 0;
+              let picks = []
+
+              //make 1 doc type query with ID value
+              self.generateQuery(res[self.randomNumber(size)]);
+              //pick #numberOfExamples from hits
+              while (i < self.numberOfExamples) {
+                let doc = res[self.randomNumber(size)]
+                picks.push(doc)
+                i++;
+              }
+              // with the random picks form queries
+              var picksIndex = 0
+
+              while (picksIndex < self.numberOfExamples) {
+                let value = self.getQueryString(picks[picksIndex])
+                let query = '/' + self.name + '/query?q=' + value
+                //excludes duplicates and results with undefined terms
+                if (!self.exampleQueries.includes(query) && !query.includes('undefined')) {
+                  self.exampleQueries.push(query)
+                  picksIndex++;
+                }
+              }
+              self.loading = false
+              // console.log('exampleQueries',self.exampleQueries)
+            }).catch(err => {
+              throw err;
+              self.generateTestQueriesStart()
+              self.loading = false
+            })
+          }
+        } else {
+          self.loadExamplesFromMetadata();
+        }
+
+        setTimeout(function() {
+          self.loading = false;
+        }, 1000);
+      },
+      getQueryString(obj) {
+        let self = this;
+        let string = self.randomProperty(obj);
+        if (string) {
+          if (_.isPlainObject(obj[string])) {
+            string += "." + self.getQueryString(obj[string])
+          } else if (_.isArray(obj[string])) {
+            string += "." + self.getQueryString(obj[string][0])
+          } else if (_.isBoolean(obj[string])) {
+            string += ":" + obj[string]
+          } else if (_.isString(obj[string]) || _.isNumber(obj[string])) {
+            // sanitize end value if it's a string
+            string += ":" + self.sanitizeStringValue(obj[string])
+          }
+          // return string
+          return string
+        }
+      },
+      sanitizeStringValue(string) {
+        // checks for spaces and second colons end escapes them
+        if (_.isString(string)) {
+          if (string.indexOf(' ') >= 0) {
+            // If strign has spaces
+            return '"' + string + '"';
+          } else if (string.indexOf(':') >= 0) {
+            let position = string.indexOf(':')
+            // escape backslashes
+            let res = [string.slice(0, position), "\\", string.slice(position)].join('');
+            if (res.includes('http')) {
+              // if string is a url
+              return '"' + encodeURIComponent(res) + '"';
+            } else {
+              // if string has backslashes
+              return res
+            }
+          }
+        } else {
+          // simple string
+          return encodeURIComponent(string)
+        }
+      },
+      generateQuery(dataObject) {
+        var self = this;
+        if (dataObject && dataObject.hasOwnProperty("_id")) {
+          let id = dataObject["_id"];
+          let query = ''
+          query = '/' + self.name + "/" + id;
+
+          self.exampleQueries.push(query);
+        }
+      },
+      randomProperty(obj) {
+        if (_.isPlainObject(obj)) {
+          var keys = Object.keys(obj)
+          if (keys.includes('_id')) {
+            var index = keys.indexOf('_id');
+            if (index > -1) {
+              keys.splice(index, 1);
+            }
+          }
+          if (keys.includes('_score')) {
+            var index = keys.indexOf('_score');
+            if (index > -1) {
+              keys.splice(index, 1);
+            }
+          }
+          let keySelected = keys[keys.length * Math.random() << 0]
+          if (obj[keySelected] !== null) {
+            return keySelected;
+          } else {
+            return false
           }
 
+        } else {
+          return false
+        }
       },
-      getEntityTypes(){
+      randomNumber(max) {
+        let number = Math.floor(Math.random() * max) + 1
+        return number
+      },
+      loadExamplesFromMetadata() {
+        let self = this;
+        if (self.metadata.example_queries) {
+          self.exampleQueries = self.metadata.example_queries;
+        }
+      },
+      numberWithCommas(x) {
+        try {
+          return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        } catch (e) {
+          return x.toString();
+        }
+
+      },
+      testQuery() {
+        let self = this;
+        if (self.api && self.querySelected) {
+          self.queryString = "/" + self.api.toLowerCase() + self.querySelected
+          self.callApi(self.queryString)
+        }
+      },
+      refreshExmaples() {
         var self = this;
-        axios.get("https://api.outbreak.info/resources/query?q=curatedBy.name:"+self.apiname+"&size=0&aggs=@type").then(res=>{
+        self.exampleQueries = [
+          '/metadata',
+          '/metadata/fields'
+        ];
+        self.generateTestQueriesStart();
+      },
+      trunc(s) {
+        if (s.length > 79) {
+          try {
+            return s.substring(0, 80) + "..."
+          } catch (e) {
+            return s
+          }
+        } else {
+          return s
+        }
+      },
+      callApi(myUrl) {
+        let self = this;
+        $('#callResults').html('');
+        self.loading = true;
+        let base = '/';
+        if (self.localMode) {
+          myUrl = 'https://api.outbreak.info' + myUrl;
+        }
+        axios.get(myUrl).then(res => {
+          self.successURL = myUrl;
+          self.loading = false;
+          renderjson.set_show_to_level(7);
+          $('#callResults').html(renderjson(res.data));
+          self.success = true;
+        }).catch(err => {
+          self.loading = false;
+          renderjson.set_show_to_level(7);
+          $('#callResults').html(err);
+          self.success = false;
+          throw err;
+        });
+      },
+      getKeyName(obj) {
+        for (var key in obj) {
+          if (key !== 'src_version') {
+            return key;
+          }
+        }
+      },
+      getDocStructure() {
+        let self = this;
+        let base = '/';
+        if (self.localMode) {
+          base = 'https://api.outbreak.info/';
+        } else {
+          base = '/';
+        }
+        let myUrl = base + self.api + '/metadata/fields?raw';
+        axios.get(myUrl).then(res => {
+          self.successURL = myUrl;
+          self.loading = false;
+          renderjson.set_show_to_level(7);
+          $('#callResults').html(renderjson(res.data));
+          self.success = true;
+          self.queryString = myUrl;
+        }).catch(err => {
+          self.loading = false;
+          renderjson.set_show_to_level(7);
+          $('#callResults').html(err);
+          self.success = false;
+          throw err;
+        });
+      },
+    },
+    watch: {
+      name: function(newname, oldname) {
+        var self = this;
+        if (newname !== oldname) {
+          $('#callResults').html('');
+          self.generateTestQueriesStart()
+        }
+      }
+    },
+    mounted: function() {
+      var self = this;
+    },
+    computed: {
+      name: function() {
+        return store.getters.getSelectedAPI
+      },
+      numberOfDocs: function() {
+        return store.getters.getSelectedAPIDocs
+      },
+      localMode: function() {
+        return store.getters.getMode
+      },
+      numberOfExamples: function() {
+        return store.getters.numberOfExamples
+      }
+
+    },
+    template: `<div class="border bg-light p-3 minHalf">
+        <h3 class="text-center">
+          <span v-text="name"></span>
+          <i v-if="loading" class="fas fa-spinner fa-pulse text-danger"></i>
+        </h3>
+        <p v-if="name == 'resource'" class="text-center">
+          *<small><b>resource</b> is the general type that combines of all other document types. eg. dataset, protocol, etc.</small>
+        </p>
+        <div class="gradientBox">
+          <div class="bg-light jumbotron text-dark text-center" v-if="name">
+            <h1 class="mb-5">
+              Try It
+            </h1>
+            <p class="text-center">
+              <button @click="getDocStructure()" class="btn btn-sm btn-outline-secondary mt-2" style="zoom:.8" type="button">See Document Structure</button>
+            </p>
+            <form class="d-flex justify-content-start flex-wrap" @submit.prevent="testQuery()">
+              <div class="form-group p-1">
+                <h4 class="text-md-right"><span v-text="window.location.origin+'/'"></span><b v-text="api"></b></h4>
+              </div>
+              <div class="form-group p-1">
+                <template v-if="querySelectionType==='example'">
+                  <select v-model="querySelected" class="form-control scale-in-center" id="exampleFormControlSelect1">
+                    <optgroup label="examples">
+                      <template v-for="item in exampleQueries">
+                        <option :value="item" v-text="trunc(item)"></option>
+                      </template>
+                    </optgroup>
+                  </select>
+                </template>
+                <template v-if="querySelectionType==='own'">
+                  <input v-model="querySelected" type="text" class="form-control scale-in-center" id="exampleFormControlInput1" placeholder="enter query here">
+                </template>
+                <button @click="querySelected=''" v-if="querySelected" class="btn btn-outline-dark text-danger mt-2 mr-2" type="button">Clear</button>
+                <button v-if="querySelected" class="btn btn-outline-dark mt-2" type="submit">Submit</button>
+                <label class="text-muted" v-if="!querySelected" for="api">Select a query</label>
+                <div class="form-check text-left mt-3">
+                  <input v-model="querySelectionType" class="form-check-input" type="radio" name="exampleRadios" id="exampleRadios1" value="example" checked>
+                  <label class="form-check-label" for="exampleRadios1">
+                    Example Queries <button @click='refreshExmaples()' class="btn btn-sm btn-dark ml-3 text-light" type="button" style="zoom:.8">Generate New <i v-if="loading" class="fas fa-spinner fa-pulse text-warning"></i></button>
+                  </label>
+                </div>
+                <div class="form-check text-left">
+                  <input v-model="querySelectionType" class="form-check-input" type="radio" name="exampleRadios" id="exampleRadios2" value="own">
+                  <label class="form-check-label" for="exampleRadios2">
+                    Write My Own Query
+                  </label>
+                </div>
+              </div>
+            </form>
+            <p class="bold" v-if="success && queryString">
+              <i  class="fas fa-check text-success"></i> <a rel="noopener" target="_blank" :href="queryString" v-text="window.location.origin+successURL" class="m-auto" :class="[ success ? 'text-success' : 'text-danger']" type="text"></a>
+            </p>
+            <div v-show='loading' class="spinner">
+              <div class="cube1"></div>
+              <div class="cube2"></div>
+            </div>
+            <pre v-show="success" id="callResults" class="p-2 text-dark bg-light text-left mt-4 mb-4" style="font-size:1em !important;max-height: 800px;min-height: 800px; overflow: scroll; border-style: inset; border: 2px #5d5d5d solid;border-radius: 5px;">
+
+            </pre>
+          </div>
+          <div class="bg-light jumbotron text-dark text-center" v-else>
+            <h5>Make a selection</h5>
+          </div>
+        </div>
+      </div>`
+  });
+
+  Vue.component('list-details', {
+    data: function() {
+      return {
+        existingEntity: false,
+        expand: false,
+        entityTypes: []
+      }
+    },
+    props: ['apiname', 'api', 'meta', 'metadata'],
+    methods: {
+      numberWithCommas(x) {
+        try {
+          return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        } catch (e) {
+          return x.toString();
+        }
+
+      },
+      getEntityTypes() {
+        var self = this;
+        axios.get("https://api.outbreak.info/resources/query?q=curatedBy.name:" + self.apiname + "&size=0&aggs=@type").then(res => {
           if (res.data) {
             let facets = res.data['facets']['@type']['terms'];
             for (var i = 0; i < facets.length; i++) {
               self.entityTypes.push(facets[i]['term']);
             }
+            // if no type returns hardode for known types
+            if (!self.entityTypes.length) {
+              switch (self.apiname) {
+                case 'covid_who_clinical_trials':
+                  self.entityTypes.push('clinical_trial');
+                  break;
+                case 'dataverses':
+                  self.entityTypes.push('datasets');
+                  break;
+                case 'zenodo_covid':
+                  self.entityTypes.push('publication');
+                  self.entityTypes.push('datasets');
+                  break;
+                case 'protocolsio':
+                  self.entityTypes.push('protocol');
+                  break;
+                case 'covid_pdb_datasets':
+                  self.entityTypes.push('datasets');
+                  break;
+                case 'covid_figshare':
+                  self.entityTypes.push('datasets');
+                  break;
+                case 'clinical_trials':
+                  self.entityTypes.push('protocol');
+                  self.entityTypes.push('clinical_trial');
+                  break;
+                default:
+                  return false;
+              }
+            }
           }
-        }).catch(err=>{
+        }).catch(err => {
           throw err;
         });
       }
     },
-    watch:{
+    watch: {
 
     },
-    mounted: function(){
+    mounted: function() {
       var self = this;
       if (self.api !== 'resources') {
         self.expand = true
         self.entityTypes.push(self.metadata.biothing_type)
-      }else{
+      } else {
         self.getEntityTypes();
       }
     },
@@ -148,8 +652,124 @@
 
 
     },
-    template:
-    `<div class="col-sm-4 bg-main p-1 border rounded m-1">
+    template: `<tr>
+        <td>
+          <small :data-text='apiname' v-text='apiname'></small>
+          <template v-if="api =='resources'">
+            <span class="pointer" @click="expand=!expand">
+              <i v-if="!expand" class="fas fa-info-circle text-primary fa-xs" title="more info"></i>
+              <i v-else class="fas fa-minus-circle text-danger fa-xs" title="hide"></i>
+            </span>
+          </template>
+          <div v-show="expand" class="bg-sec p-1">
+            <small v-if="metadata.src[apiname]['version']" class="text-muted mb-4 lighter d-block" v-text='"Version "+metadata.src[apiname]["version"]'></small>
+            <ul class="link-list">
+              <li class="d-inline" v-if="metadata.src[apiname]['url']">
+                <small class="">
+                  <a rel="noopener" :href="metadata.src[apiname]['url']" target="_blank" class="link">
+                    Source
+                  </a>
+                </small>
+              </li>
+              <li class="d-inline" v-if="metadata.src[apiname]['code'] && metadata.src[apiname]['code']['repo']">
+                <small class="">
+                  <a rel="noopener" :href="metadata.src[apiname]['code']['repo']" target="_blank" class="link">
+                    Code
+                  </a>
+                </small>
+              </li>
+              <li class="d-inline" v-if='metadata.src[apiname]["license"]'>
+                <small class="">
+                  <a rel="noopener" :href='metadata.src[apiname]["license"]' target="_blank" class="link">
+                    License
+                  </a>
+                </small>
+              </li>
+            </ul>
+            <template v-if='metadata.src[apiname]["author"]'>
+              <small class="d-block mt-2">
+                Developed by
+                <a rel="noopener" :href='metadata.src[apiname]["author"]["url"]' target="_blank" class="link">
+                  <i class="fab fa-github"></i> <span v-text='metadata.src[apiname]["author"]["name"]'></span>
+                </a>
+              </small>
+            </template>
+          </div>
+        </td>
+        <td>
+          <span v-if='metadata.src[apiname]["stats"]'>
+            <template v-for="(docs,doctype) in metadata.src[apiname]['stats']">
+              <small class="text-info" v-text="numberWithCommas(docs)"></small>
+            </template>
+          </span>
+          <span v-else>
+            <small class="text-muted">N/A</small>
+          </span>
+        </td>
+        <td>
+          <template v-if="!existingEntity && entityTypes.length">
+            <template v-for="type in entityTypes" >
+              <small :key="type" class="d-inline p-1 m-1">
+                <span v-text="type"></span>
+              </small>
+            </template>
+          </template>
+          <span v-else>
+            <small class="text-muted">N/A</small>
+          </span>
+        </td>
+      </tr>`
+  });
+
+  Vue.component('resource-details', {
+    data: function() {
+      return {
+        existingEntity: false,
+        expand: false,
+        entityTypes: []
+      }
+    },
+    props: ['apiname', 'api', 'meta', 'metadata'],
+    methods: {
+      numberWithCommas(x) {
+        try {
+          return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        } catch (e) {
+          return x.toString();
+        }
+
+      },
+      getEntityTypes() {
+        var self = this;
+        axios.get("https://api.outbreak.info/resources/query?q=curatedBy.name:" + self.apiname + "&size=0&aggs=@type").then(res => {
+          if (res.data) {
+            let facets = res.data['facets']['@type']['terms'];
+            for (var i = 0; i < facets.length; i++) {
+              self.entityTypes.push(facets[i]['term']);
+            }
+          }
+        }).catch(err => {
+          throw err;
+        });
+      }
+    },
+    watch: {
+
+    },
+    mounted: function() {
+      var self = this;
+      if (self.api !== 'resources') {
+        self.expand = true
+        self.entityTypes.push(self.metadata.biothing_type)
+      } else {
+        self.getEntityTypes();
+      }
+    },
+    computed: {
+
+
+    },
+    template: `<div class="col-sm-4 bg-main p-1 border rounded m-1">
       <h6>
         <small class="font-weight-bold" :data-text='apiname' v-text='apiname'></small>
         <template v-if="api =='resources'">
@@ -216,337 +836,439 @@
 
       </div>
     </div>`
-    });
+  });
 
-    var app = new Vue({
-      el: '#try-app',
-      data: function(){
-        return {
-          api:'',
-          metadata:{},
-          querySelected:'',
-          queryString:'',
-          querySelectionType:'example',
-          success: false,
-          loading: false,
-          loadingExamples: false,
-          loadingExamplesQueries:false,
-          exampleQueries:[
-            '/metadata',
-            '/metadata/fields'
-          ],
-          numberOfDocs:null,
-          validAPI: true,
-          type:'',
-          numberOfExamples:8,
-          existingEntity:false,
-          metaUrl:'',
-          localMode:false,
-          successURL:'',
-          specialQueries:[]
+  var app = new Vue({
+    el: '#try-app',
+    data: function() {
+      return {
+        api: '',
+        metadata: {},
+        querySelected: '',
+        queryString: '',
+        querySelectionType: 'example',
+        success: false,
+        loading: false,
+        loadingExamples: false,
+        loadingExamplesQueries: false,
+        exampleQueries: [
+          '/metadata',
+          '/metadata/fields'
+        ],
+        numberOfDocs: null,
+        validAPI: true,
+        type: '',
+        numberOfExamples: 8,
+        existingEntity: false,
+        metaUrl: '',
+        localMode: false,
+        successURL: '',
+        specialQueries: []
+      }
+    },
+    watch: {
+      exampleQueries: function(qs) {
+        if (qs.length < this.numberOfExamples) {
+          this.generateTestQueriesStart()
+        }
+        if (qs.length > this.numberOfExamples) {
+          this.exampleQueries = this.exampleQueries.slice(0, this.numberOfExamples)
+        }
+      }
+    },
+    computed: {
+      subAPIS: function() {
+        return store.getters.getSubApis
+      },
+      selectedAPI: function() {
+        return store.getters.getSelectedAPI
+      },
+    },
+    methods: {
+      generateTestQueriesStart() {
+        let self = this;
+        // console.log("🤖")
+        self.loadingExamplesQueries = true;
+        if (self.numberOfDocs < 250000000) {
+          let limit = Math.floor(Math.random() * 10000);
+          let size = 100;
+          self.loadingExamples = true
+          if (limit) {
+            if (limit > self.numberOfDocs) {
+              limit = self.numberOfDocs - 100;
+            }
+            let base = '/';
+            if (self.localMode) {
+              base = 'https://api.outbreak.info/';
+            } else {
+              base = '/';
+            }
+            axios.get(base + self.api.toLowerCase() + '/query?q=__all__&from=' + limit + '&size=' + size).then(result => {
+              let res = result.data.hits
+              let i = 0;
+              let picks = []
+
+              //make type query
+              self.generateQuery(res[self.randomNumber(size)]);
+
+              while (i < self.numberOfExamples) {
+                let doc = res[self.randomNumber(size)]
+                picks.push(doc)
+                i++;
+              }
+              for (var picksIndex = 0; picksIndex < picks.length; picksIndex++) {
+                let value = self.getQueryString(picks[picksIndex])
+                let query = '/query?q=' + value
+                //excludes duplicates and results with undefined terms
+                if (!self.exampleQueries.includes(query) && !query.includes('undefined')) {
+                  self.exampleQueries.push(query)
+                }
+              }
+              self.loadingExamples = false
+            }).catch(err => {
+              throw err;
+              self.generateTestQueriesStart()
+              self.loadingExamples = false
+            })
+          }
+        } else {
+          self.loadExamplesFromMetadata();
+        }
+
+        setTimeout(function() {
+          self.loadingExamplesQueries = false;
+        }, 1000);
+      },
+      getQueryString(obj) {
+        let self = this;
+        let string = self.randomProperty(obj);
+        if (string) {
+          if (_.isPlainObject(obj[string])) {
+            string += "." + self.getQueryString(obj[string])
+          } else if (_.isArray(obj[string])) {
+            string += "." + self.getQueryString(obj[string][0])
+          } else if (_.isBoolean(obj[string])) {
+            string += ":" + obj[string]
+          } else if (_.isString(obj[string]) || _.isNumber(obj[string])) {
+            // sanitize end value if it's a string
+            string += ":" + self.sanitizeStringValue(obj[string])
+          }
+          // return string
+          return string
         }
       },
-      watch:{
-        exampleQueries:function(qs){
-          if (qs.length < this.numberOfExamples) {
-            this.generateTestQueriesStart()
+      sanitizeStringValue(string) {
+        // checks for spaces and second colons end escapes them
+        if (_.isString(string)) {
+          if (string.indexOf(' ') >= 0) {
+            // If strign has spaces
+            return '"' + string + '"';
+          } else if (string.indexOf(':') >= 0) {
+            let position = string.indexOf(':')
+            // escape backslashes
+            let res = [string.slice(0, position), "\\", string.slice(position)].join('');
+            if (res.includes('http')) {
+              // if string is a url
+              return '"' + encodeURIComponent(res) + '"';
+            } else {
+              // if string has backslashes
+              return res
+            }
           }
-          if (qs.length > this.numberOfExamples) {
-            this.exampleQueries = this.exampleQueries.slice(0,this.numberOfExamples)
-          }
+        } else {
+          // simple string
+          return encodeURIComponent(string)
         }
       },
-      methods: {
-        generateTestQueriesStart(){
-          let self = this;
-          // console.log("🤖")
-          self.loadingExamplesQueries = true;
-          if (self.numberOfDocs < 250000000) {
-            let limit = Math.floor(Math.random() * 10000);
-            let size = 100;
-            self.loadingExamples = true
-            if (limit) {
-              if (limit > self.numberOfDocs) {
-                limit = self.numberOfDocs-100;
-              }
-              let base ='/';
-              if (self.localMode) {
-                base = 'https://api.outbreak.info/';
-              }else {
-                base ='/';
-              }
-              axios.get(base+self.api.toLowerCase()+'/query?q=__all__&from='+limit+'&size='+size).then(result=>{
-                let res = result.data.hits
-                let i = 0;
-                let picks = []
-
-                //make type query
-                self.generateQuery(res[self.randomNumber(size)]);
-
-                while ( i < self.numberOfExamples) {
-                  let doc = res[self.randomNumber(size)]
-                  picks.push(doc)
-                  i++;
-                }
-                for (var picksIndex = 0; picksIndex < picks.length; picksIndex++) {
-                  let value = self.getQueryString(picks[picksIndex])
-                  let query ='/query?q='+value
-                  //excludes duplicates and results with undefined terms
-                  if (!self.exampleQueries.includes(query) && !query.includes('undefined')) {
-                    self.exampleQueries.push(query)
-                  }
-                }
-                self.loadingExamples = false
-              }).catch(err=>{
-                throw err;
-                self.generateTestQueriesStart()
-                self.loadingExamples = false
-              })
-            }
-          }else{
-            self.loadExamplesFromMetadata();
+      generateQuery(dataObject) {
+        var self = this;
+        if (dataObject && dataObject.hasOwnProperty("_id")) {
+          let id = dataObject["_id"];
+          let query = ''
+          if (self.api == 'resources') {
+            query = "/resource/" + id;
+            // also generate specialQueries
+          } else {
+            query = '/' + self.type + "/" + id;
           }
 
-          setTimeout(function(){
-            self.loadingExamplesQueries = false;
-          }, 1000);
-        },
-        getQueryString(obj){
-          let self = this;
-          let string = self.randomProperty(obj);
-          if (string) {
-            if (_.isPlainObject(obj[string])) {
-              string += "."+self.getQueryString(obj[string])
-            }else if (_.isArray(obj[string])) {
-              string += "."+self.getQueryString(obj[string][0])
+          self.exampleQueries.push(query);
+        }
+      },
+      randomProperty(obj) {
+        if (_.isPlainObject(obj)) {
+          var keys = Object.keys(obj)
+          if (keys.includes('_id')) {
+            var index = keys.indexOf('_id');
+            if (index > -1) {
+              keys.splice(index, 1);
             }
-            else if (_.isBoolean(obj[string])) {
-              string += ":"+obj[string]
-            }
-            else if (_.isString(obj[string]) || _.isNumber(obj[string])) {
-              // sanitize end value if it's a string
-              string += ":"+self.sanitizeStringValue(obj[string])
-            }
-            // return string
-            return string
           }
-        },
-        sanitizeStringValue(string){
-          // checks for spaces and second colons end escapes them
-          if (_.isString(string)) {
-            if (string.indexOf(' ') >= 0) {
-              // If strign has spaces
-              return '"'+string+'"';
-            }else if (string.indexOf(':') >= 0) {
-              let position = string.indexOf(':')
-              // escape backslashes
-              let res = [string.slice(0, position), "\\", string.slice(position)].join('');
-              if (res.includes('http')) {
-                // if string is a url
-                return '"'+encodeURIComponent(res)+'"';
-              }else {
-                // if string has backslashes
-                return res
-              }
+          if (keys.includes('_score')) {
+            var index = keys.indexOf('_score');
+            if (index > -1) {
+              keys.splice(index, 1);
             }
-          }else {
-            // simple string
-            return encodeURIComponent(string)
           }
-        },
-        generateQuery(dataObject){
-          var self = this;
-          if (dataObject && dataObject.hasOwnProperty("_id")) {
-            let id= dataObject["_id"];
-            let query =''
-            if (self.api == 'resources') {
-              query ="/resource/"+id;
-              // also generate specialQueries
-            }else{
-              query ='/'+self.type+"/"+id;
-            }
+          return keys[keys.length * Math.random() << 0];
+        } else {
+          return false
+        }
+      },
+      randomNumber(max) {
+        let number = Math.floor(Math.random() * max) + 1
+        return number
+      },
+      loadExamplesFromMetadata() {
+        let self = this;
+        if (self.metadata.example_queries) {
+          self.exampleQueries = self.metadata.example_queries;
+        }
+      },
+      numberWithCommas(x) {
+        try {
+          return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        } catch (e) {
+          return x.toString();
+        }
 
-            self.exampleQueries.push(query);
-          }
-        },
-        randomProperty(obj) {
-          if (_.isPlainObject(obj)) {
-            var keys = Object.keys(obj)
-            if (keys.includes('_id')) {
-              var index = keys.indexOf('_id');
-              if (index > -1) {
-                keys.splice(index, 1);
-              }
-            }
-            if (keys.includes('_score')) {
-              var index = keys.indexOf('_score');
-              if (index > -1) {
-                keys.splice(index, 1);
-              }
-            }
-            return keys[ keys.length * Math.random() << 0];
-          }else {
-            return false
-          }
-        },
-        randomNumber(max) {
-          let number = Math.floor(Math.random() * max) + 1
-          return number
-        },
-        loadExamplesFromMetadata(){
-          let self = this;
-          if (self.metadata.example_queries) {
-            self.exampleQueries = self.metadata.example_queries;
-          }
-        },
-        numberWithCommas(x) {
-            try {
-              return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-            } catch (e) {
-              return x.toString();
-            }
-
-        },
-        testQuery(){
-          let self = this;
-          if (self.api && self.querySelected) {
-            self.queryString = "/"+self.api.toLowerCase()+self.querySelected
-            self.callApi(self.queryString)
-          }
-        },
-        refreshExmaples(){
-          var self = this;
-          self.exampleQueries =[
-            '/metadata',
-            '/metadata/fields'
-          ];
-          self.generateTestQueriesStart();
-        },
-        trunc(s){
-          if (s.length > 79) {
-            try {
-              return s.substring(0,80)+"..."
-            } catch (e) {
-              return s
-            }
-          }else {
+      },
+      testQuery() {
+        let self = this;
+        if (self.api && self.querySelected) {
+          self.queryString = "/" + self.api.toLowerCase() + self.querySelected
+          self.callApi(self.queryString)
+        }
+      },
+      refreshExmaples() {
+        var self = this;
+        self.exampleQueries = [
+          '/metadata',
+          '/metadata/fields'
+        ];
+        self.generateTestQueriesStart();
+      },
+      trunc(s) {
+        if (s.length > 79) {
+          try {
+            return s.substring(0, 80) + "..."
+          } catch (e) {
             return s
           }
-        },
-        callApi(myUrl){
-          let self = this;
-          $('#callResults').html('');
-          self.loading = true;
-          let base ='/';
-          if (self.localMode) {
-            myUrl = 'https://api.outbreak.info'+myUrl;
-          }
-          axios.get(myUrl).then(res=>{
-            self.successURL = myUrl;
-            self.loading = false;
-            renderjson.set_show_to_level(7);
-            $('#callResults').html( renderjson(res.data) );
-            self.success = true;
-          }).catch(err=>{
-            self.loading = false;
-            renderjson.set_show_to_level(7);
-            $('#callResults').html( err );
-            self.success = false;
-            throw err;
-          });
-        },
-        getKeyName(obj){
-          for (var key in obj) {
-            if (key !== 'src_version') {
-              return key;
-            }
-          }
-        },
-        getDocStructure(){
-          let self = this;
-          let base='/';
-          if (self.localMode) {
-            base = 'https://api.outbreak.info/';
-          }else {
-            base ='/';
-          }
-          let myUrl = base+self.api+'/metadata/fields?raw';
-          axios.get(myUrl).then(res=>{
-            self.successURL = myUrl;
-            self.loading = false;
-            renderjson.set_show_to_level(7);
-            $('#callResults').html( renderjson(res.data) );
-            self.success = true;
-          }).catch(err=>{
-            self.loading = false;
-            renderjson.set_show_to_level(7);
-            $('#callResults').html( err );
-            self.success = false;
-            throw err;
-          });
-        },
-        getMetadata(){
-          let self = this;
-          self.pending=[];
-          let safeList = ['gene','chemical','variant','disease']
-          let base='/';
-          if (self.localMode) {
-            base = 'https://api.outbreak.info/';
-          }else {
-            base ='/';
-          }
-          axios.get(base+self.api+'/metadata').then(res=>{
-            self.metadata = res.data;
-            // console.log('META',res.data)
-            if (self.metadata && self.metadata.src[self.getKeyName(self.metadata.src)]["url"]) {
-              self.metaUrl = self.metadata.src[self.getKeyName(self.metadata.src)]["url"];
-            }
-
-            try {
-              self.numberOfDocs = self.metadata.stats.total;
-            } catch (e) {
-              // console.log("second case")
-              self.numberOfDocs = self.metadata.src[self.getKeyName(self.metadata.src)].stats[self.getKeyName(self.metadata.src)];
-            }
-            finally{
-              // console.log('# docs:', self.numberOfDocs)
-            }
-
-            if (self.metadata.biothing_type) {
-              self.type= self.metadata.biothing_type;
-            }else if (self.metadata.doc_type) {
-              self.type= self.metadata.doc_type;
-            }
-            if (self.metadata.hasOwnProperty('doc_type')) {
-    					if (safeList.includes(self.metadata['doc_type'])) {
-    						self.existingEntity = true
-    					}
-    				}
-    				else if (self.metadata.hasOwnProperty('biothing_type')) {
-    					if (safeList.includes(self.metadata['biothing_type'])) {
-    						self.existingEntity = true
-    					}
-    				}
-            self.generateTestQueriesStart()
-          }).catch(err=>{
-            self.validAPI = false;
-            throw err;
-          })
-        },
-      },
-        mounted: function(){
-          this.api  = window.location.pathname.replace('/try','').replace('/','').toLowerCase();
-
-          var url_string = window.location.href
-          var url = new URL(url_string);
-          var param = url.searchParams.get("base");
-          if (param && param === 'prod' || window.location.hostname == 'localhost') {
-            this.localMode = true;
-            console.log('localMode',this.localMode)
-          }
-
-          this.getMetadata();
+        } else {
+          return s
         }
-    });
-  </script>
+      },
+      callApi(myUrl) {
+        let self = this;
+        $('#callResults').html('');
+        self.loading = true;
+        let base = '/';
+        if (self.localMode) {
+          myUrl = 'https://api.outbreak.info' + myUrl;
+        }
+        axios.get(myUrl).then(res => {
+          self.successURL = myUrl;
+          self.loading = false;
+          renderjson.set_show_to_level(7);
+          $('#callResults').html(renderjson(res.data));
+          self.success = true;
+        }).catch(err => {
+          self.loading = false;
+          renderjson.set_show_to_level(7);
+          $('#callResults').html(err);
+          self.success = false;
+          throw err;
+        });
+      },
+      getKeyName(obj) {
+        for (var key in obj) {
+          if (key !== 'src_version') {
+            return key;
+          }
+        }
+      },
+      getDocStructure() {
+        let self = this;
+        let base = '/';
+        if (self.localMode) {
+          base = 'https://api.outbreak.info/';
+        } else {
+          base = '/';
+        }
+        let myUrl = base + self.api + '/metadata/fields?raw';
+        axios.get(myUrl).then(res => {
+          self.successURL = myUrl;
+          self.loading = false;
+          renderjson.set_show_to_level(7);
+          $('#callResults').html(renderjson(res.data));
+          self.success = true;
+          self.queryString = myUrl;
+        }).catch(err => {
+          self.loading = false;
+          renderjson.set_show_to_level(7);
+          $('#callResults').html(err);
+          self.success = false;
+          throw err;
+        });
+      },
+      getMetadataForResources() {
+        let self = this;
+        self.pending = [];
+        let safeList = ['gene', 'chemical', 'variant', 'disease']
+        let base = '/';
+        if (self.localMode) {
+          base = 'https://api.outbreak.info/';
+        } else {
+          base = '/';
+        }
+        axios.get(base + self.api + '/metadata').then(res => {
+          var payload = {};
+          payload["metadata"] = res.data;
+          store.commit('saveMetadata', payload);
+          self.validAPI = true;
+          self.getSubApis();
+        }).catch(err => {
+          self.validAPI = false;
+          throw err;
+        })
+      },
+      getMetadata() {
+        let self = this;
+        self.pending = [];
+        let safeList = ['gene', 'chemical', 'variant', 'disease']
+        let base = '/';
+        if (self.localMode) {
+          base = 'https://api.outbreak.info/';
+        } else {
+          base = '/';
+        }
+        axios.get(base + self.api + '/metadata').then(res => {
+          self.metadata = res.data;
+          // console.log('META',res.data)
+          if (self.metadata && self.metadata.src[self.getKeyName(self.metadata.src)]["url"]) {
+            self.metaUrl = self.metadata.src[self.getKeyName(self.metadata.src)]["url"];
+          }
+
+          try {
+            self.numberOfDocs = self.metadata.stats.total;
+          } catch (e) {
+            // console.log("second case")
+            self.numberOfDocs = self.metadata.src[self.getKeyName(self.metadata.src)].stats[self.getKeyName(self.metadata.src)];
+          } finally {
+            // console.log('# docs:', self.numberOfDocs)
+          }
+
+          if (self.metadata.biothing_type) {
+            self.type = self.metadata.biothing_type;
+          } else if (self.metadata.doc_type) {
+            self.type = self.metadata.doc_type;
+          }
+          if (self.metadata.hasOwnProperty('doc_type')) {
+            if (safeList.includes(self.metadata['doc_type'])) {
+              self.existingEntity = true
+            }
+          } else if (self.metadata.hasOwnProperty('biothing_type')) {
+            if (safeList.includes(self.metadata['biothing_type'])) {
+              self.existingEntity = true
+            }
+          }
+          self.generateTestQueriesStart()
+        }).catch(err => {
+          self.validAPI = false;
+          throw err;
+        })
+      },
+      selectThis(sub) {
+        var payload = {};
+        payload["api"] = sub['term'];
+        payload["count"] = sub['count'];
+        store.commit('selectThis', payload);
+      },
+      getSubApis() {
+        let self = this;
+
+        let base = '/';
+        if (self.localMode) {
+          base = 'https://api.outbreak.info/';
+        } else {
+          base = '/';
+        }
+        axios.get(base + 'resources/query?aggs=@type&size=0').then(res => {
+          var payload = {};
+          payload["sub"] = res.data.facets['@type'].terms;
+          store.commit('saveSubApis', payload);
+          self.drawPie()
+        }).catch(err => {
+          throw err;
+        })
+      },
+      drawPie() {
+        var self = this;
+
+        let data = []
+        let labels = []
+
+        for (var i = 0; i < self.subAPIS.length; i++) {
+          let api = self.subAPIS[i]
+          if (api['term'] !== 'resource') {
+            labels.push(api['term'])
+            data.push(api['count'])
+          }
+        }
+
+
+
+        var ctx = document.getElementById('myChart').getContext('2d');
+        var myChart = new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+            labels: labels,
+            datasets: [{
+              data: data,
+              backgroundColor: ["#7267b9", "#407eb0", "#c458b3", "#b4d640", "#28b6c4", "#e4af38", "#ee5361"],
+              borderWidth: 1,
+            }],
+
+          },
+          options: {
+            legend: {
+              // display: false
+            },
+            responsive: true,
+            maintainAspectRatio: false,
+            title: {
+              display: true,
+              text: 'Documents per Entity Type'
+            }
+          }
+        });
+
+      },
+    },
+    mounted: function() {
+      this.api = window.location.pathname.replace('/try', '').replace('/', '').toLowerCase();
+      console.log('API: ', this.api)
+
+      // query prod on localhost for testing
+      var url_string = window.location.href
+      var url = new URL(url_string);
+      var param = url.searchParams.get("base");
+      if (param && param === 'prod' || window.location.hostname == 'localhost') {
+        this.localMode = true;
+        console.log('localMode', this.localMode)
+      }
+
+      if (this.api == 'resources') {
+        // gets 'subapis', special endpoints for each supported entity type
+        this.getMetadataForResources();
+        // gets all sources and details
+        this.getMetadata();
+      } else {
+        // gets all sources and details
+        this.getMetadata();
+      }
+    }
+  });
+</script>
 {% endblock %}
