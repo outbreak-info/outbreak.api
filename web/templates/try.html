@@ -480,7 +480,7 @@
           myUrl = 'https://api.outbreak.info' + myUrl;
         }
         axios.get(myUrl).then(res => {
-          console.log(res)
+          // console.log(res)
           if (res.status == 200) {
             self.successURL = myUrl;
             self.loading = false;
