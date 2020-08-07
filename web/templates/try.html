@@ -4,8 +4,16 @@
   .pointer {
     cursor: pointer;
   }
+
+  [v-cloak]>* {
+    display: none
+  }
+
+  [v-cloak]::before {
+    content: "Please wait..."
+  }
 </style>
-<section id="try-app" class="mb-5">
+<section id="try-app" class="mb-5" v-cloak>
   <div v-if="validAPI" class="container mt-5">
     <div class="bg-light">
       <div class="text-light jumbotron text-center pb-4" style="background:#09253C;">
@@ -132,8 +140,7 @@
           <div class="cube1"></div>
           <div class="cube2"></div>
         </div>
-        <pre v-show="success" id="callResults" class="p-2 text-dark bg-light text-left mt-4 mb-4"
-          style="font-size:1em !important;max-height: 800px;min-height: 800px; overflow: scroll; border-style: inset; border: 2px #5d5d5d solid;border-radius: 5px;">
+        <pre id="callResults" class="p-2 text-dark bg-light text-left mt-4 mb-4" style="font-size:1em !important;max-height: 800px;overflow: scroll; border-style: inset; border: 2px #5d5d5d solid;border-radius: 5px;">
 
           </pre>
       </div>
@@ -174,7 +181,7 @@
         // console.log('saveMetadata',state.metadata)
       },
       saveSubApis(state, payload) {
-        const notInclude = ['creativework', 'outbreak:dataset', 'website', 'imageobject', 'mediaobject', 'presentationdigitaldocument','softwaresourcecode']
+        const notInclude = ['creativework', 'outbreak:dataset', 'website', 'imageobject', 'mediaobject', 'presentationdigitaldocument', 'softwaresourcecode']
         let array = payload['sub'];
 
         for (var i = 0; i < array.length; i++) {
@@ -284,15 +291,24 @@
                   i++;
                 }
                 // with the random picks form queries
-                var picksIndex = 0
+                var currentPickIndex = 0
 
-                while (picksIndex < self.numberOfExamples) {
-                  let value = self.getQueryString(picks[picksIndex])
+                while (currentPickIndex < self.numberOfExamples) {
+                  let value = self.getQueryString(picks[currentPickIndex])
                   let query = '/' + self.name + '/query?q=' + value
                   //excludes duplicates and results with undefined terms
-                  if (!self.exampleQueries.includes(query) && !query.includes('undefined')) {
-                    self.exampleQueries.push(query)
-                    picksIndex++;
+                  if (!self.exampleQueries.includes(query)) {
+                    if (query.includes('undefined')) {
+                      console.warn('Skipped problematic query.',query)
+                      currentPickIndex++;
+                    }else {
+                      // ALL GOOD
+                      self.exampleQueries.push(query)
+                      currentPickIndex++;
+                    }
+                  }else {
+                    console.warn('Skipped duplicate query.',query)
+                    currentPickIndex++;
                   }
                 }
                 self.loading = false
@@ -317,41 +333,60 @@
       },
       getQueryString(obj) {
         let self = this;
+        // console.log('getQueryString',obj)
         let string = self.randomProperty(obj);
+        // console.log('start prop picked',string)
         if (string) {
           if (_.isPlainObject(obj[string])) {
             string += "." + self.getQueryString(obj[string])
           } else if (_.isArray(obj[string])) {
-            string += "." + self.getQueryString(obj[string][0])
+            //check if first index doesn't need to be chained
+            if (typeof obj[string][0] == 'string') {
+              string += "." + obj[string][0]
+            }else {
+              if (obj[string].length) {
+                string += "." + self.getQueryString(obj[string][0])
+              }else {
+                console.warn("Can't form query from empty array in field: "+string)
+                self.getQueryString(obj)
+              }
+            }
           } else if (_.isBoolean(obj[string])) {
+            // console.log('%c BOOLEAN','color:green')
             string += ":" + obj[string]
-          } else if (_.isString(obj[string]) || _.isNumber(obj[string])) {
+          } else if (_.isNumber(obj[string])) {
+            // console.log('%c NUMBER','color:pink')
+            string += ":" + obj[string]
+          } else if (_.isString(obj[string]) ) {
             // sanitize end value if it's a string
+            // console.log('%c STRING','color:orange')
+            // console.log('sanitize', self.sanitizeStringValue(obj[string]))
             string += ":" + self.sanitizeStringValue(obj[string])
           }
-          // return string
           return string
+
         }
       },
       sanitizeStringValue(string) {
         // checks for spaces and second colons end escapes them
-        if (_.isString(string)) {
-          if (string.indexOf(' ') >= 0) {
-            // If strign has spaces
-            return '"' + string + '"';
-          } else if (string.indexOf(':') >= 0) {
-            let position = string.indexOf(':')
-            // escape backslashes
-            let res = [string.slice(0, position), "\\", string.slice(position)].join('');
-            if (res.includes('http')) {
-              // if string is a url
-              return '"' + encodeURIComponent(res) + '"';
-            } else {
-              // if string has backslashes
-              return res
-            }
+        if (string.indexOf(' ') >= 0) {
+          // console.log('%c HAS SPACES','color:pink')
+          // If strign has spaces
+          return '"' + string + '"';
+        } else if (string.indexOf(':') >= 0) {
+          // console.log('%c HAS COLONS','color:yellow')
+          let position = string.indexOf(':')
+          // escape backslashes
+          let res = [string.slice(0, position), "\\", string.slice(position)].join('');
+          if (res.includes('http')) {
+            // if string is a url
+            return '"' + encodeURIComponent(res) + '"';
+          } else {
+            // console.log('%c NOT URL','color:violet')
+            // if string has backslashes
+            return res
           }
-        } else {
+        }else {
           // simple string
           return encodeURIComponent(string)
         }
@@ -445,17 +480,21 @@
           myUrl = 'https://api.outbreak.info' + myUrl;
         }
         axios.get(myUrl).then(res => {
-          self.successURL = myUrl;
-          self.loading = false;
-          renderjson.set_show_to_level(7);
-          $('#callResults').html(renderjson(res.data));
-          self.success = true;
+          console.log(res)
+          if (res.status == 200) {
+            self.successURL = myUrl;
+            self.loading = false;
+            renderjson.set_show_to_level(7);
+            $('#callResults').html(renderjson(res.data));
+            self.success = true;
+          }
+
         }).catch(err => {
           self.loading = false;
           renderjson.set_show_to_level(7);
-          $('#callResults').html(err);
+          $('#callResults').html(renderjson(err.response.data));
           self.success = false;
-          throw err;
+          // throw err;
         });
       },
       getKeyName(obj) {
@@ -492,11 +531,12 @@
     },
     watch: {
       name: function(newname, oldname) {
+        // when name/api selected changes everything resets
         var self = this;
         if (newname !== oldname) {
           $('#callResults').html('');
-          self.successURL = ''
-          self.generateTestQueriesStart()
+          self.successURL = '';
+          self.generateTestQueriesStart();
         }
       }
     },
@@ -572,7 +612,7 @@
               <div class="cube1"></div>
               <div class="cube2"></div>
             </div>
-            <pre v-show="success" id="callResults" class="p-2 text-dark bg-light text-left mt-4 mb-4" style="font-size:1em !important;max-height: 800px;min-height: 800px; overflow: scroll; border-style: inset; border: 2px #5d5d5d solid;border-radius: 5px;">
+            <pre id="callResults" class="p-2 text-dark bg-light text-left mt-4 mb-4" style="font-size:1em !important;max-height: 800px;overflow: scroll; border-style: inset; border: 2px #5d5d5d solid;border-radius: 5px;">
 
             </pre>
           </div>
@@ -864,15 +904,15 @@
           '/metadata',
           '/metadata/fields'
         ],
-        covidExamples:[
-        "/query?q=wb_region:%22Latin%20America%20%26%20Caribbean%22&fetch_all:true&sort=-date,-confirmed",
-        "/query?q=mostRecent:true%20AND%20admin_level:0&sort=dead&fields=location_id,name,confirmed,dead",
-        "/query?q=date:%222020-06-02%22%20AND%20location_id:CHN",
-        "/query?q=state_name:California%20AND%20admin_level:%222%22&sort=-date",
-        '/query?q=name:"Kansas City, MO-KS"',
-        "/query?q=name:St.*&aggs=name&facet_size=1000",
-        "/query?q=admin_level:%221.5%22%20AND%20population:[1000000%20TO%20*]%20AND%20mostRecent:%20true&fields=name,confirmed_per_100k,population&sort=-confirmed_per_100k",
-        "/query?q=country_iso3:USA AND admin_level:2 AND confirmed_rolling_per_100k:[10 TO *]&aggs=state_name&facet_size=50",
+        covidExamples: [
+          "/query?q=wb_region:%22Latin%20America%20%26%20Caribbean%22&fetch_all:true&sort=-date,-confirmed",
+          "/query?q=mostRecent:true%20AND%20admin_level:0&sort=dead&fields=location_id,name,confirmed,dead",
+          "/query?q=date:%222020-06-02%22%20AND%20location_id:CHN",
+          "/query?q=state_name:California%20AND%20admin_level:%222%22&sort=-date",
+          '/query?q=name:"Kansas City, MO-KS"',
+          "/query?q=name:St.*&aggs=name&facet_size=1000",
+          "/query?q=admin_level:%221.5%22%20AND%20population:[1000000%20TO%20*]%20AND%20mostRecent:%20true&fields=name,confirmed_per_100k,population&sort=-confirmed_per_100k",
+          "/query?q=country_iso3:USA AND admin_level:2 AND confirmed_rolling_per_100k:[10 TO *]&aggs=state_name&facet_size=50",
         ],
         numberOfDocs: null,
         validAPI: true,
@@ -935,12 +975,22 @@
                 picks.push(doc)
                 i++;
               }
-              for (var picksIndex = 0; picksIndex < picks.length; picksIndex++) {
-                let value = self.getQueryString(picks[picksIndex])
+              for (var currentPickIndex = 0; currentPickIndex < picks.length; currentPickIndex++) {
+                let value = self.getQueryString(picks[currentPickIndex])
                 let query = '/query?q=' + value
                 //excludes duplicates and results with undefined terms
-                if (!self.exampleQueries.includes(query) && !query.includes('undefined')) {
-                  self.exampleQueries.push(query)
+                if (!self.exampleQueries.includes(query)) {
+                  if (query.includes('undefined')) {
+                    console.warn('Skipped problematic query.',query)
+                    currentPickIndex++;
+                  }else {
+                    // ALL GOOD
+                    self.exampleQueries.push(query)
+                    currentPickIndex++;
+                  }
+                }else {
+                  console.warn('Skipped duplicate query.',query)
+                  currentPickIndex++;
                 }
               }
               self.loadingExamples = false
@@ -960,41 +1010,60 @@
       },
       getQueryString(obj) {
         let self = this;
+        // console.log('getQueryString',obj)
         let string = self.randomProperty(obj);
+        // console.log('start prop picked',string)
         if (string) {
           if (_.isPlainObject(obj[string])) {
             string += "." + self.getQueryString(obj[string])
           } else if (_.isArray(obj[string])) {
-            string += "." + self.getQueryString(obj[string][0])
+            //check if first index doesn't need to be chained
+            if (typeof obj[string][0] == 'string') {
+              string += "." + obj[string][0]
+            }else {
+              if (obj[string].length) {
+                string += "." + self.getQueryString(obj[string][0])
+              }else {
+                console.warn("Can't form query from empty array in field: "+string)
+                self.getQueryString(obj)
+              }
+            }
           } else if (_.isBoolean(obj[string])) {
+            // console.log('%c BOOLEAN','color:green')
             string += ":" + obj[string]
-          } else if (_.isString(obj[string]) || _.isNumber(obj[string])) {
+          } else if (_.isNumber(obj[string])) {
+            // console.log('%c NUMBER','color:pink')
+            string += ":" + obj[string]
+          } else if (_.isString(obj[string]) ) {
             // sanitize end value if it's a string
+            // console.log('%c STRING','color:orange')
+            // console.log('sanitize', self.sanitizeStringValue(obj[string]))
             string += ":" + self.sanitizeStringValue(obj[string])
           }
-          // return string
           return string
+
         }
       },
       sanitizeStringValue(string) {
         // checks for spaces and second colons end escapes them
-        if (_.isString(string)) {
-          if (string.indexOf(' ') >= 0) {
-            // If strign has spaces
-            return '"' + string + '"';
-          } else if (string.indexOf(':') >= 0) {
-            let position = string.indexOf(':')
-            // escape backslashes
-            let res = [string.slice(0, position), "\\", string.slice(position)].join('');
-            if (res.includes('http')) {
-              // if string is a url
-              return '"' + encodeURIComponent(res) + '"';
-            } else {
-              // if string has backslashes
-              return res
-            }
+        if (string.indexOf(' ') >= 0) {
+          // console.log('%c HAS SPACES','color:pink')
+          // If strign has spaces
+          return '"' + string + '"';
+        } else if (string.indexOf(':') >= 0) {
+          // console.log('%c HAS COLONS','color:yellow')
+          let position = string.indexOf(':')
+          // escape backslashes
+          let res = [string.slice(0, position), "\\", string.slice(position)].join('');
+          if (res.includes('http')) {
+            // if string is a url
+            return '"' + encodeURIComponent(res) + '"';
+          } else {
+            // console.log('%c NOT URL','color:violet')
+            // if string has backslashes
+            return res
           }
-        } else {
+        }else {
           // simple string
           return encodeURIComponent(string)
         }
@@ -1095,7 +1164,7 @@
         }).catch(err => {
           self.loading = false;
           renderjson.set_show_to_level(7);
-          $('#callResults').html(err);
+          $('#callResults').html(renderjson(err.response.data));
           self.success = false;
           throw err;
         });
@@ -1267,7 +1336,7 @@
     },
     mounted: function() {
       this.api = window.location.pathname.replace('/try', '').replace('/', '').toLowerCase();
-      console.log('API: ', this.api)
+      // console.log('API: ', this.api)
       if (this.api == "covid19") {
         this.exampleQueries = this.exampleQueries.concat(this.covidExamples);
         this.numberOfExamples = 14
@@ -1279,7 +1348,7 @@
       var param = url.searchParams.get("base");
       if (param && param === 'prod' || window.location.hostname == 'localhost') {
         this.localMode = true;
-        console.log('localMode', this.localMode)
+        // console.log('localMode', this.localMode)
       }
 
       if (this.api == 'resources') {
