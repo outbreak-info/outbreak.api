@@ -8,19 +8,19 @@
 <section id="try-app" class="mb-5">
   <div v-if="validAPI" class="container mt-5">
     <div class="bg-light">
-      <div class="text-light jumbotron text-center p-2" style="background:#09253C;">
+      <div class="text-light jumbotron text-center pb-4" style="background:#09253C;">
         <div class="py-2">
           <h1 class="font-weight-bold" :data-text='api' v-text='api'></h1>
         </div>
         <template v-if="api == 'resources'">
-          <div class="row m-0">
+          <div class="row m-0 p2">
             <div class="col-sm-12">
               <p v-if="api == 'resources'">
                 Resources API is a collection of multiple sources and entity types. Sources include:
               </p>
             </div>
             <div v-if="metadata && metadata.src" class="col-sm-12 col-md-8">
-              <table class="table table-sm table-striped">
+              <table class="table table-sm table-striped table-responsive">
                 <thead>
                   <td>
                     <small class="text-muted">source | details</small>
@@ -56,11 +56,14 @@
     </div>
 
     <div v-if="api == 'resources'">
+      <h1 class="mb-5 text-center">
+        Try It
+      </h1>
       <div class="bg-light">
         <ul class="nav nav-tabs">
           <template v-for="(sub,i) in subAPIS">
-            <li class="nav-item" :key="i">
-              <a class="nav-link text-center" :class="[sub.term == selectedAPI ? 'bg-out':'bg-sec']" href="#" @click="selectThis(sub)">
+            <li class="nav-item border-right" :key="i">
+              <a class="nav-link text-center pointer" :class="[sub.term == selectedAPI ? 'bg-out':'bg-sec']" @click="selectThis(sub)">
                 <h6 class="text-light">
                   <template v-if="sub.term == 'resource'">
                     resource (all entities combined)
@@ -111,7 +114,7 @@
             <div class="form-check text-left mt-3">
               <input v-model="querySelectionType" class="form-check-input" type="radio" name="exampleRadios" id="exampleRadios1" value="example" checked>
               <label class="form-check-label" for="exampleRadios1">
-                Example Queries <button @click='refreshExmaples()' class="btn btn-sm btn-dark ml-3 text-light" type="button" style="zoom:.8">Generate New <i v-if="loadingExamplesQueries" class="fas fa-spinner fa-pulse text-warning"></i></button>
+                Example Queries <button @click='refreshExamples()' class="btn btn-sm btn-dark ml-3 text-light" type="button" style="zoom:.8">Generate New <i v-if="loadingExamplesQueries" class="fas fa-spinner fa-pulse text-warning"></i></button>
               </label>
             </div>
             <div class="form-check text-left">
@@ -171,7 +174,7 @@
         // console.log('saveMetadata',state.metadata)
       },
       saveSubApis(state, payload) {
-        const notInclude = ['creativework', 'outbreak:dataset', 'website', 'imageobject', 'mediaobject', 'presentationdigitaldocument']
+        const notInclude = ['creativework', 'outbreak:dataset', 'website', 'imageobject', 'mediaobject', 'presentationdigitaldocument','softwaresourcecode']
         let array = payload['sub'];
 
         for (var i = 0; i < array.length; i++) {
@@ -247,7 +250,10 @@
       generateTestQueriesStart() {
         let self = this;
         self.loading = true;
-        self.exampleQueries = []
+        self.exampleQueries = [
+          '/metadata',
+          '/metadata/fields'
+        ]
 
         if (self.numberOfDocs < 250000000) {
           let limit = Math.floor(Math.random() * 10000);
@@ -263,38 +269,43 @@
             } else {
               base = '/';
             }
-            axios.get(base + self.name.toLowerCase() + '/query?q=__all__&from=' + limit + '&size=' + size).then(result => {
-              let res = result.data.hits
-              let i = 0;
-              let picks = []
+            try {
+              axios.get(base + self.name.toLowerCase() + '/query?q=__all__&from=' + limit + '&size=' + size).then(result => {
+                let res = result.data.hits
+                let i = 0;
+                let picks = []
 
-              //make 1 doc type query with ID value
-              self.generateQuery(res[self.randomNumber(size)]);
-              //pick #numberOfExamples from hits
-              while (i < self.numberOfExamples) {
-                let doc = res[self.randomNumber(size)]
-                picks.push(doc)
-                i++;
-              }
-              // with the random picks form queries
-              var picksIndex = 0
-
-              while (picksIndex < self.numberOfExamples) {
-                let value = self.getQueryString(picks[picksIndex])
-                let query = '/' + self.name + '/query?q=' + value
-                //excludes duplicates and results with undefined terms
-                if (!self.exampleQueries.includes(query) && !query.includes('undefined')) {
-                  self.exampleQueries.push(query)
-                  picksIndex++;
+                //make 1 doc type query with ID value
+                self.generateQuery(res[self.randomNumber(size)]);
+                //pick #numberOfExamples from hits
+                while (i < self.numberOfExamples) {
+                  let doc = res[self.randomNumber(size)]
+                  picks.push(doc)
+                  i++;
                 }
-              }
-              self.loading = false
-              // console.log('exampleQueries',self.exampleQueries)
-            }).catch(err => {
+                // with the random picks form queries
+                var picksIndex = 0
+
+                while (picksIndex < self.numberOfExamples) {
+                  let value = self.getQueryString(picks[picksIndex])
+                  let query = '/' + self.name + '/query?q=' + value
+                  //excludes duplicates and results with undefined terms
+                  if (!self.exampleQueries.includes(query) && !query.includes('undefined')) {
+                    self.exampleQueries.push(query)
+                    picksIndex++;
+                  }
+                }
+                self.loading = false
+                // console.log('exampleQueries',self.exampleQueries)
+              }).catch(err => {
+                throw err;
+                self.generateTestQueriesStart()
+                self.loading = false
+              });
+            } catch (err) {
               throw err;
-              self.generateTestQueriesStart()
               self.loading = false
-            })
+            }
           }
         } else {
           self.loadExamplesFromMetadata();
@@ -406,7 +417,7 @@
           self.callApi(self.queryString)
         }
       },
-      refreshExmaples() {
+      refreshExamples() {
         var self = this;
         self.exampleQueries = [
           '/metadata',
@@ -484,6 +495,7 @@
         var self = this;
         if (newname !== oldname) {
           $('#callResults').html('');
+          self.successURL = ''
           self.generateTestQueriesStart()
         }
       }
@@ -516,9 +528,6 @@
         </p>
         <div class="gradientBox">
           <div class="bg-light jumbotron text-dark text-center" v-if="name">
-            <h1 class="mb-5">
-              Try It
-            </h1>
             <p class="text-center">
               <button @click="getDocStructure()" class="btn btn-sm btn-outline-secondary mt-2" style="zoom:.8" type="button">See Document Structure</button>
             </p>
@@ -545,7 +554,7 @@
                 <div class="form-check text-left mt-3">
                   <input v-model="querySelectionType" class="form-check-input" type="radio" name="exampleRadios" id="exampleRadios1" value="example" checked>
                   <label class="form-check-label" for="exampleRadios1">
-                    Example Queries <button @click='refreshExmaples()' class="btn btn-sm btn-dark ml-3 text-light" type="button" style="zoom:.8">Generate New <i v-if="loading" class="fas fa-spinner fa-pulse text-warning"></i></button>
+                    Example Queries <button @click='refreshExamples()' class="btn btn-sm btn-dark ml-3 text-light" type="button" style="zoom:.8">Generate New <i v-if="loading" class="fas fa-spinner fa-pulse text-warning"></i></button>
                   </label>
                 </div>
                 <div class="form-check text-left">
@@ -855,6 +864,16 @@
           '/metadata',
           '/metadata/fields'
         ],
+        covidExamples:[
+        "/query?q=wb_region:%22Latin%20America%20%26%20Caribbean%22&fetch_all:true&sort=-date,-confirmed",
+        "/query?q=mostRecent:true%20AND%20admin_level:0&sort=dead&fields=location_id,name,confirmed,dead",
+        "/query?q=date:%222020-06-02%22%20AND%20location_id:CHN",
+        "/query?q=state_name:California%20AND%20admin_level:%222%22&sort=-date",
+        '/query?q=name:"Kansas City, MO-KS"',
+        "/query?q=name:St.*&aggs=name&facet_size=1000",
+        "/query?q=admin_level:%221.5%22%20AND%20population:[1000000%20TO%20*]%20AND%20mostRecent:%20true&fields=name,confirmed_per_100k,population&sort=-confirmed_per_100k",
+        "/query?q=country_iso3:USA AND admin_level:2 AND confirmed_rolling_per_100k:[10 TO *]&aggs=state_name&facet_size=50",
+        ],
         numberOfDocs: null,
         validAPI: true,
         type: '',
@@ -1040,7 +1059,7 @@
           self.callApi(self.queryString)
         }
       },
-      refreshExmaples() {
+      refreshExamples() {
         var self = this;
         self.exampleQueries = [
           '/metadata',
@@ -1249,6 +1268,10 @@
     mounted: function() {
       this.api = window.location.pathname.replace('/try', '').replace('/', '').toLowerCase();
       console.log('API: ', this.api)
+      if (this.api == "covid19") {
+        this.exampleQueries = this.exampleQueries.concat(this.covidExamples);
+        this.numberOfExamples = 14
+      }
 
       // query prod on localhost for testing
       var url_string = window.location.href
