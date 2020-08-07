@@ -566,7 +566,7 @@
               </div>
             </form>
             <p class="bold" v-if="success && queryString">
-              <i  class="fas fa-check text-success"></i> <a rel="noopener" target="_blank" :href="queryString" v-text="window.location.origin+successURL" class="m-auto" :class="[ success ? 'text-success' : 'text-danger']" type="text"></a>
+              <i  class="fas fa-check text-success"></i> <a rel="noopener" target="_blank" :href="queryString" v-text="successURL" class="m-auto" :class="[ success ? 'text-success' : 'text-danger']" type="text"></a>
             </p>
             <div v-show='loading' class="spinner">
               <div class="cube1"></div>
