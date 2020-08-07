@@ -45,7 +45,7 @@
                 </template>
               </table>
               <div class="my-2 p-1" style="position: relative">
-                <a rel="noopener" target="_blank" class="btn btn-sm btn-outline-light" :href="'https://github.com/biothings/outbreak.api/labels/'+api"><i class="fab fa-github"></i> Give Feedback</a>
+                <a rel="noopener" target="_blank" class="btn btn-sm btn-outline-light" :href="'https://github.com/outbreak-info/outbreak.api/labels/'+api"><i class="fab fa-github"></i> Give Feedback</a>
               </div>
             </div>
             <div class="col-sm-12 col-md-4">
@@ -606,7 +606,7 @@
               </div>
             </form>
             <p class="bold" v-if="success && queryString">
-              <i  class="fas fa-check text-success"></i> <a rel="noopener" target="_blank" :href="queryString" v-text="successURL" class="m-auto" :class="[ success ? 'text-success' : 'text-danger']" type="text"></a>
+              <i v-show="successURL" class="fas fa-check text-success"></i> <a rel="noopener" target="_blank" :href="queryString" v-text="successURL" class="m-auto" :class="[ success ? 'text-success' : 'text-danger']" type="text"></a>
             </p>
             <div v-show='loading' class="spinner">
               <div class="cube1"></div>
@@ -880,7 +880,7 @@
         </template>
 
         <div class="my-2 p-1" style="position: relative">
-          <a rel="noopener" target="_blank" class="btn btn-sm btn-outline-light" :href="'https://github.com/biothings/outbreak.api/labels/'+api"><i class="fab fa-github"></i> Give Feedback</a>
+          <a rel="noopener" target="_blank" class="btn btn-sm btn-outline-light" :href="'https://github.com/outbreak-info/outbreak.api/labels/'+api"><i class="fab fa-github"></i> Give Feedback</a>
         </div>
 
       </div>
