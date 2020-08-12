@@ -710,7 +710,7 @@
               <i v-else class="fas fa-minus-circle text-danger fa-xs" title="hide"></i>
             </span>
           </template>
-          <div v-show="expand" class="bg-sec p-1">
+          <div v-show="expand" class="bg-dark p-1">
             <small v-if="metadata.src[apiname]['version']" class="text-muted mb-4 lighter d-block" v-text='"Version "+metadata.src[apiname]["version"]'></small>
             <ul class="link-list">
               <li class="d-inline" v-if="metadata.src[apiname]['url']">
@@ -1332,6 +1332,12 @@
           }
         });
 
+        //preselect resource
+        var payload = {};
+        payload["api"] = 'resource';
+        payload["count"] = '';
+        store.commit('selectThis', payload);
+
       },
     },
     mounted: function() {
@@ -1360,6 +1366,7 @@
         // gets all sources and details
         this.getMetadata();
       }
+
     }
   });
 </script>
