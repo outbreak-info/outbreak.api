@@ -13,6 +13,7 @@ options.define('pattern', default="outbreak-resources-*")
 options.define('url', default="https://raw.githubusercontent.com/outbreak-info/outbreak_preprint_matcher/main/results/update%20dumps/update_file.json")
 
 def main():
+    parse_command_line()
     try:
         client = Elasticsearch(options.host)
         # with open("update_file_initial.json") as file:
@@ -45,5 +46,4 @@ def main():
 
 
 if __name__ == "__main__":
-    parse_command_line()
     main()
