@@ -270,6 +270,9 @@
             if (limit > self.numberOfDocs) {
               limit = self.numberOfDocs - 100;
             }
+            if (limit < 0) {
+              limit = 0
+            }
             let base = '/';
             if (self.localMode) {
               base = 'https://api.outbreak.info/resources/';
@@ -956,6 +959,9 @@
             if (limit > self.numberOfDocs) {
               limit = self.numberOfDocs - 100;
             }
+            if (limit < 0) {
+              limit = 0
+            }
             let base = '/';
             if (self.localMode) {
               base = 'https://api.outbreak.info/';
@@ -1314,7 +1320,8 @@
             labels: labels,
             datasets: [{
               data: data,
-              backgroundColor: ["#7267b9", "#407eb0", "#c458b3", "#b4d640", "#28b6c4", "#e4af38", "#ee5361"],
+              backgroundColor: ["#7267b9", "#407eb0", "#c458b3", "#b4d640", "#28b6c4", "#e4af38", "#ee5361",
+              "#32b48d", "#1a598c", "#9e2663", "#7ebb1a", "#1785d4", "#e78512", "#de2233"],
               borderWidth: 1,
             }],
 
@@ -1354,7 +1361,7 @@
       var param = url.searchParams.get("base");
       if (param && param === 'prod' || window.location.hostname == 'localhost') {
         this.localMode = true;
-        // console.log('localMode', this.localMode)
+        console.log('localMode', this.localMode)
       }
 
       if (this.api == 'resources') {
