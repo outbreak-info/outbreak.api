@@ -280,7 +280,7 @@
               base = '/';
             }
             try {
-              axios.get(base + self.name.toLowerCase() + '/query?q=__all__&from=' + limit + '&size=' + size).then(result => {
+              axios.get(base + self.name + '/query?q=__all__&from=' + limit + '&size=' + size).then(result => {
                 let res = result.data.hits
                 let i = 0;
                 let picks = []
@@ -968,7 +968,7 @@
             } else {
               base = '/';
             }
-            axios.get(base + self.api.toLowerCase() + '/query?q=__all__&from=' + limit + '&size=' + size).then(result => {
+            axios.get(base + self.api + '/query?q=__all__&from=' + limit + '&size=' + size).then(result => {
               let res = result.data.hits
               let i = 0;
               let picks = []
