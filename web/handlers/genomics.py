@@ -1,14 +1,22 @@
-import json
-import tornado.ioloop
-import tornado.web
-import tornado.httpserver
-import tornado.websocket
-from tornado.httpclient import AsyncHTTPClient
 from tornado import gen
-from elasticsearch import AsyncElasticsearch
+
+from biothings.web.handlers import BaseHandler as BiothingsBaseHandler
+
+class BaseHandler(BiothingsBaseHandler):
+    async def asynchronous_fetch(self, query):
+        response = await self.web_settings.connections.async_client.search(
+            index = "genomics_parser_20210126_full",
+            body = query,
+            size = 0
+        )
+        return response
+
+    def post(self):
+        pass
 
 #4. Count total number of sequences of lineage by country
 class LineageByCountryHandler(BaseHandler):
+
     @gen.coroutine
     def get(self):
         query_pangolin_lineage = self.get_argument("pangolin_lineage", None)
@@ -18,7 +26,7 @@ class LineageByCountryHandler(BaseHandler):
                     "filter" : { "term": {"pangolin_lineage": query_pangolin_lineage}},
                     "aggs": {
                         "country": {
-	                    "terms": { "field": "country" }
+          "terms": { "field": "country" }
                         }
                     }
                 }
@@ -102,24 +110,3 @@ class PrevalenceHandler(BaseHandler):
         }
         resp = yield self.asynchronous_fetch(query)
         self.write(resp)
-
-"""
-class sitRepApp(tornado.web.Application):
-
-    def __init__(self, *args, **kwargs):
-        super(sitRepApp, self).__init__(*args, **kwargs)
-
-        self.elastic_client = AsyncElasticsearch(hosts=["http://su07:9205/"])
-
-application = sitRepApp(handlers=[
-    (r"/api/lineage-by-country", LineageByCountryHandler),
-    (r"/api/lineage-and-country", LineageAndCountryHandler),
-    (r"/api/prevalence-by-country", PrevalenceByCountryHandler),
-    (r"/api/prevalence", PrevalenceHandler),
-])
-
-if __name__ == "__main__":
-    http_server=tornado.httpserver.HTTPServer(application)
-    http_server.listen(8888)
-    tornado.ioloop.IOLoop.instance().start()
-"""
