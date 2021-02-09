@@ -2,30 +2,84 @@ import pandas as pd
 from .base import BaseHandler
 from tornado import gen
 
-class MostRecentCollectionDate(BaseHandler):
+class MostRecentDateBase(BaseHandler):
+    field = "date_collected"
 
     @gen.coroutine
     def get(self):
         query_pangolin_lineage = self.get_argument("pangolin_lineage", None)
-        query = {
-            "size": 0,
-            "aggs": {
-                "lineage_count": {
-                    "terms": {
-                        "field": "pangolin_lineage",
-                        "size": 10000
-                    },
-                    "aggs": {
-                        "date_collected": {
-                            "terms": {
-                                "field": "date_collected",
-                                "size": 10000
+        query_country = self.get_argument("country", None)
+        query_division = self.get_argument("division", None)
+        if query_division != None:
+            query = {
+                "size": 0,
+                "query": {
+                    "term": {
+                        "division": query_division
+                    }
+                },
+                "aggs": {
+                    "lineage_count": {
+                        "terms": {
+                            "field": "pangolin_lineage",
+                            "size": 10000
+                        },
+                        "aggs": {
+                            "date_collected": {
+                                "terms": {
+                                    "field": self.field,
+                                    "size": 10000
+                                }
                             }
                         }
                     }
                 }
             }
-        }
+        elif query_country != None:
+            query = {
+                "size": 0,
+                "query": {
+                    "term": {
+                        "country": query_country
+                    }
+                },
+                "aggs": {
+                    "lineage_count": {
+                        "terms": {
+                            "field": "pangolin_lineage",
+                            "size": 10000
+                        },
+                        "aggs": {
+                            "date_collected": {
+                                "terms": {
+                                    "field": self.field,
+                                    "size": 10000
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        else:
+            query = {
+                "size": 0,
+                "aggs": {
+                    "lineage_count": {
+                        "terms": {
+                            "field": "pangolin_lineage",
+                            "size": 10000
+                        },
+                        "aggs": {
+                            "date_collected": {
+                                "terms": {
+                                    "field": self.field,
+                                    "size": 10000
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         resp = yield self.asynchronous_fetch(query)
         path_to_results = ["aggregations", "lineage_count", "buckets"]
         buckets = resp
@@ -58,6 +112,13 @@ class MostRecentCollectionDate(BaseHandler):
         dict_response = df_response.reset_index().to_dict(orient="records")
         resp = {"success": True, "results": dict_response}
         self.write(resp)
+
+class MostRecentCollectionDate(MostRecentDateBase):
+    field = "date_collected"
+
+class MostRecentSubmissionDate(MostRecentDateBase):
+    field = "date_collected"
+
 
 class CountryHandler(BaseHandler):
 
