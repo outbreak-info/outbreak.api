@@ -130,3 +130,7 @@ class DivisionHandler(BaseHandler):
         self.write(resp)
 
 
+class MetadataHandler(BaseHandler):
+    @gen.coroutine
+    def get(self):
+        self.write(self.web_settings.connections.client.indices.get_mapping()['outbreak-genomics']['mappings']['genomics']['_meta'])
