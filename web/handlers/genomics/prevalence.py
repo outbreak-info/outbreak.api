@@ -157,7 +157,6 @@ class PrevalenceByDivisionAndTimeHandler(BaseHandler):
             buckets.extend(resp["aggregations"]["division_date_buckets"]["buckets"])
         if len(buckets) == 0:
             return {"success": True, "results": []}
-        print(buckets[0])
         flattened_response = [{
             "date": i["key"]["date_collected"],
             "name": i["key"]["division"],
@@ -234,7 +233,6 @@ class PrevalenceAllLineagesByCountryHandler(BaseHandler):
         path_to_results = ["aggregations", "count", "buckets"]
         for i in path_to_results:
             buckets = buckets[i]
-        print(len(buckets))
         flattened_response = []
         for i in buckets:
             if len(i["key"].split("-")) == 1 or "XX" in i["key"]:
@@ -294,7 +292,6 @@ class PrevalenceAllLineagesByDivisionHandler(BaseHandler):
         path_to_results = ["aggregations", "count", "buckets"]
         for i in path_to_results:
             buckets = buckets[i]
-        print(len(buckets))
         flattened_response = []
         for i in buckets:
             if len(i["key"].split("-")) == 1 or "XX" in i["key"]:
