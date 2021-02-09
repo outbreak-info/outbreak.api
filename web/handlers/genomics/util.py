@@ -11,7 +11,7 @@ def calculate_proportion(x, n):
 
 def compute_rolling_mean(df, index_col, col, new_col):
     df = df.set_index(index_col)
-    df.loc[:,new_col] = df[col].rolling("7d", center=True).mean()
+    df.loc[:,new_col] = df[col].rolling("7d").mean()
     df = df.reset_index()
     return df
 
