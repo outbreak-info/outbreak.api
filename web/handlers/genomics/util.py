@@ -66,10 +66,15 @@ def transform_prevalence_by_location_and_tiime(flattened_response):
     for n,grp in df_response.groupby("name"):
         grp = grp.sort_values("date")
         first_date = grp[grp["lineage_count"] > 0]["date"].min()
-        grp = grp[grp["date"] >= first_date]
-        grp.loc[:, "cum_total_count"] = grp["total_count"].cumsum()
-        grp.loc[:, "cum_lineage_count"] = grp["lineage_count"].cumsum()
-        grps.append(grp.tail(1))
+        tmp_grp = grp[grp["date"] >= first_date]
+        if tmp_grp.shape[0] != 0:
+            tmp_grp.loc[:, "cum_total_count"] = tmp_grp["total_count"].cumsum()
+            tmp_grp.loc[:, "cum_lineage_count"] = tmp_grp["lineage_count"].cumsum()
+            grps.append(tmp_grp.tail(1))
+        else:
+            grp.loc[:, "cum_total_count"] = grp["total_count"].cumsum()
+            grp.loc[:, "cum_lineage_count"] = 0
+            grps.append(grp.tail(1))
     df_response = pd.concat(grps)
     df_response.loc[:,"date"] = df_response["date"].apply(lambda x: x.strftime("%Y-%m-%d"))
     d = calculate_proportion(df_response["cum_lineage_count"], df_response["cum_total_count"])
