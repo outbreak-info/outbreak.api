@@ -9,6 +9,12 @@ def calculate_proportion(x, n):
     est_proportion = x/n
     return est_proportion, ci_low, ci_upp
 
+def compute_rolling_mean(df, index_col, col, new_col):
+    df = df.set_index(index_col)
+    df.loc[:,new_col] = df[col].rolling("7d").mean()
+    df = df.reset_index()
+    return df
+
 def transform_prevalence(resp, path_to_results = [], cumulative = False):
     buckets = resp
     for i in path_to_results:
@@ -29,14 +35,8 @@ def transform_prevalence(resp, path_to_results = [], cumulative = False):
     df_response = df_response[df_response["date"] >= first_date]
     dict_response = {}
     if not cumulative:
-        df_response.loc[:,"total_count_rolling"] =  df_response.apply(lambda x: df_response[
-            (df_response["date"] >= x["date"] - timedelta(days = 3)) &
-            (df_response["date"] <= x["date"] + timedelta(days = 3))
-        ]["total_count"].mean(), axis = 1)
-        df_response.loc[:,"lineage_count_rolling"] =  df_response.apply(lambda x: df_response[
-            (df_response["date"] >= x["date"] - timedelta(days = 3)) &
-            (df_response["date"] <= x["date"] + timedelta(days = 3))
-        ]["lineage_count"].mean(), axis = 1)
+        df_response = compute_rolling_mean(df_response, "date", "total_count", "total_count_rolling")
+        df_response = compute_rolling_mean(df_response, "date", "lineage_count", "lineage_count_rolling")
         d = calculate_proportion(df_response["lineage_count_rolling"], df_response["total_count_rolling"])
         df_response.loc[:, "proportion"] = d[0]
         df_response.loc[:, "proportion_ci_lower"] = d[1]

@@ -1,4 +1,4 @@
-from .util import transform_prevalence, transform_prevalence_by_location_and_tiime
+from .util import transform_prevalence, transform_prevalence_by_location_and_tiime, compute_rolling_mean
 from .base import BaseHandler
 from tornado     import gen
 import pandas as pd
@@ -253,16 +253,10 @@ class PrevalenceAllLineagesByCountryHandler(BaseHandler):
             )
             .sort_values("date")
         )
-        df_response = df_response.groupby("lineage").apply(rolling_mean_prevalence_grp)
+        df_response = df_response.groupby("lineage").apply(compute_rolling_mean, "date", "prevalence", "prevalence_rolling")
         df_response.loc[:,"date"] = df_response["date"].apply(lambda x: x.strftime("%Y-%m-%d"))
         resp = {"success": True, "results": df_response.to_dict(orient="records")}
         self.write(resp)
-
-def rolling_mean_prevalence_grp(grp):
-    grp = grp.set_index("date")
-    grp.loc[:,"prevalence_rolling"] = grp["prevalence"].rolling("7d").mean()
-    grp = grp.reset_index()
-    return grp
 
 class PrevalenceAllLineagesByDivisionHandler(BaseHandler):
 
