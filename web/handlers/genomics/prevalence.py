@@ -77,6 +77,8 @@ class PrevalenceByCountryAndTimeHandler(BaseHandler):
     @gen.coroutine
     def get(self):
         query_pangolin_lineage = self.get_argument("pangolin_lineage", None)
+        query_detected = self.get_argument("detected", None)
+        query_detected = True if query_detected == "true" else False
         query = {
             "size": 0,
             "aggs": {
@@ -114,7 +116,7 @@ class PrevalenceByCountryAndTimeHandler(BaseHandler):
             "total_count": i["doc_count"],
             "lineage_count": i["lineage_count"]["doc_count"]
         } for i in buckets if len(i["key"]["date_collected"].split("-")) > 1 and "XX" not in i["key"]["date_collected"]]
-        dict_response = transform_prevalence_by_location_and_tiime(flattened_response)
+        dict_response = transform_prevalence_by_location_and_tiime(flattened_response, query_detected)
         resp = {"success": True, "results": dict_response}
         self.write(resp)
 
@@ -124,6 +126,8 @@ class PrevalenceByDivisionAndTimeHandler(BaseHandler):
     def get(self):
         query_pangolin_lineage = self.get_argument("pangolin_lineage", None)
         query_country = self.get_argument("country", None)
+        query_detected = self.get_argument("detected", None)
+        query_detected = True if query_detected == "true" else False
         query =      {
             "size": 0,
             "query": {
@@ -164,7 +168,7 @@ class PrevalenceByDivisionAndTimeHandler(BaseHandler):
             "total_count": i["doc_count"],
             "lineage_count": i["lineage_count"]["doc_count"]
         } for i in buckets if len(i["key"]["date_collected"].split("-")) > 1 and "XX" not in i["key"]["date_collected"]]
-        dict_response = transform_prevalence_by_location_and_tiime(flattened_response)
+        dict_response = transform_prevalence_by_location_and_tiime(flattened_response, query_detected)
         resp = {"success": True, "results": dict_response}
         self.write(resp)
 
