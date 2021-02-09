@@ -6,6 +6,7 @@ class MostRecentCollectionDate(BaseHandler):
 
     @gen.coroutine
     def get(self):
+        query_pangolin_lineage = self.get_argument("pangolin_lineage", None)
         query = {
             "size": 0,
             "aggs": {
@@ -45,13 +46,14 @@ class MostRecentCollectionDate(BaseHandler):
                     "total_count": i["doc_count"],
                     "pangolin_lineage": i["key"]
                 })
-        print(flattened_response[0])
         df_response = (
             pd.DataFrame(flattened_response)
             .assign(date = lambda x: pd.to_datetime(x["date"], format="%Y-%m-%d"))
             .sort_values("date")
         )
         df_response.loc[:,"date"] = df_response["date"].apply(lambda x: x.strftime("%Y-%m-%d"))
+        if query_pangolin_lineage is not None:
+            df_response = df_response[df_response["pangolin_lineage"] == query_pangolin_lineage.lower()]
         df_response = df_response.groupby(["pangolin_lineage"]).nth(-1)
         dict_response = df_response.reset_index().to_dict(orient="records")
         resp = {"success": True, "results": dict_response}
