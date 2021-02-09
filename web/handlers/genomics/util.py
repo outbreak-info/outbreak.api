@@ -56,31 +56,41 @@ def transform_prevalence(resp, path_to_results = [], cumulative = False):
         }
     return {"success": True, "results": dict_response}
 
-def transform_prevalence_by_location_and_tiime(flattened_response):
+def compute_cumulative(grp, cols):
+    grp = grp.sort_values("date")
+    first_date = grp[grp["lineage_count"] > 0]["date"].min()
+    tmp_grp = grp[grp["date"] >= first_date]
+    if tmp_grp.shape[0] != 0:
+        for i in cols:
+            tmp_grp.loc[:, "cum_{}".format(i)] = tmp_grp[i].cumsum()
+            tmp_grp.loc[:, "cum_{}".format(i)] = tmp_grp[i].cumsum()
+        return tmp_grp.tail(1)
+    else:
+        for i in cols:
+            if i == "total_count":
+                grp.loc[:, "cum_total_count"] = grp["total_count"].cumsum()
+            else:
+                grp.loc[:, "cum_{}".format(i)] = 0
+        return grp.tail(1)
+
+def transform_prevalence_by_location_and_tiime(flattened_response, query_detected = False):
     df_response = (
         pd.DataFrame(flattened_response)
         .assign(date = lambda x: pd.to_datetime(x["date"], format="%Y-%m-%d"))
         .sort_values("date")
     )
     grps = []
-    for n,grp in df_response.groupby("name"):
-        grp = grp.sort_values("date")
-        first_date = grp[grp["lineage_count"] > 0]["date"].min()
-        tmp_grp = grp[grp["date"] >= first_date]
-        if tmp_grp.shape[0] != 0:
-            tmp_grp.loc[:, "cum_total_count"] = tmp_grp["total_count"].cumsum()
-            tmp_grp.loc[:, "cum_lineage_count"] = tmp_grp["lineage_count"].cumsum()
-            grps.append(tmp_grp.tail(1))
-        else:
-            grp.loc[:, "cum_total_count"] = grp["total_count"].cumsum()
-            grp.loc[:, "cum_lineage_count"] = 0
-            grps.append(grp.tail(1))
-    df_response = pd.concat(grps)
-    df_response.loc[:,"date"] = df_response["date"].apply(lambda x: x.strftime("%Y-%m-%d"))
-    d = calculate_proportion(df_response["cum_lineage_count"], df_response["cum_total_count"])
-    df_response.loc[:, "proportion"] = d[0]
-    df_response.loc[:, "proportion_ci_lower"] = d[1]
-    df_response.loc[:, "proportion_ci_upper"] = d[2]
-    dict_response = df_response.to_dict(orient="records")
+    dict_response = {}
+    if not query_detected:
+        df_response =  df_response.groupby("name").apply(compute_cumulative, ["total_count", "lineage_count"])
+        df_response.loc[:,"date"] = df_response["date"].apply(lambda x: x.strftime("%Y-%m-%d"))
+        d = calculate_proportion(df_response["cum_lineage_count"], df_response["cum_total_count"])
+        df_response.loc[:, "proportion"] = d[0]
+        df_response.loc[:, "proportion_ci_lower"] = d[1]
+        df_response.loc[:, "proportion_ci_upper"] = d[2]
+        dict_response = df_response.to_dict(orient="records")
+    else:
+        dict_response = {
+            "names": df_response[df_response["lineage_count"] > 0]["name"].unique().tolist()
+        }
     return dict_response
-
