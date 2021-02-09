@@ -108,7 +108,7 @@ class MostRecentDateBase(BaseHandler):
         df_response.loc[:,"date"] = df_response["date"].apply(lambda x: x.strftime("%Y-%m-%d"))
         if query_pangolin_lineage is not None:
             df_response = df_response[df_response["pangolin_lineage"] == query_pangolin_lineage.lower()]
-        df_response = df_response.groupby(["pangolin_lineage"]).nth(-1)
+        df_response = df_response.sort_values("date").groupby(["pangolin_lineage"]).nth(-1)
         dict_response = df_response.reset_index().to_dict(orient="records")
         resp = {"success": True, "results": dict_response}
         self.write(resp)
@@ -117,7 +117,7 @@ class MostRecentCollectionDate(MostRecentDateBase):
     field = "date_collected"
 
 class MostRecentSubmissionDate(MostRecentDateBase):
-    field = "date_collected"
+    field = "date_submitted"
 
 
 class CountryHandler(BaseHandler):
