@@ -95,7 +95,7 @@ def transform_prevalence_by_location_and_tiime(flattened_response, query_detecte
         }
     return dict_response
 
-def create_nested_mutation_query(country = None, lineage = None, mutations = []):
+def create_nested_mutation_query(country = None, division = None, lineage = None, mutations = []):
     query_obj = {
         "bool": {
             "must": []
@@ -121,6 +121,12 @@ def create_nested_mutation_query(country = None, lineage = None, mutations = [])
         bool_must.append({
             "term": {
                 "country": country
+            }
+        })
+    if division is not None:
+        bool_must.append({
+            "term": {
+                "division": division
             }
         })
     query_obj["bool"]["must"] = bool_must
