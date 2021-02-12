@@ -119,7 +119,6 @@ class MostRecentCollectionDate(MostRecentDateBase):
 class MostRecentSubmissionDate(MostRecentDateBase):
     field = "date_submitted"
 
-
 class CountryHandler(BaseHandler):
 
     @gen.coroutine
@@ -189,7 +188,6 @@ class DivisionHandler(BaseHandler):
         } for i in buckets]
         resp = {"success": True, "results": flattened_response}
         self.write(resp)
-
 
 class MetadataHandler(BaseHandler):
     @gen.coroutine

@@ -1,6 +1,7 @@
 from .base import BaseHandler
 from tornado import gen
 import pandas as pd
+from .util import create_nested_mutation_query
 
 import re
 
@@ -9,21 +10,25 @@ class LineageByCountryHandler(BaseHandler):
     @gen.coroutine
     def get(self):
         query_pangolin_lineage = self.get_argument("pangolin_lineage", None)
+        query_mutations = self.get_argument("mutations", None)
         query = {
-                "aggs": {
-                    "prevalence": {
-                        "filter" : { "term": {"pangolin_lineage": query_pangolin_lineage}},
-                        "aggs": {
-                            "country": {
-                                "terms": {
-                                    "field": "country",
-                                    "size": self.size
-                                    }
-                                }
+            "aggs": {
+                "prevalence": {
+                    "filter" : {},
+                    "aggs": {
+                        "country": {
+                            "terms": {
+                                "field": "country",
+                                "size": self.size
                             }
                         }
                     }
                 }
+            }
+        }
+        query_mutations = query_mutations.split(",") if query_mutations is not None else []
+        query_obj = create_nested_mutation_query(lineage = query_pangolin_lineage, mutations = query_mutations)
+        query["aggs"]["prevalence"]["filter"] = query_obj
         resp = yield self.asynchronous_fetch(query)
         self.write(resp)
 
@@ -33,17 +38,11 @@ class LineageByDivisionHandler(BaseHandler):
     def get(self):
         query_pangolin_lineage = self.get_argument("pangolin_lineage", None)
         query_country = self.get_argument("country", None)
+        query_mutations = self.get_argument("mutations", None)
         query = {
                 "aggs": {
                     "prevalence": {
-                        "filter" : {
-                            "bool" : {
-                                "must" : [
-                                    {"term" : { "country" : query_country }},
-                                    {"term" : { "pangolin_lineage" : query_pangolin_lineage }}
-                                    ]
-                                }
-                            },
+                        "filter" : {},
                         "aggs": {
                             "division": {
                                 "terms": {
@@ -55,6 +54,10 @@ class LineageByDivisionHandler(BaseHandler):
                         }
                     }
                 }
+        query_mutations = query_mutations.split(",") if query_mutations is not None else []
+        query_obj = create_nested_mutation_query(country = query_country, lineage = query_pangolin_lineage, mutations = query_mutations)
+        query["aggs"]["prevalence"]["filter"] = query_obj
+        print(query)
         resp = yield self.asynchronous_fetch(query)
         self.write(resp)
 
