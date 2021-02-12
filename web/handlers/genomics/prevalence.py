@@ -1,4 +1,4 @@
-from .util import transform_prevalence, transform_prevalence_by_location_and_tiime, compute_rolling_mean
+from .util import transform_prevalence, transform_prevalence_by_location_and_tiime, compute_rolling_mean, create_nested_mutation_query
 from .base import BaseHandler
 from tornado     import gen
 import pandas as pd
@@ -11,61 +11,36 @@ class PrevalenceByLocationHandler(BaseHandler):
         query_country = self.get_argument("country", None)
         query_pangolin_lineage = self.get_argument("pangolin_lineage", None)
         query_division = self.get_argument("division", None)
+        query_mutations = self.get_argument("mutations", None)
+        query_mutations = query_mutations.split(",") if query_mutations is not None else []
         cumulative = self.get_argument("cumulative", None)
         cumulative = True if cumulative == "true" else False
-        query = {}
-        if query_division == None:
-            query = {
-                "size": 0,
-                "aggs": {
-                    "prevalence": {
-                        "filter" : {
-                            "term" : { "country" : query_country }
-                        },
-                        "aggs": {
-                            "count": {
-                                "terms": {
-                                    "field": "date_collected",
-                                    "size": self.size
-                                },
-                                "aggs": {
-                                    "lineage_count": {
-                                        "filter": {
-                                            "term" : { "pangolin_lineage" : query_pangolin_lineage }
-                                        },
-                                    }
+        filter_term = {"country": query_country} if query_division is None else {"division": query_division}
+        query = {
+            "size": 0,
+            "aggs": {
+                "prevalence": {
+                    "filter" : {
+                        "term" : filter_term
+                    },
+                    "aggs": {
+                        "count": {
+                            "terms": {
+                                "field": "date_collected",
+                                "size": self.size
+                            },
+                            "aggs": {
+                                "lineage_count": {
+                                    "filter": {}
                                 }
                             }
                         }
                     }
                 }
             }
-        else:
-            query = {
-                "size": 0,
-                "aggs": {
-                    "prevalence": {
-                        "filter" : {
-                            "term" : { "division" : query_division }
-                        },
-                        "aggs": {
-                            "count": {
-                                "terms": {
-                                    "field": "date_collected",
-                                    "size": self.size
-                                },
-                                "aggs": {
-                                    "lineage_count": {
-                                        "filter": {
-                                            "term" : { "pangolin_lineage" : query_pangolin_lineage }
-                                        },
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+        }
+        query_obj = create_nested_mutation_query(division = query_division, country = query_country, lineage = query_pangolin_lineage, mutations = query_mutations)
+        query["aggs"]["prevalence"]["aggs"]["count"]["aggs"]["lineage_count"]["filter"] = query_obj
         resp = yield self.asynchronous_fetch(query)
         path_to_results = ["aggregations", "prevalence", "count", "buckets"]
         resp = transform_prevalence(resp, path_to_results, cumulative)
@@ -78,6 +53,8 @@ class PrevalenceByCountryAndTimeHandler(BaseHandler):
     def get(self):
         query_pangolin_lineage = self.get_argument("pangolin_lineage", None)
         query_detected = self.get_argument("detected", None)
+        query_mutations = self.get_argument("mutations", None)
+        query_mutations = query_mutations.split(",") if query_mutations is not None else []
         query_detected = True if query_detected == "true" else False
         query = {
             "size": 0,
@@ -92,14 +69,14 @@ class PrevalenceByCountryAndTimeHandler(BaseHandler):
                     },
                     "aggregations": {
                         "lineage_count": {
-                            "filter": {
-                                "term" : { "pangolin_lineage" : query_pangolin_lineage }
-                            }
+                            "filter": {}
                         }
                     }
                 }
             }
         }
+        query_obj = create_nested_mutation_query(lineage = query_pangolin_lineage, mutations = query_mutations)
+        query["aggs"]["country_date_buckets"]["aggregations"]["lineage_count"]["filter"] = query_obj
         resp = yield self.asynchronous_fetch(query)
         ctr = 0
         buckets = resp["aggregations"]["country_date_buckets"]["buckets"]
@@ -127,6 +104,8 @@ class PrevalenceByDivisionAndTimeHandler(BaseHandler):
         query_pangolin_lineage = self.get_argument("pangolin_lineage", None)
         query_country = self.get_argument("country", None)
         query_detected = self.get_argument("detected", None)
+        query_mutations = self.get_argument("mutations", None)
+        query_mutations = query_mutations.split(",") if query_mutations is not None else []
         query_detected = True if query_detected == "true" else False
         query =      {
             "size": 0,
@@ -144,16 +123,15 @@ class PrevalenceByDivisionAndTimeHandler(BaseHandler):
                     },
                     "aggregations": {
                         "lineage_count": {
-                            "filter": {
-                                "term" : { "pangolin_lineage" : query_pangolin_lineage }
-                            }
+                            "filter": {}
                         }
                     }
                 }
             }
         }
+        query_obj = create_nested_mutation_query(lineage = query_pangolin_lineage, mutations = query_mutations)
+        query["aggs"]["division_date_buckets"]["aggregations"]["lineage_count"]["filter"] = query_obj
         resp = yield self.asynchronous_fetch(query)
-        ctr = 0
         buckets = resp["aggregations"]["division_date_buckets"]["buckets"]
         # Get all paginated results
         while "after_key" in resp["aggregations"]["division_date_buckets"]:
@@ -173,12 +151,13 @@ class PrevalenceByDivisionAndTimeHandler(BaseHandler):
         self.write(resp)
 
 
-# 3. Get prevalence of lineage by date
+# Get global prevalence of lineage by date
 class PrevalenceHandler(BaseHandler):
 
     @gen.coroutine
     def get(self):
         query_pangolin_lineage = self.get_argument("pangolin_lineage", None)
+        query_mutations = self.get_argument("mutations", None)
         cumulative = self.get_argument("cumulative", None)
         cumulative = True if cumulative == "true" else False
         query = {
@@ -191,16 +170,15 @@ class PrevalenceHandler(BaseHandler):
                     },
                     "aggs": {
                         "lineage_count": {
-                            "filter": {
-                                "term" : {
-                                    "pangolin_lineage" : query_pangolin_lineage
-                                }
-                            }
+                            "filter": {}
                         }
                     }
                 }
             }
         }
+        query_mutations = query_mutations.split(",") if query_mutations is not None else []
+        query_obj = create_nested_mutation_query(lineage = query_pangolin_lineage, mutations = query_mutations)
+        query["aggs"]["prevalence"]["aggs"]["lineage_count"]["filter"] = query_obj
         resp = yield self.asynchronous_fetch(query)
         path_to_results = ["aggregations", "prevalence", "buckets"]
         resp = transform_prevalence(resp, path_to_results, cumulative)
