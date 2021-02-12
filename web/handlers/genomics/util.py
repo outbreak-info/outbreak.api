@@ -94,3 +94,34 @@ def transform_prevalence_by_location_and_tiime(flattened_response, query_detecte
             "names": df_response[df_response["lineage_count"] > 0]["name"].unique().tolist()
         }
     return dict_response
+
+def create_nested_mutation_query(country = None, lineage = None, mutations = []):
+    query_obj = {
+        "bool": {
+            "must": []
+        }
+    }
+    bool_must = []
+    for i in mutations:
+        bool_must.append({
+            "nested": {
+                "path": "mutations",
+                "query": {
+                    "term" : { "mutations.mutation" : i }
+                }
+            }
+        })
+    if lineage is not None:
+        bool_must.append({
+            "term": {
+                "pangolin_lineage": lineage
+            }
+        })
+    if country is not None:
+        bool_must.append({
+            "term": {
+                "country": country
+            }
+        })
+    query_obj["bool"]["must"] = bool_must
+    return query_obj
