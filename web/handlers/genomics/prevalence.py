@@ -85,15 +85,15 @@ class PrevalenceByCountryAndTimeHandler(BaseHandler):
             query["aggs"]["country_date_buckets"]["composite"]["after"] = resp["aggregations"]["country_date_buckets"]["after_key"]
             resp = yield self.asynchronous_fetch(query)
             buckets.extend(resp["aggregations"]["country_date_buckets"]["buckets"])
-        if len(buckets) == 0:
-            return {"success": True, "results": []}
-        flattened_response = [{
-            "date": i["key"]["date_collected"],
-            "name": i["key"]["country"],
-            "total_count": i["doc_count"],
-            "lineage_count": i["lineage_count"]["doc_count"]
-        } for i in buckets if len(i["key"]["date_collected"].split("-")) > 1 and "XX" not in i["key"]["date_collected"]]
-        dict_response = transform_prevalence_by_location_and_tiime(flattened_response, query_detected)
+        dict_response = {"success": True, "results": []}
+        if len(buckets) > 0:
+            flattened_response = [{
+                "date": i["key"]["date_collected"],
+                "name": i["key"]["country"],
+                "total_count": i["doc_count"],
+                "lineage_count": i["lineage_count"]["doc_count"]
+            } for i in buckets if len(i["key"]["date_collected"].split("-")) > 1 and "XX" not in i["key"]["date_collected"]]
+            dict_response = transform_prevalence_by_location_and_tiime(flattened_response, query_detected)
         resp = {"success": True, "results": dict_response}
         self.write(resp)
 
