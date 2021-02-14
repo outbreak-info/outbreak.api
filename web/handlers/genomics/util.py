@@ -44,16 +44,25 @@ def transform_prevalence(resp, path_to_results = [], cumulative = False):
         df_response.loc[:,"date"] = df_response["date"].apply(lambda x: x.strftime("%Y-%m-%d"))
         dict_response = df_response.to_dict(orient="records")
     else:                       # For cumulative only calculate cumsum prevalence
-        lineage_cumsum = int(df_response["lineage_count"].cumsum().iloc[-1])
-        total_cumsum = int(df_response["total_count"].cumsum().iloc[-1])
-        df_date_sorted = df_response[df_response["lineage_count"] > 0].sort_values("date")
-        dict_response = {
-            "global_prevalence": lineage_cumsum/total_cumsum,
-            "total_count": total_cumsum,
-            "lineage_count": lineage_cumsum,
-            "first_detected": df_date_sorted["date"].iloc[0].strftime("%Y-%m-%d"),
-            "last_detected": df_date_sorted["date"].iloc[-1].strftime("%Y-%m-%d")
-        }
+        if df_response.shape[0] == 0:
+            dict_response = {
+                "global_prevalence": 0,
+                "total_count": 0,
+                "lineage_count": 0,
+                "first_detected": None,
+                "last_detected": None
+            }
+        else:
+            lineage_cumsum = int(df_response["lineage_count"].cumsum().iloc[-1])
+            total_cumsum = int(df_response["total_count"].cumsum().iloc[-1])
+            df_date_sorted = df_response[df_response["lineage_count"] > 0].sort_values("date")
+            dict_response = {
+                "global_prevalence": lineage_cumsum/total_cumsum,
+                "total_count": total_cumsum,
+                "lineage_count": lineage_cumsum,
+                "first_detected": df_date_sorted["date"].iloc[0].strftime("%Y-%m-%d"),
+                "last_detected": df_date_sorted["date"].iloc[-1].strftime("%Y-%m-%d")
+            }
     return {"success": True, "results": dict_response}
 
 def compute_cumulative(grp, cols):
