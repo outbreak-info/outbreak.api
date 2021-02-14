@@ -172,7 +172,9 @@ class LineageMutationsHandler(BaseHandler):
             "mutation_count": i["doc_count"],
             "lineage_count": resp["hits"]["total"]
             } for i in buckets]
-        df_response = (
+        dict_response = []
+        if len(flattened_response) > 0:
+            df_response = (
                 pd.DataFrame(flattened_response)
                 .assign(
                     gene = lambda x: x["mutation"].apply(lambda k: k.split(":")[0]),
@@ -180,10 +182,11 @@ class LineageMutationsHandler(BaseHandler):
                     alt_aa = lambda x: x["mutation"].apply(lambda k: re.findall("[A-Z]+", k.split(":")[1])[1] if "DEL" not in k and "_" not in k else k.split(":")[1]),
                     codon_num = lambda x: x["mutation"].apply(lambda k: re.findall("[0-9]+", k.split(":")[1])[0] if "DEL" not in k and "_" not in k else k.split(":")[1]),
                     type = lambda x: x["mutation"].apply(lambda k: "deletion" if "DEL" in k else "substitution")
-                    )
                 )
-        df_response = df_response[df_response["ref_aa"] != df_response["alt_aa"]]
-        df_response.loc[:, "prevalence"] = df_response["mutation_count"]/df_response["lineage_count"]
-        df_response = df_response[df_response["prevalence"] >= frequency]
-        resp = {"success": True, "results": df_response.to_dict(orient="records")}
+            )
+            df_response = df_response[df_response["ref_aa"] != df_response["alt_aa"]]
+            df_response.loc[:, "prevalence"] = df_response["mutation_count"]/df_response["lineage_count"]
+            df_response = df_response[df_response["prevalence"] >= frequency]
+            dict_response = df_response.to_dict(orient="records")
+        resp = {"success": True, "results": dict_response}
         self.write(resp)
