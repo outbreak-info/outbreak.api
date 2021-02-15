@@ -1,7 +1,7 @@
 from .base import BaseHandler
 from tornado import gen
 import pandas as pd
-from .util import create_nested_mutation_query
+from .util import create_nested_mutation_query, calculate_proportion
 
 import re
 
@@ -239,4 +239,43 @@ class MutationDetailsHandler(BaseHandler):
             for j in i["by_nested"]["hits"]["hits"]:
                 flattened_response.append(j["_source"])
         resp = {"success": True, "results": flattened_response}
+        self.write(resp)
+
+class MutationsByLineage(BaseHandler):
+    @gen.coroutine
+    def get(self):
+        query_mutations = self.get_argument("mutations", None)
+        query_mutations = query_mutations.split(",") if query_mutations is not None else []
+        query = {
+            "size": 0,
+            "aggs": {
+	        "lineage": {
+                    "terms": {"field": "pangolin_lineage", "size": self.size},
+                    "aggs": {
+                        "mutations": {
+                            "filter": {}
+			}
+                    }
+                }
+            }
+        }
+        query["aggs"]["lineage"]["aggs"]["mutations"]["filter"] = create_nested_mutation_query(mutations = query_mutations)
+        resp = yield self.asynchronous_fetch(query)
+        path_to_results = ["aggregations", "lineage", "buckets"]
+        buckets = resp
+        for i in path_to_results:
+            buckets = buckets[i]
+        flattened_response = []
+        for i in buckets:
+            flattened_response.append({
+                "pangolin_lineage": i["key"],
+                "lineage_count": i["doc_count"],
+                "mutation_count": i["mutations"]["doc_count"]
+            })
+        df_response = pd.DataFrame(flattened_response)
+        prop = calculate_proportion(df_response["mutation_count"], df_response["lineage_count"])
+        df_response.loc[:, "proportion"] = prop[0]
+        df_response.loc[:, "proportion_ci_lower"] = prop[1]
+        df_response.loc[:, "proportion_ci_upper"] = prop[2]
+        resp = {"success": True, "results": df_response.to_dict(orient="records")}
         self.write(resp)
