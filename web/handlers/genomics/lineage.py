@@ -190,3 +190,53 @@ class LineageMutationsHandler(BaseHandler):
             dict_response = df_response.to_dict(orient="records")
         resp = {"success": True, "results": dict_response}
         self.write(resp)
+
+
+class MutationDetailsHandler(BaseHandler):
+    @gen.coroutine
+    def get(self):
+        mutations = self.get_argument("mutations", None)
+        mutations = mutations.split(",") if mutations is not None else []
+        query = {
+            "size": 0,
+            "aggs": {
+                "by_mutations": {
+                    "nested": {
+                        "path": "mutations"
+                    },
+		    "aggs": {
+			"inner": {
+                            "filter": {
+                                "bool": {
+                                    "should": [
+                                        {"match": {"mutations.mutation": i}}
+                                for i in mutations
+                                    ]
+                                }
+                            },
+			    "aggs": {
+				"by_name": {
+				    "terms": {"field": "mutations.mutation"},
+				    "aggs": {
+				        "by_nested": {
+				            "top_hits": {"size": 1}
+				        }
+				    }
+				}
+			    }
+			}
+		    }
+		}
+	    }
+        }
+        resp = yield self.asynchronous_fetch(query)
+        path_to_results = ["aggregations", "by_mutations", "inner", "by_name", "buckets"]
+        buckets = resp
+        for i in path_to_results:
+            buckets = buckets[i]
+        flattened_response = []
+        for i in buckets:
+            for j in i["by_nested"]["hits"]["hits"]:
+                flattened_response.append(j["_source"])
+        resp = {"success": True, "results": flattened_response}
+        self.write(resp)

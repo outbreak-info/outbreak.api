@@ -1,4 +1,4 @@
-from .lineage import LineageByCountryHandler, LineageByDivisionHandler, LineageAndCountryHandler, LineageAndDivisionHandler, LineageHandler, LineageMutationsHandler
+from .lineage import LineageByCountryHandler, LineageByDivisionHandler, LineageAndCountryHandler, LineageAndDivisionHandler, LineageHandler, LineageMutationsHandler, MutationDetailsHandler
 from .prevalence import PrevalenceByLocationHandler, PrevalenceByCountryAndTimeHandler, PrevalenceByDivisionAndTimeHandler, PrevalenceHandler, PrevalenceAllLineagesByCountryHandler, PrevalenceAllLineagesByDivisionHandler
 from .general import MostRecentCollectionDate, CountryHandler, DivisionHandler, MetadataHandler, MostRecentSubmissionDate, MutationHandler
 
@@ -15,6 +15,7 @@ routes = [
     (r"/genomics/lineage-by-division-most-recent", PrevalenceByDivisionAndTimeHandler),
     (r"/genomics/most-recent-collection-date", MostRecentCollectionDate),
     (r"/genomics/most-recent-submission-date", MostRecentSubmissionDate),
+    (r"/genomics/mutation-details", MutationDetailsHandler),
     (r"/genomics/country", CountryHandler),
     (r"/genomics/lineage", LineageHandler),
     (r"/genomics/division", DivisionHandler),
