@@ -267,7 +267,7 @@ class MutationsByLineage(BaseHandler):
             buckets = buckets[i]
         flattened_response = []
         for i in buckets:
-            if not i["mutations"]["doc_count"] > 0:
+            if not i["mutations"]["doc_count"] > 0 or i["key"] == "none":
                 continue
             flattened_response.append({
                 "pangolin_lineage": i["key"],
