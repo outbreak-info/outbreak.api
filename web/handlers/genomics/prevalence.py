@@ -298,3 +298,128 @@ class PrevalenceAllLineagesByDivisionHandler(BaseHandler):
         resp = {"success": True, "results": df_response.to_dict(orient="records")}
         self.write(resp)
 
+class PrevalenceByAAPositionHandler(BaseHandler):
+
+    @gen.coroutine
+    def get(self):
+        query_str = self.get_argument("name", None)
+        query_country = self.get_argument("country", None)
+        query_division = self.get_argument("division", None)
+        query_gene = query_str.split(":")[0]
+        query_aa_position = int(query_str.split(":")[1])
+        # Get ref codon
+        query = {
+            "size": 0,
+            "aggs": {
+                "by_mutations": {
+                    "nested": {
+                        "path": "mutations"
+                    },
+		    "aggs": {
+			"inner": {
+                            "filter": {
+                                "bool": {
+                                    "must": [
+                                        {"match": {"mutations.codon_num": query_aa_position}},
+                                        {"match": {"mutations.gene": query_gene}}
+                                    ]
+                                }
+                            },
+			    "aggs": {
+				"by_nested": {
+				    "top_hits": {"size": 1}
+				}
+			    }
+			}
+		    }
+		}
+	    }
+        }
+        resp = yield self.asynchronous_fetch(query)
+        tmp_ref = resp["aggregations"]["by_mutations"]["inner"]["by_nested"]["hits"]["hits"]
+        dict_response = []
+        if len(tmp_ref) > 0:
+            ref_aa = tmp_ref[0]["_source"]["ref_aa"]
+            query = {
+	        "aggs": {
+	            "by_date": {
+		        "terms": {
+                            "field": "date_collected",
+                            "size": self.size
+                        },
+                        "aggs": {
+                            "by_mutations": {
+                                "nested": {
+                                    "path": "mutations"
+                                },
+		                "aggs": {
+			            "inner": {
+                                        "filter": {
+                                            "bool": {
+                                                "must": [
+                                                    {"match": {"mutations.codon_num": query_aa_position}},
+                                                    {"match": {"mutations.gene": query_gene}}
+                                                ]
+                                            }
+                                        },
+			                "aggs": {
+				            "by_name": {
+				                "terms": {"field": "mutations.alt_aa"}
+				            }
+			                }
+			            }
+		                }
+		            }
+	                }
+		    }
+	        }
+            }
+            if query_division != None:
+                query["query"]= {
+                    "match": {
+                        "country": query_division
+                    }
+                }
+            elif query_country != None:
+                query["query"]= {
+                    "match": {
+                        "country": query_country
+                    }
+                }
+            resp = yield self.asynchronous_fetch(query)
+            buckets = resp
+            path_to_results = ["aggregations", "by_date", "buckets"]
+            for i in path_to_results:
+                buckets = buckets[i]
+            flattened_response = []
+            for d in buckets:
+                alt_count = 0
+                for m in d["by_mutations"]["inner"]["by_name"]["buckets"]:
+                    if m["key"] == "None":
+                        continue
+                    flattened_response.append({
+                        "date": d["key"],
+                        "total_count": d["doc_count"],
+                        "aa": m["key"],
+                        "aa_count": m["doc_count"]
+                    })
+                    alt_count += m["doc_count"]
+                flattened_response.append({
+                    "date": d["key"],
+                    "total_count": d["doc_count"],
+                    "aa": ref_aa,
+                    "aa_count": d["doc_count"] - alt_count
+                })
+            df_response = (
+                pd.DataFrame(flattened_response)
+                .assign(
+                    date = lambda x: pd.to_datetime(x["date"], format="%Y-%m-%d"),
+                    prevalence = lambda x: x["aa_count"]/x["total_count"]
+                )
+                .sort_values("date")
+            )
+            df_response = df_response.groupby("aa").apply(compute_rolling_mean, "date", "prevalence", "prevalence_rolling")
+            df_response.loc[:,"date"] = df_response["date"].apply(lambda x: x.strftime("%Y-%m-%d"))
+            dict_response = df_response.to_dict(orient="records")
+        resp = {"success": True, "results": dict_response}
+        self.write(resp)
