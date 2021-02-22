@@ -1,6 +1,7 @@
 from .base import BaseHandler
 from tornado import gen
 import pandas as pd
+from .util import create_nested_mutation_query, calculate_proportion
 
 import re
 
@@ -9,21 +10,25 @@ class LineageByCountryHandler(BaseHandler):
     @gen.coroutine
     def get(self):
         query_pangolin_lineage = self.get_argument("pangolin_lineage", None)
+        query_mutations = self.get_argument("mutations", None)
         query = {
-                "aggs": {
-                    "prevalence": {
-                        "filter" : { "term": {"pangolin_lineage": query_pangolin_lineage}},
-                        "aggs": {
-                            "country": {
-                                "terms": {
-                                    "field": "country",
-                                    "size": self.size
-                                    }
-                                }
+            "aggs": {
+                "prevalence": {
+                    "filter" : {},
+                    "aggs": {
+                        "country": {
+                            "terms": {
+                                "field": "country",
+                                "size": self.size
                             }
                         }
                     }
                 }
+            }
+        }
+        query_mutations = query_mutations.split(",") if query_mutations is not None else []
+        query_obj = create_nested_mutation_query(lineage = query_pangolin_lineage, mutations = query_mutations)
+        query["aggs"]["prevalence"]["filter"] = query_obj
         resp = yield self.asynchronous_fetch(query)
         self.write(resp)
 
@@ -33,17 +38,11 @@ class LineageByDivisionHandler(BaseHandler):
     def get(self):
         query_pangolin_lineage = self.get_argument("pangolin_lineage", None)
         query_country = self.get_argument("country", None)
+        query_mutations = self.get_argument("mutations", None)
         query = {
                 "aggs": {
                     "prevalence": {
-                        "filter" : {
-                            "bool" : {
-                                "must" : [
-                                    {"term" : { "country" : query_country }},
-                                    {"term" : { "pangolin_lineage" : query_pangolin_lineage }}
-                                    ]
-                                }
-                            },
+                        "filter" : {},
                         "aggs": {
                             "division": {
                                 "terms": {
@@ -55,31 +54,32 @@ class LineageByDivisionHandler(BaseHandler):
                         }
                     }
                 }
+        query_mutations = query_mutations.split(",") if query_mutations is not None else []
+        query_obj = create_nested_mutation_query(country = query_country, lineage = query_pangolin_lineage, mutations = query_mutations)
+        query["aggs"]["prevalence"]["filter"] = query_obj
+        print(query)
         resp = yield self.asynchronous_fetch(query)
         self.write(resp)
 
-# #1. Calculate total number of sequences with a particular lineage at Country
+# Calculate total number of sequences with a particular lineage in a country
 class LineageAndCountryHandler(BaseHandler):
 
     @gen.coroutine
     def get(self):
         query_country = self.get_argument("country", None)
         query_pangolin_lineage = self.get_argument("pangolin_lineage", None)
+        query_mutations = self.get_argument("mutations", None)
         query = {
-                "query": {
-                    "bool" : {
-                        "must" : [
-                            {"term" : { "country" : query_country }},
-                            {"term" : { "pangolin_lineage" : query_pangolin_lineage }}
-                            ]
-                        }
-                    }
-                }
+                "query": {}
+        }
+        query_mutations = query_mutations.split(",") if query_mutations is not None else []
+        query_obj = create_nested_mutation_query(country = query_country, lineage = query_pangolin_lineage, mutations = query_mutations)
+        query["query"] = query_obj
         resp = yield self.asynchronous_fetch(query)
         self.write(resp)
 
 
-# #1. Calculate total number of sequences with a particular lineage at Country
+# Calculate total number of sequences with a particular lineage in a division
 class LineageAndDivisionHandler(BaseHandler):
 
     @gen.coroutine
@@ -87,17 +87,13 @@ class LineageAndDivisionHandler(BaseHandler):
         query_country = self.get_argument("country", None)
         query_division = self.get_argument("division", None)
         query_pangolin_lineage = self.get_argument("pangolin_lineage", None)
+        query_mutations = self.get_argument("mutations", None)
         query = {
-                "query": {
-                    "bool" : {
-                        "must" : [
-                            {"term" : { "country" : query_country }},
-                            {"term" : { "pangolin_lineage" : query_pangolin_lineage }},
-                            {"term" : { "division" : query_division }}
-                            ]
-                        }
-                    }
-                }
+                "query": {}
+        }
+        query_mutations = query_mutations.split(",") if query_mutations is not None else []
+        query_obj = create_nested_mutation_query(country = query_country, division = query_division, lineage = query_pangolin_lineage, mutations = query_mutations)
+        query["query"] = query_obj
         resp = yield self.asynchronous_fetch(query)
         self.write(resp)
 
@@ -134,7 +130,6 @@ class LineageHandler(BaseHandler):
             } for i in buckets]
         resp = {"success": True, "results": flattened_response}
         self.write(resp)
-
 
 class LineageMutationsHandler(BaseHandler):
     @gen.coroutine
@@ -177,7 +172,9 @@ class LineageMutationsHandler(BaseHandler):
             "mutation_count": i["doc_count"],
             "lineage_count": resp["hits"]["total"]
             } for i in buckets]
-        df_response = (
+        dict_response = []
+        if len(flattened_response) > 0:
+            df_response = (
                 pd.DataFrame(flattened_response)
                 .assign(
                     gene = lambda x: x["mutation"].apply(lambda k: k.split(":")[0]),
@@ -185,10 +182,102 @@ class LineageMutationsHandler(BaseHandler):
                     alt_aa = lambda x: x["mutation"].apply(lambda k: re.findall("[A-Z]+", k.split(":")[1])[1] if "DEL" not in k and "_" not in k else k.split(":")[1]),
                     codon_num = lambda x: x["mutation"].apply(lambda k: re.findall("[0-9]+", k.split(":")[1])[0] if "DEL" not in k and "_" not in k else k.split(":")[1]),
                     type = lambda x: x["mutation"].apply(lambda k: "deletion" if "DEL" in k else "substitution")
-                    )
                 )
-        df_response = df_response[df_response["ref_aa"] != df_response["alt_aa"]]
-        df_response.loc[:, "prevalence"] = df_response["mutation_count"]/df_response["lineage_count"]
-        df_response = df_response[df_response["prevalence"] >= frequency]
+            )
+            df_response = df_response[df_response["ref_aa"] != df_response["alt_aa"]]
+            df_response.loc[:, "prevalence"] = df_response["mutation_count"]/df_response["lineage_count"]
+            df_response = df_response[df_response["prevalence"] >= frequency]
+            dict_response = df_response.to_dict(orient="records")
+        resp = {"success": True, "results": dict_response}
+        self.write(resp)
+
+
+class MutationDetailsHandler(BaseHandler):
+    @gen.coroutine
+    def get(self):
+        mutations = self.get_argument("mutations", None)
+        mutations = mutations.split(",") if mutations is not None else []
+        query = {
+            "size": 0,
+            "aggs": {
+                "by_mutations": {
+                    "nested": {
+                        "path": "mutations"
+                    },
+		    "aggs": {
+			"inner": {
+                            "filter": {
+                                "bool": {
+                                    "should": [
+                                        {"match": {"mutations.mutation": i}}
+                                for i in mutations
+                                    ]
+                                }
+                            },
+			    "aggs": {
+				"by_name": {
+				    "terms": {"field": "mutations.mutation"},
+				    "aggs": {
+				        "by_nested": {
+				            "top_hits": {"size": 1}
+				        }
+				    }
+				}
+			    }
+			}
+		    }
+		}
+	    }
+        }
+        resp = yield self.asynchronous_fetch(query)
+        path_to_results = ["aggregations", "by_mutations", "inner", "by_name", "buckets"]
+        buckets = resp
+        for i in path_to_results:
+            buckets = buckets[i]
+        flattened_response = []
+        for i in buckets:
+            for j in i["by_nested"]["hits"]["hits"]:
+                flattened_response.append(j["_source"])
+        resp = {"success": True, "results": flattened_response}
+        self.write(resp)
+
+class MutationsByLineage(BaseHandler):
+    @gen.coroutine
+    def get(self):
+        query_mutations = self.get_argument("mutations", None)
+        query_mutations = query_mutations.split(",") if query_mutations is not None else []
+        query = {
+            "size": 0,
+            "aggs": {
+	        "lineage": {
+                    "terms": {"field": "pangolin_lineage", "size": self.size},
+                    "aggs": {
+                        "mutations": {
+                            "filter": {}
+			}
+                    }
+                }
+            }
+        }
+        query["aggs"]["lineage"]["aggs"]["mutations"]["filter"] = create_nested_mutation_query(mutations = query_mutations)
+        resp = yield self.asynchronous_fetch(query)
+        path_to_results = ["aggregations", "lineage", "buckets"]
+        buckets = resp
+        for i in path_to_results:
+            buckets = buckets[i]
+        flattened_response = []
+        for i in buckets:
+            if not i["mutations"]["doc_count"] > 0 or i["key"] == "none":
+                continue
+            flattened_response.append({
+                "pangolin_lineage": i["key"],
+                "lineage_count": i["doc_count"],
+                "mutation_count": i["mutations"]["doc_count"]
+            })
+        df_response = pd.DataFrame(flattened_response)
+        prop = calculate_proportion(df_response["mutation_count"], df_response["lineage_count"])
+        df_response.loc[:, "proportion"] = prop[0]
+        df_response.loc[:, "proportion_ci_lower"] = prop[1]
+        df_response.loc[:, "proportion_ci_upper"] = prop[2]
         resp = {"success": True, "results": df_response.to_dict(orient="records")}
         self.write(resp)

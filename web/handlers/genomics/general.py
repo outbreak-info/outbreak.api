@@ -1,6 +1,7 @@
 import pandas as pd
 from .base import BaseHandler
 from tornado import gen
+from .util import create_nested_mutation_query
 
 class MostRecentDateBase(BaseHandler):
     field = "date_collected"
@@ -10,78 +11,25 @@ class MostRecentDateBase(BaseHandler):
         query_pangolin_lineage = self.get_argument("pangolin_lineage", None)
         query_country = self.get_argument("country", None)
         query_division = self.get_argument("division", None)
-        if query_division != None:
-            query = {
-                "size": 0,
-                "query": {
-                    "term": {
-                        "division": query_division
-                    }
-                },
-                "aggs": {
-                    "lineage_count": {
-                        "terms": {
-                            "field": "pangolin_lineage",
-                            "size": 10000
-                        },
-                        "aggs": {
-                            "date_collected": {
-                                "terms": {
-                                    "field": self.field,
-                                    "size": 10000
-                                }
-                            }
-                        }
+        query_mutations = self.get_argument("mutations", None)
+        query_mutations = query_mutations.split(",") if query_mutations is not None else []
+        query = {
+            "size": 0,
+            "query": {},
+            "aggs": {
+                "date_collected": {
+                    "terms": {
+                        "field": self.field,
+                        "size": 10000
                     }
                 }
             }
-        elif query_country != None:
-            query = {
-                "size": 0,
-                "query": {
-                    "term": {
-                        "country": query_country
-                    }
-                },
-                "aggs": {
-                    "lineage_count": {
-                        "terms": {
-                            "field": "pangolin_lineage",
-                            "size": 10000
-                        },
-                        "aggs": {
-                            "date_collected": {
-                                "terms": {
-                                    "field": self.field,
-                                    "size": 10000
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        else:
-            query = {
-                "size": 0,
-                "aggs": {
-                    "lineage_count": {
-                        "terms": {
-                            "field": "pangolin_lineage",
-                            "size": 10000
-                        },
-                        "aggs": {
-                            "date_collected": {
-                                "terms": {
-                                    "field": self.field,
-                                    "size": 10000
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+        }
+        query_obj = create_nested_mutation_query(country = query_country, division = query_division, lineage = query_pangolin_lineage, mutations = query_mutations)
+        query["query"] = query_obj
         resp = yield self.asynchronous_fetch(query)
-        path_to_results = ["aggregations", "lineage_count", "buckets"]
+        print(resp)
+        path_to_results = ["aggregations", "date_collected", "buckets"]
         buckets = resp
         for i in path_to_results:
             buckets = buckets[i]
@@ -89,27 +37,24 @@ class MostRecentDateBase(BaseHandler):
             return {"success": True, "results": []}
         flattened_response = []
         for i in buckets:
-            if i["key"] == "None" or i["key"] == "NA":
+            if len(i["key"].split("-")) == 1 or "XX" in i["key"]:
                 continue
-            for j in i["date_collected"]["buckets"]:
-                if len(j["key"].split("-")) == 1 or "XX" in j["key"]:
-                    continue
-                flattened_response.append({
-                    "date": j["key"],
-                    "date_count": j["doc_count"],
-                    "total_count": i["doc_count"],
-                    "pangolin_lineage": i["key"]
-                })
+            flattened_response.append({
+                "date": i["key"],
+                "date_count": i["doc_count"]
+            })
         df_response = (
             pd.DataFrame(flattened_response)
-            .assign(date = lambda x: pd.to_datetime(x["date"], format="%Y-%m-%d"))
+            .assign(
+                date = lambda x: pd.to_datetime(x["date"], format="%Y-%m-%d"),
+                date_count = lambda x: x["date_count"].astype(int)
+            )
             .sort_values("date")
         )
-        df_response.loc[:,"date"] = df_response["date"].apply(lambda x: x.strftime("%Y-%m-%d"))
-        if query_pangolin_lineage is not None:
-            df_response = df_response[df_response["pangolin_lineage"] == query_pangolin_lineage.lower()]
-        df_response = df_response.sort_values("date").groupby(["pangolin_lineage"]).nth(-1)
-        dict_response = df_response.reset_index().to_dict(orient="records")
+        df_response = df_response.iloc[-1]
+        df_response.loc["date"] = df_response["date"].strftime("%Y-%m-%d")
+        df_response.loc["date_count"] = int(df_response["date_count"])
+        dict_response = df_response.to_dict()
         resp = {"success": True, "results": dict_response}
         self.write(resp)
 
@@ -118,7 +63,6 @@ class MostRecentCollectionDate(MostRecentDateBase):
 
 class MostRecentSubmissionDate(MostRecentDateBase):
     field = "date_submitted"
-
 
 class CountryHandler(BaseHandler):
 
@@ -180,6 +124,52 @@ class DivisionHandler(BaseHandler):
         }
         resp = yield self.asynchronous_fetch(query)
         path_to_results = ["aggregations", "division", "buckets"]
+        buckets = resp
+        for i in path_to_results:
+            buckets = buckets[i]
+        flattened_response = [{
+            "name": i["key"],
+            "total_count": i["doc_count"]
+        } for i in buckets]
+        resp = {"success": True, "results": flattened_response}
+        self.write(resp)
+
+class MutationHandler(BaseHandler):
+
+    @gen.coroutine
+    def get(self):
+        query_str = self.get_argument("name", None)
+        query = {
+            "size": 0,
+            "aggs": {
+                "mutations": {
+                    "nested": {
+                        "path": "mutations"
+                    },
+                    "aggs": {
+                        "mutation_filter": {
+                            "filter": {
+                                "wildcard": {
+                                    "mutations.mutation": {
+                                        "value": query_str
+                                    }
+                                }
+                            },
+                            "aggs": {
+                                "count_filter": {
+                                    "terms": {
+                                        "field": "mutations.mutation",
+                                        "size": 10000
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        resp = yield self.asynchronous_fetch(query)
+        path_to_results = ["aggregations", "mutations", "mutation_filter", "count_filter", "buckets"]
         buckets = resp
         for i in path_to_results:
             buckets = buckets[i]
