@@ -184,4 +184,4 @@ class MutationHandler(BaseHandler):
 class MetadataHandler(BaseHandler):
     @gen.coroutine
     def get(self):
-        self.write(self.web_settings.connections.client.indices.get_mapping()['outbreak-genomics']['mappings']['genomics']['_meta'])
+        self.write(self.web_settings.connections.client.indices.get_mapping()['outbreak-genomics']['mappings']['mutation']['_meta'])
