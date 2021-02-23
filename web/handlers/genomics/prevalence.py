@@ -244,14 +244,12 @@ class PrevalenceAllLineagesByDivisionHandler(BaseHandler):
 
     @gen.coroutine
     def get(self):
-        query_country = self.get_argument("country", None)
         query_division = self.get_argument("division", None)
         query = {
             "size": 0,
             "query": {
                 "bool": {
                     "must": [
-                        {"term" : { "country" : query_country }},
                         {"term" : { "division" : query_division }}
                     ]
                 }
@@ -291,9 +289,13 @@ class PrevalenceAllLineagesByDivisionHandler(BaseHandler):
                 })
         df_response = (
             pd.DataFrame(flattened_response)
-            .assign(date = lambda x: pd.to_datetime(x["date"], format="%Y-%m-%d"))
+            .assign(
+                date = lambda x: pd.to_datetime(x["date"], format="%Y-%m-%d"),
+                prevalence = lambda x: x["lineage_count"]/x["total_count"]
+            )
             .sort_values("date")
         )
+        df_response = df_response.groupby("lineage").apply(compute_rolling_mean, "date", "prevalence", "prevalence_rolling")
         df_response.loc[:,"date"] = df_response["date"].apply(lambda x: x.strftime("%Y-%m-%d"))
         resp = {"success": True, "results": df_response.to_dict(orient="records")}
         self.write(resp)
