@@ -180,6 +180,53 @@ class MutationHandler(BaseHandler):
         resp = {"success": True, "results": flattened_response}
         self.write(resp)
 
+class SubmissionLagHandler(BaseHandler):
+
+    @gen.coroutine
+    def get(self):
+        query_country = self.get_argument("country", None)
+        query_division = self.get_argument("division", None)
+        query = {
+            "aggs": {
+                "date_collected_submitted_buckets": {
+                    "composite": {
+                        "size": 10000,
+                        "sources": [
+                            {"date_collected": { "terms": {"field": "date_collected"}}},
+                            {"date_submitted": { "terms": {"field": "date_submitted"} }}
+                        ]
+                    }
+                }
+            }
+        }
+        if query_division is not None:
+            query["query"] = {
+                "match": {
+                    "division": query_division
+                }
+            }
+        if query_country is not None:
+            query["query"] = {
+                "match": {
+                    "country": query_country
+                }
+            }
+        resp = yield self.asynchronous_fetch(query)
+        path_to_results = ["aggregations", "date_collected_submitted_buckets", "buckets"]
+        buckets = resp
+        for i in path_to_results:
+            buckets = buckets[i]
+        while "after_key" in resp["aggregations"]["date_collected_submitted_buckets"]:
+            query["aggs"]["date_collected_submitted_buckets"]["composite"]["after"] = resp["aggregations"]["date_collected_submitted_buckets"]["after_key"]
+            resp = yield self.asynchronous_fetch(query)
+            buckets.extend(resp["aggregations"]["date_collected_submitted_buckets"]["buckets"])
+        flattened_response = [{
+            "date_collected": i["key"]["date_collected"],
+            "date_submitted": i["key"]["date_submitted"],
+            "total_count": i["doc_count"]
+        } for i in buckets]
+        resp = {"success": True, "results": flattened_response}
+        self.write(resp)
 
 class MetadataHandler(BaseHandler):
     @gen.coroutine
