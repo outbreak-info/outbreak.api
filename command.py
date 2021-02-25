@@ -1,6 +1,9 @@
 import argparse
 import requests
 import paramiko
+import secrets
+
+from sys import argv
 
 def attach_repository(name):
     backup_name = f"{name}_backup"
@@ -22,7 +25,7 @@ def fetch_index(name, index_name, index_rename):
     data = {
       "indices": f"{index_name}",
       "ignore_unavailable": True,
-      "include_global_state": True,              
+      "include_global_state": True,
       "allow_no_indices": False,
       "rename_pattern": ".+",
       "rename_replacement": f"{index_rename}"
@@ -31,11 +34,14 @@ def fetch_index(name, index_name, index_rename):
     return res
 
 def push():
+    key = paramiko.RSAKey.from_private_key_file(secrets.PRIVATE_KEY)
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     host = secrets.DEV_HOST
-    ssh.connect(host, port=secrets.PORT, username=secrets.USERNAME, password=secrets.PASSWORD, look_for_keys=False)
-    ssh.exec_command('cd outbreak.api && git pull && sudo systemctl restart outbreak_web.service && touch finished.txt')
+    ssh.connect(host, port=secrets.PORT, username=secrets.USERNAME, pkey=key)
+    stdin, stdout, stderr = ssh.exec_command('cd outbreak.api && git pull && sudo systemctl restart outbreak_web.service && touch finished.txt')
+    print('\n'.join(stdout.readlines()))
+    print('\n'.join(stderr.readlines()))
 
 if __name__ == '__main__':
     if argv[1] == 'push':
