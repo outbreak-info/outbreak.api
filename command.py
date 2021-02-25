@@ -39,9 +39,12 @@ def push():
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     host = secrets.DEV_HOST
     ssh.connect(host, port=secrets.PORT, username=secrets.USERNAME, pkey=key)
-    stdin, stdout, stderr = ssh.exec_command('cd outbreak.api && git pull && sudo systemctl restart outbreak_web.service && touch finished.txt')
+    stdin, stdout, stderr = ssh.exec_command('cd outbreak.api && git pull && sudo systemctl restart outbreak_web.service && sudo journalctl -u outbreak_web.service | tail -3')
     print('\n'.join(stdout.readlines()))
-    print('\n'.join(stderr.readlines()))
+    err = stderr.readlines()
+    if err:
+        print('----- Errors ----------';
+        print('\n'.join(err))
 
 if __name__ == '__main__':
     if argv[1] == 'push':
