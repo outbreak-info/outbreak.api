@@ -140,3 +140,21 @@ def create_nested_mutation_query(country = None, division = None, lineage = None
         })
     query_obj["bool"]["must"] = bool_must
     return query_obj
+
+def classify_other_category(grp, keep_lineages):
+    grp.loc[(~grp["lineage"].isin(keep_lineages)) | (grp["lineage"] == "none"), "lineage"] = "other" # Temporarily remove none. TODO: Proper fix
+    grp = grp.groupby("lineage").agg({
+        "total_count": lambda x: x.iloc[0],
+        "lineage_count": "sum"
+    })
+    return grp
+
+def get_major_lineage_prevalence(df, index_col, keep_lineages = [], prevalence_threshold = 0.05, nday_threshold = 0.05):
+    ndays = (df[index_col].iloc[-1] - df[index_col].iloc[0]).days
+    lineages_to_retain = df[df["prevalence"] >= prevalence_threshold]["lineage"].value_counts()
+    lineages_to_retain = lineages_to_retain[lineages_to_retain >= nday_threshold * ndays].index.tolist()
+    lineages_to_retain.extend(keep_lineages)
+    df = df.groupby(index_col).apply(classify_other_category, lineages_to_retain)
+    df = df.reset_index()
+    df.loc[:,"prevalence"] = df["lineage_count"]/df["total_count"]
+    return df
