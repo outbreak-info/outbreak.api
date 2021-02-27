@@ -15,7 +15,7 @@ class PrevalenceByLocationHandler(BaseHandler):
         query_mutations = query_mutations.split(",") if query_mutations is not None else []
         cumulative = self.get_argument("cumulative", None)
         cumulative = True if cumulative == "true" else False
-        filter_term = {"country": query_country} if query_division is None else {"division": query_division}
+        filter_term = {"country": query_country} if query_country is not None else {"division": query_division}
         query = {
             "size": 0,
             "aggs": {
@@ -149,6 +149,60 @@ class PrevalenceByDivisionAndTimeHandler(BaseHandler):
         dict_response = transform_prevalence_by_location_and_tiime(flattened_response, query_detected)
         resp = {"success": True, "results": dict_response}
         self.write(resp)
+
+class PrevalenceByCountyAndTimeHandler(BaseHandler):
+
+    @gen.coroutine
+    def get(self):
+        query_pangolin_lineage = self.get_argument("pangolin_lineage", None)
+        query_division = self.get_argument("division", None)
+        query_detected = self.get_argument("detected", None)
+        query_mutations = self.get_argument("mutations", None)
+        query_mutations = query_mutations.split(",") if query_mutations is not None else []
+        query_detected = True if query_detected == "true" else False
+        query =      {
+            "size": 0,
+            "query": {
+	        "term": {"division": query_division}
+            },
+            "aggs": {
+                "division_date_buckets": {
+                    "composite": {
+                        "size": 10000,
+                        "sources": [
+                            {"date_collected": { "terms": {"field": "date_collected"}}},
+                            {"division": { "terms": {"field": "location"} }}
+                        ]
+                    },
+                    "aggregations": {
+                        "lineage_count": {
+                            "filter": {}
+                        }
+                    }
+                }
+            }
+        }
+        query_obj = create_nested_mutation_query(lineage = query_pangolin_lineage, mutations = query_mutations)
+        query["aggs"]["division_date_buckets"]["aggregations"]["lineage_count"]["filter"] = query_obj
+        resp = yield self.asynchronous_fetch(query)
+        buckets = resp["aggregations"]["division_date_buckets"]["buckets"]
+        # Get all paginated results
+        while "after_key" in resp["aggregations"]["division_date_buckets"]:
+            query["aggs"]["division_date_buckets"]["composite"]["after"] = resp["aggregations"]["division_date_buckets"]["after_key"]
+            resp = yield self.asynchronous_fetch(query)
+            buckets.extend(resp["aggregations"]["division_date_buckets"]["buckets"])
+        if len(buckets) == 0:
+            return {"success": True, "results": []}
+        flattened_response = [{
+            "date": i["key"]["date_collected"],
+            "name": i["key"]["division"],
+            "total_count": i["doc_count"],
+            "lineage_count": i["lineage_count"]["doc_count"]
+        } for i in buckets if len(i["key"]["date_collected"].split("-")) > 1 and "XX" not in i["key"]["date_collected"]]
+        dict_response = transform_prevalence_by_location_and_tiime(flattened_response, query_detected)
+        resp = {"success": True, "results": dict_response}
+        self.write(resp)
+
 
 
 # Get global prevalence of lineage by date
