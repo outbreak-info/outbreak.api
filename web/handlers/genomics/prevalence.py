@@ -1,6 +1,6 @@
-from .util import transform_prevalence, transform_prevalence_by_location_and_tiime, compute_rolling_mean, create_nested_mutation_query
+from .util import transform_prevalence, transform_prevalence_by_location_and_tiime, compute_rolling_mean, create_nested_mutation_query, get_major_lineage_prevalence
 from .base import BaseHandler
-from tornado     import gen
+from tornado import gen
 import pandas as pd
 from datetime import timedelta
 
@@ -184,76 +184,20 @@ class PrevalenceHandler(BaseHandler):
         resp = transform_prevalence(resp, path_to_results, cumulative)
         self.write(resp)
 
-class PrevalenceAllLineagesByCountryHandler(BaseHandler):
+class PrevalenceAllLineagesByLocationHandler(BaseHandler):
 
     @gen.coroutine
     def get(self):
         query_country = self.get_argument("country", None)
-        query = {
-            "size": 0,
-            "query": {
-                "term" : { "country" : query_country }
-            },
-            "aggs": {
-                "count": {
-                    "terms": {
-                        "field": "date_collected",
-                        "size": self.size
-                    },
-                    "aggs": {
-                        "lineage_count": {
-                            "terms": {
-                                "field": "pangolin_lineage",
-                                "size": self.size
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        resp = yield self.asynchronous_fetch(query)
-        buckets = resp
-        path_to_results = ["aggregations", "count", "buckets"]
-        for i in path_to_results:
-            buckets = buckets[i]
-        flattened_response = []
-        for i in buckets:
-            if len(i["key"].split("-")) == 1 or "XX" in i["key"]:
-                continue
-            for j in i["lineage_count"]["buckets"]:
-                flattened_response.append({
-                    "date": i["key"],
-                    "total_count": i["doc_count"],
-                    "lineage_count": j["doc_count"],
-                    "lineage": j["key"]
-                })
-        df_response = (
-            pd.DataFrame(flattened_response)
-            .assign(
-                date = lambda x: pd.to_datetime(x["date"], format="%Y-%m-%d"),
-                prevalence = lambda x: x["lineage_count"]/x["total_count"]
-            )
-            .sort_values("date")
-        )
-        df_response = df_response.groupby("lineage").apply(compute_rolling_mean, "date", "prevalence", "prevalence_rolling")
-        df_response.loc[:,"date"] = df_response["date"].apply(lambda x: x.strftime("%Y-%m-%d"))
-        resp = {"success": True, "results": df_response.to_dict(orient="records")}
-        self.write(resp)
-
-class PrevalenceAllLineagesByDivisionHandler(BaseHandler):
-
-    @gen.coroutine
-    def get(self):
         query_division = self.get_argument("division", None)
+        query_other_threshold = self.get_argument("other_threshold", 0.05)
+        query_other_threshold = float(query_other_threshold)
+        query_nday_threshold = self.get_argument("nday_threshold", 0.05)
+        query_nday_threshold = float(query_nday_threshold)
+        query_other_exclude = self.get_argument("other_exclude", None)
+        query_other_exclude = query_other_exclude.split(",") if query_other_exclude is not None else []
         query = {
             "size": 0,
-            "query": {
-                "bool": {
-                    "must": [
-                        {"term" : { "division" : query_division }}
-                    ]
-                }
-            },
             "aggs": {
                 "count": {
                     "terms": {
@@ -271,6 +215,14 @@ class PrevalenceAllLineagesByDivisionHandler(BaseHandler):
                 }
             }
         }
+        if query_division != None:
+            query["query"] = {
+                "term" : { "division" : query_division }
+            }
+        elif query_country != None:
+            query["query"] = {
+                "term" : { "country" : query_country }
+            }
         resp = yield self.asynchronous_fetch(query)
         buckets = resp
         path_to_results = ["aggregations", "count", "buckets"]
@@ -295,6 +247,7 @@ class PrevalenceAllLineagesByDivisionHandler(BaseHandler):
             )
             .sort_values("date")
         )
+        df_response = get_major_lineage_prevalence(df_response, "date", query_other_exclude, query_other_threshold, query_nday_threshold)
         df_response = df_response.groupby("lineage").apply(compute_rolling_mean, "date", "prevalence", "prevalence_rolling")
         df_response.loc[:,"date"] = df_response["date"].apply(lambda x: x.strftime("%Y-%m-%d"))
         resp = {"success": True, "results": df_response.to_dict(orient="records")}
