@@ -9,10 +9,37 @@ def calculate_proportion(x, n):
     est_proportion = x/n
     return est_proportion, ci_low, ci_upp
 
+def compute_total_rolling_count(df, col, new_col):
+    df.loc[:,new_col] = df[col].sum()
+    return df
+
+def compute_rolling_mean_all_lineages(df, index_col, col, new_col, grp_col):
+    grp_name = df[grp_col].iloc[0]
+    idx = pd.date_range(df[index_col].min(), df[index_col].max())
+    df = (
+        df
+        .set_index(index_col)
+        .reindex(idx, fill_value = 0)
+        .assign(**{
+            new_col: lambda x: x[col].rolling("7d").mean(),
+            grp_col: grp_name
+        })
+        .reset_index()
+        .rename(
+            columns = {
+                "index": "date"
+            }
+        )
+    )
+    return df
+
 def compute_rolling_mean(df, index_col, col, new_col):
-    df = df.set_index(index_col)
-    df.loc[:,new_col] = df[col].rolling("7d").mean()
-    df = df.reset_index()
+    df = (
+        df
+        .set_index(index_col)
+        .assign(**{new_col: lambda x: x[col].rolling("7d").mean()})
+        .reset_index()
+    )
     return df
 
 def transform_prevalence(resp, path_to_results = [], cumulative = False):
@@ -149,10 +176,9 @@ def classify_other_category(grp, keep_lineages):
     })
     return grp
 
-def get_major_lineage_prevalence(df, index_col, keep_lineages = [], prevalence_threshold = 0.05, nday_threshold = 0.05):
-    ndays = (df[index_col].iloc[-1] - df[index_col].iloc[0]).days
+def get_major_lineage_prevalence(df, index_col, keep_lineages = [], prevalence_threshold = 0.05, nday_threshold = 10):
     lineages_to_retain = df[df["prevalence"] >= prevalence_threshold]["lineage"].value_counts()
-    lineages_to_retain = lineages_to_retain[lineages_to_retain >= nday_threshold * ndays].index.tolist()
+    lineages_to_retain = lineages_to_retain[lineages_to_retain >= nday_threshold].index.tolist()
     lineages_to_retain.extend(keep_lineages)
     df = df.groupby(index_col).apply(classify_other_category, lineages_to_retain)
     df = df.reset_index()
