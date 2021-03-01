@@ -1,5 +1,5 @@
 from .lineage import LineageByCountryHandler, LineageByDivisionHandler, LineageAndCountryHandler, LineageAndDivisionHandler, LineageHandler, LineageMutationsHandler, MutationDetailsHandler, MutationsByLineage
-from .prevalence import PrevalenceByLocationHandler, PrevalenceByCountryAndTimeHandler, PrevalenceByDivisionAndTimeHandler, PrevalenceHandler, PrevalenceAllLineagesByLocationHandler, PrevalenceByAAPositionHandler, PrevalenceByCountyAndTimeHandler
+from .prevalence import PrevalenceByLocationHandler, PrevalenceByLocationAndTimeHandler, PrevalenceHandler, PrevalenceAllLineagesByLocationHandler, PrevalenceByAAPositionHandler
 from .general import MostRecentCollectionDate, CountryHandler, DivisionHandler, MetadataHandler, MostRecentSubmissionDate, MutationHandler, SubmissionLagHandler
 
 routes = [
@@ -10,11 +10,12 @@ routes = [
     (r"/genomics/prevalence-by-location", PrevalenceByLocationHandler),
     (r"/genomics/prevalence-by-country-all-lineages", PrevalenceAllLineagesByLocationHandler),
     (r"/genomics/prevalence-by-division-all-lineages", PrevalenceAllLineagesByLocationHandler),
+    (r"/genomics/prevalence-by-county-all-lineages", PrevalenceAllLineagesByLocationHandler),
     (r"/genomics/prevalence-by-position", PrevalenceByAAPositionHandler),
     (r"/genomics/global-prevalence", PrevalenceHandler),
-    (r"/genomics/lineage-by-country-most-recent", PrevalenceByCountryAndTimeHandler),
-    (r"/genomics/lineage-by-division-most-recent", PrevalenceByDivisionAndTimeHandler),
-    (r"/genomics/lineage-by-county-most-recent", PrevalenceByCountyAndTimeHandler),
+    (r"/genomics/lineage-by-country-most-recent", PrevalenceByLocationAndTimeHandler),
+    (r"/genomics/lineage-by-division-most-recent", PrevalenceByLocationAndTimeHandler),
+    (r"/genomics/lineage-by-county-most-recent", PrevalenceByLocationAndTimeHandler),
     (r"/genomics/most-recent-collection-date", MostRecentCollectionDate),
     (r"/genomics/most-recent-submission-date", MostRecentSubmissionDate),
     (r"/genomics/mutation-details", MutationDetailsHandler),
