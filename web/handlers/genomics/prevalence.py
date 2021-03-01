@@ -11,18 +11,15 @@ class PrevalenceByLocationHandler(BaseHandler):
         query_country = self.get_argument("country", None)
         query_pangolin_lineage = self.get_argument("pangolin_lineage", None)
         query_division = self.get_argument("division", None)
+        query_county = self.get_argument("county", None)
         query_mutations = self.get_argument("mutations", None)
         query_mutations = query_mutations.split(",") if query_mutations is not None else []
         cumulative = self.get_argument("cumulative", None)
         cumulative = True if cumulative == "true" else False
-        filter_term = {"country": query_country} if query_country is not None else {"division": query_division}
         query = {
             "size": 0,
             "aggs": {
                 "prevalence": {
-                    "filter" : {
-                        "term" : filter_term
-                    },
                     "aggs": {
                         "count": {
                             "terms": {
@@ -39,7 +36,22 @@ class PrevalenceByLocationHandler(BaseHandler):
                 }
             }
         }
-        query_obj = create_nested_mutation_query(division = query_division, country = query_country, lineage = query_pangolin_lineage, mutations = query_mutations)
+        if query_county is not None:
+            filter_term = {
+                "location": query_county
+            }
+        elif query_division is not None:
+            filter_term = {
+                "division": query_division
+            }
+        else:
+            filter_term = {
+                "country": query_county
+            }
+        query["aggs"]["prevalence"]["filter"] = {
+            "term" : filter_term
+        }
+        query_obj = create_nested_mutation_query(division = query_division, country = query_country, county = query_county, lineage = query_pangolin_lineage, mutations = query_mutations)
         query["aggs"]["prevalence"]["aggs"]["count"]["aggs"]["lineage_count"]["filter"] = query_obj
         resp = yield self.asynchronous_fetch(query)
         path_to_results = ["aggregations", "prevalence", "count", "buckets"]
@@ -156,6 +168,7 @@ class PrevalenceAllLineagesByLocationHandler(BaseHandler):
     def get(self):
         query_country = self.get_argument("country", None)
         query_division = self.get_argument("division", None)
+        query_county = self.get_argument("county", None)
         query_other_threshold = self.get_argument("other_threshold", 0.05)
         query_other_threshold = float(query_other_threshold)
         query_nday_threshold = self.get_argument("nday_threshold", 10)
@@ -181,7 +194,11 @@ class PrevalenceAllLineagesByLocationHandler(BaseHandler):
                 }
             }
         }
-        if query_division != None:
+        if query_county != None:
+            query["query"] = {
+                "term" : { "location" : query_county }
+            }
+        elif query_division != None:
             query["query"] = {
                 "term" : { "division" : query_division }
             }
