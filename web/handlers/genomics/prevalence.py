@@ -1,4 +1,4 @@
-from .util import transform_prevalence, transform_prevalence_by_location_and_tiime, compute_rolling_mean, create_nested_mutation_query, get_major_lineage_prevalence
+from .util import transform_prevalence, transform_prevalence_by_location_and_tiime, compute_rolling_mean, create_nested_mutation_query, get_major_lineage_prevalence, compute_total_rolling_count, compute_rolling_mean_all_lineages
 from .base import BaseHandler
 from tornado import gen
 import pandas as pd
@@ -203,8 +203,6 @@ class PrevalenceByCountyAndTimeHandler(BaseHandler):
         resp = {"success": True, "results": dict_response}
         self.write(resp)
 
-
-
 # Get global prevalence of lineage by date
 class PrevalenceHandler(BaseHandler):
 
@@ -246,7 +244,7 @@ class PrevalenceAllLineagesByLocationHandler(BaseHandler):
         query_division = self.get_argument("division", None)
         query_other_threshold = self.get_argument("other_threshold", 0.05)
         query_other_threshold = float(query_other_threshold)
-        query_nday_threshold = self.get_argument("nday_threshold", 0.05)
+        query_nday_threshold = self.get_argument("nday_threshold", 10)
         query_nday_threshold = float(query_nday_threshold)
         query_other_exclude = self.get_argument("other_exclude", None)
         query_other_exclude = query_other_exclude.split(",") if query_other_exclude is not None else []
@@ -302,9 +300,11 @@ class PrevalenceAllLineagesByLocationHandler(BaseHandler):
             .sort_values("date")
         )
         df_response = get_major_lineage_prevalence(df_response, "date", query_other_exclude, query_other_threshold, query_nday_threshold)
-        df_response = df_response.groupby("lineage").apply(compute_rolling_mean, "date", "prevalence", "prevalence_rolling")
+        df_response = df_response.groupby("lineage").apply(compute_rolling_mean_all_lineages, "date", "lineage_count", "lineage_count_rolling", "lineage")
+        df_response = df_response.groupby("date").apply(compute_total_rolling_count, "lineage_count_rolling", "total_count_rolling")
+        df_response.loc[:, "prevalence_rolling"] = df_response["lineage_count_rolling"]/df_response["total_count_rolling"]
         df_response.loc[:,"date"] = df_response["date"].apply(lambda x: x.strftime("%Y-%m-%d"))
-        resp = {"success": True, "results": df_response.to_dict(orient="records")}
+        resp = {"success": True, "results": df_response[["date", "total_count", "lineage_count", "lineage", "prevalence", "prevalence_rolling"]].to_dict(orient="records")}
         self.write(resp)
 
 class PrevalenceByAAPositionHandler(BaseHandler):
