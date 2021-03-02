@@ -80,8 +80,8 @@ def transform_prevalence(resp, path_to_results = [], cumulative = False):
                 "last_detected": None
             }
         else:
-            lineage_cumsum = int(df_response["lineage_count"].cumsum().iloc[-1])
-            total_cumsum = int(df_response["total_count"].cumsum().iloc[-1])
+            lineage_cumsum = int(df_response["lineage_count"].sum())
+            total_cumsum = int(df_response["total_count"].sum())
             df_date_sorted = df_response[df_response["lineage_count"] > 0].sort_values("date")
             dict_response = {
                 "global_prevalence": lineage_cumsum/total_cumsum,
