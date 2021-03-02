@@ -179,6 +179,8 @@ class PrevalenceAllLineagesByLocationHandler(BaseHandler):
         query_ndays = int(query_ndays)
         query_other_exclude = self.get_argument("other_exclude", None)
         query_other_exclude = query_other_exclude.split(",") if query_other_exclude is not None else []
+        query_cumulative = self.get_argument("cumulative", None)
+        query_cumulative = True if query_cumulative == "true" else False
         query = {
             "size": 0,
             "aggs": {
@@ -235,12 +237,17 @@ class PrevalenceAllLineagesByLocationHandler(BaseHandler):
             .sort_values("date")
         )
         df_response = get_major_lineage_prevalence(df_response, "date", query_other_exclude, query_other_threshold, query_nday_threshold, query_ndays)
-        df_response = df_response.groupby("lineage").apply(compute_rolling_mean_all_lineages, "date", "lineage_count", "lineage_count_rolling", "lineage")
-        df_response = df_response.groupby("date").apply(compute_total_rolling_count, "lineage_count_rolling", "total_count_rolling")
-        df_response.loc[:, "prevalence_rolling"] = df_response["lineage_count_rolling"]/df_response["total_count_rolling"]
-        df_response.loc[:,"date"] = df_response["date"].apply(lambda x: x.strftime("%Y-%m-%d"))
-        df_response = df_response.fillna("None")
-        resp = {"success": True, "results": df_response[["date", "total_count", "lineage_count", "lineage", "prevalence", "prevalence_rolling"]].to_dict(orient="records")}
+        if not query_cumulative:
+            df_response = df_response.groupby("lineage").apply(compute_rolling_mean_all_lineages, "date", "lineage_count", "lineage_count_rolling", "lineage")
+            df_response = df_response.groupby("date").apply(compute_total_rolling_count, "lineage_count_rolling", "total_count_rolling")
+            df_response.loc[:, "prevalence_rolling"] = df_response["lineage_count_rolling"]/df_response["total_count_rolling"]
+            df_response.loc[:,"date"] = df_response["date"].apply(lambda x: x.strftime("%Y-%m-%d"))
+            df_response = df_response.fillna("None")
+            df_response = df_response[["date", "total_count", "lineage_count", "lineage", "prevalence", "prevalence_rolling"]]
+        else:
+            df_response = df_response.groupby("lineage").agg({"total_count": "sum", "lineage_count": "sum"}).reset_index()
+            df_response.loc[:,"prevalence"] = df_response["lineage_count"]/df_response["total_count"]
+        resp = {"success": True, "results": df_response.to_dict(orient="records")}
         self.write(resp)
 
 class PrevalenceByAAPositionHandler(BaseHandler):
