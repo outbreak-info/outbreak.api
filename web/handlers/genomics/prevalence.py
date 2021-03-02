@@ -322,7 +322,7 @@ class PrevalenceByAAPositionHandler(BaseHandler):
             if query_division != None:
                 query["query"]= {
                     "match": {
-                        "country": query_division
+                        "division": query_division
                     }
                 }
             elif query_country != None:
