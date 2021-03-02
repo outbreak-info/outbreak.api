@@ -53,11 +53,11 @@ def push(restart):
             'sudo journalctl -u outbreak_web.service | tail -2'
         ]
     stdin, stdout, stderr = ssh.exec_command(' && '.join(commands))
-    print(stdout.readlines())
+    print(''.join(stdout.readlines()))
     err = stderr.readlines()
     if err:
         print('----- Errors ----------')
-        print(err)
+        print(''.join(err))
 
 if __name__ == '__main__':
     if argv[1] == 'push':
