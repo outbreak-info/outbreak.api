@@ -21,6 +21,7 @@ def attach_repository(name):
 
 def fetch_index(name, index_name, index_rename):
     backup_name = f"{name}_backup"
+    print(requests.delete(f'http://localhost:9200/{index_rename}'))
 
     data = {
       "indices": f"{index_name}",
@@ -58,3 +59,5 @@ def push():
 if __name__ == '__main__':
     if argv[1] == 'push':
         push()
+    if argv[2] == 'update':
+        fetch_index('genomics_dev', argv[3], 'outbreak-genomics')
