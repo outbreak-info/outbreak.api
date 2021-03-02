@@ -15,7 +15,6 @@ routes = [
     (r"/genomics/global-prevalence", PrevalenceHandler),
     (r"/genomics/lineage-by-country-most-recent", PrevalenceByLocationAndTimeHandler),
     (r"/genomics/lineage-by-division-most-recent", PrevalenceByLocationAndTimeHandler),
-    (r"/genomics/lineage-by-county-most-recent", PrevalenceByLocationAndTimeHandler),
     (r"/genomics/most-recent-collection-date", MostRecentCollectionDate),
     (r"/genomics/most-recent-submission-date", MostRecentSubmissionDate),
     (r"/genomics/mutation-details", MutationDetailsHandler),
