@@ -11,6 +11,7 @@ class MostRecentDateBase(BaseHandler):
         query_pangolin_lineage = self.get_argument("pangolin_lineage", None)
         query_country = self.get_argument("country", None)
         query_division = self.get_argument("division", None)
+        query_county = self.get_argument("county", None)
         query_mutations = self.get_argument("mutations", None)
         query_mutations = query_mutations.split(",") if query_mutations is not None else []
         query = {
@@ -25,7 +26,7 @@ class MostRecentDateBase(BaseHandler):
                 }
             }
         }
-        query_obj = create_nested_mutation_query(country = query_country, division = query_division, lineage = query_pangolin_lineage, mutations = query_mutations)
+        query_obj = create_nested_mutation_query(country = query_country, division = query_division, county = query_county, lineage = query_pangolin_lineage, mutations = query_mutations)
         query["query"] = query_obj
         resp = yield self.asynchronous_fetch(query)
         print(resp)
