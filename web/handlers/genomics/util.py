@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import timedelta, datetime as dt
 from scipy.stats import beta
 import pandas as pd
 
@@ -9,10 +9,37 @@ def calculate_proportion(x, n):
     est_proportion = x/n
     return est_proportion, ci_low, ci_upp
 
+def compute_total_rolling_count(df, col, new_col):
+    df.loc[:,new_col] = df[col].sum()
+    return df
+
+def compute_rolling_mean_all_lineages(df, index_col, col, new_col, grp_col):
+    grp_name = df[grp_col].iloc[0]
+    idx = pd.date_range(df[index_col].min(), df[index_col].max())
+    df = (
+        df
+        .set_index(index_col)
+        .reindex(idx, fill_value = 0)
+        .assign(**{
+            new_col: lambda x: x[col].rolling("7d").mean(),
+            grp_col: grp_name
+        })
+        .reset_index()
+        .rename(
+            columns = {
+                "index": "date"
+            }
+        )
+    )
+    return df
+
 def compute_rolling_mean(df, index_col, col, new_col):
-    df = df.set_index(index_col)
-    df.loc[:,new_col] = df[col].rolling("7d").mean()
-    df = df.reset_index()
+    df = (
+        df
+        .set_index(index_col)
+        .assign(**{new_col: lambda x: x[col].rolling("7d").mean()})
+        .reset_index()
+    )
     return df
 
 def transform_prevalence(resp, path_to_results = [], cumulative = False):
@@ -82,7 +109,7 @@ def compute_cumulative(grp, cols):
                 grp.loc[:, "cum_{}".format(i)] = 0
         return grp.tail(1)
 
-def transform_prevalence_by_location_and_tiime(flattened_response, query_detected = False):
+def transform_prevalence_by_location_and_tiime(flattened_response, ndays = None, query_detected = False):
     df_response = (
         pd.DataFrame(flattened_response)
         .assign(date = lambda x: pd.to_datetime(x["date"], format="%Y-%m-%d"))
@@ -91,6 +118,11 @@ def transform_prevalence_by_location_and_tiime(flattened_response, query_detecte
     grps = []
     dict_response = {}
     if not query_detected:
+        if ndays is not None:
+            date_limit = dt.today() - timedelta(days = ndays)
+            df_response = df_response[df_response["date"] >= date_limit]
+        if df_response.shape[0] == 0:
+            return []
         df_response =  df_response.groupby("name").apply(compute_cumulative, ["total_count", "lineage_count"])
         df_response.loc[:,"date"] = df_response["date"].apply(lambda x: x.strftime("%Y-%m-%d"))
         d = calculate_proportion(df_response["cum_lineage_count"], df_response["cum_total_count"])
@@ -104,7 +136,7 @@ def transform_prevalence_by_location_and_tiime(flattened_response, query_detecte
         }
     return dict_response
 
-def create_nested_mutation_query(country = None, division = None, lineage = None, mutations = []):
+def create_nested_mutation_query(country = None, division = None, county = None, lineage = None, mutations = []):
     query_obj = {
         "bool": {
             "must": []
@@ -138,6 +170,12 @@ def create_nested_mutation_query(country = None, division = None, lineage = None
                 "division": division
             }
         })
+    if county is not None:
+        bool_must.append({
+            "term": {
+                "location": county
+            }
+        })
     query_obj["bool"]["must"] = bool_must
     return query_obj
 
@@ -149,10 +187,10 @@ def classify_other_category(grp, keep_lineages):
     })
     return grp
 
-def get_major_lineage_prevalence(df, index_col, keep_lineages = [], prevalence_threshold = 0.05, nday_threshold = 0.05):
-    ndays = (df[index_col].iloc[-1] - df[index_col].iloc[0]).days
-    lineages_to_retain = df[df["prevalence"] >= prevalence_threshold]["lineage"].value_counts()
-    lineages_to_retain = lineages_to_retain[lineages_to_retain >= nday_threshold * ndays].index.tolist()
+def get_major_lineage_prevalence(df, index_col, keep_lineages = [], prevalence_threshold = 0.05, nday_threshold = 10, ndays = 180):
+    date_limit = dt.today() - timedelta(days = ndays)
+    lineages_to_retain = df[(df["prevalence"] >= prevalence_threshold) & (df["date"] >= date_limit)]["lineage"].value_counts()
+    lineages_to_retain = lineages_to_retain[lineages_to_retain >= nday_threshold].index.tolist()
     lineages_to_retain.extend(keep_lineages)
     df = df.groupby(index_col).apply(classify_other_category, lineages_to_retain)
     df = df.reset_index()
