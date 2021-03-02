@@ -235,6 +235,7 @@ class PrevalenceAllLineagesByLocationHandler(BaseHandler):
         df_response = df_response.groupby("date").apply(compute_total_rolling_count, "lineage_count_rolling", "total_count_rolling")
         df_response.loc[:, "prevalence_rolling"] = df_response["lineage_count_rolling"]/df_response["total_count_rolling"]
         df_response.loc[:,"date"] = df_response["date"].apply(lambda x: x.strftime("%Y-%m-%d"))
+        df_response = df_response.fillna("None")
         resp = {"success": True, "results": df_response[["date", "total_count", "lineage_count", "lineage", "prevalence", "prevalence_rolling"]].to_dict(orient="records")}
         self.write(resp)
 
