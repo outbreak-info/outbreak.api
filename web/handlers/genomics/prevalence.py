@@ -70,6 +70,8 @@ class PrevalenceByLocationAndTimeHandler(BaseHandler):
         query_division = self.get_argument("division", None)
         query_mutations = query_mutations.split(",") if query_mutations is not None else []
         query_detected = True if query_detected == "true" else False
+        query_ndays = self.get_argument("ndays", None)
+        query_ndays = int(query_ndays) if query_ndays is not None else None
         query = {
             "size": 0,
             "aggs": {
@@ -125,7 +127,7 @@ class PrevalenceByLocationAndTimeHandler(BaseHandler):
                 "total_count": i["doc_count"],
                 "lineage_count": i["lineage_count"]["doc_count"]
             } for i in buckets if len(i["key"]["date_collected"].split("-")) > 1 and "XX" not in i["key"]["date_collected"]]
-            dict_response = transform_prevalence_by_location_and_tiime(flattened_response, query_detected)
+            dict_response = transform_prevalence_by_location_and_tiime(flattened_response, query_ndays, query_detected)
         resp = {"success": True, "results": dict_response}
         self.write(resp)
 

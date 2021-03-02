@@ -109,7 +109,7 @@ def compute_cumulative(grp, cols):
                 grp.loc[:, "cum_{}".format(i)] = 0
         return grp.tail(1)
 
-def transform_prevalence_by_location_and_tiime(flattened_response, query_detected = False):
+def transform_prevalence_by_location_and_tiime(flattened_response, ndays = None, query_detected = False):
     df_response = (
         pd.DataFrame(flattened_response)
         .assign(date = lambda x: pd.to_datetime(x["date"], format="%Y-%m-%d"))
@@ -118,6 +118,9 @@ def transform_prevalence_by_location_and_tiime(flattened_response, query_detecte
     grps = []
     dict_response = {}
     if not query_detected:
+        if ndays is not None:
+            date_limit = dt.today() - timedelta(days = ndays)
+            df_response = df_response[df_response["date"] >= date_limit]
         df_response =  df_response.groupby("name").apply(compute_cumulative, ["total_count", "lineage_count"])
         df_response.loc[:,"date"] = df_response["date"].apply(lambda x: x.strftime("%Y-%m-%d"))
         d = calculate_proportion(df_response["cum_lineage_count"], df_response["cum_total_count"])
