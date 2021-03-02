@@ -3,6 +3,56 @@ from .base import BaseHandler
 from tornado import gen
 from .util import create_nested_mutation_query
 
+class SequenceCountHandler(BaseHandler):
+
+    @gen.coroutine
+    def get(self):
+        query_country = self.get_argument("country", None)
+        query_division = self.get_argument("division", None)
+        query_county = self.get_argument("county", None)
+        query = {
+            "size": 0,
+            "aggs": {
+                "country": {
+                    "terms": {
+                        "field": "country",
+                        "size": 10000
+                    }
+                }
+            }
+        }
+        if query_county is not None:
+            query["query"] = {
+                "match": {
+                    "location": query_county
+                }
+            }
+            query["aggs"]["country"]["terms"]["field"] = "location"
+        elif query_division is not None:
+            query["query"] = {
+                "match": {
+                    "division": query_division
+                }
+            }
+            query["aggs"]["country"]["terms"]["field"] = "division"
+        elif query_country is not None:
+            query["query"] = {
+                "match": {
+                    "country": query_country
+                }
+            }
+        resp = yield self.asynchronous_fetch(query)
+        path_to_results = ["aggregations", "country", "buckets"]
+        buckets = resp
+        for i in path_to_results:
+            buckets = buckets[i]
+        flattened_response = [{
+            "name": i["key"],
+            "total_count": i["doc_count"]
+        } for i in buckets]
+        resp = {"success": True, "results": flattened_response}
+        self.write(resp)
+
 class MostRecentDateBase(BaseHandler):
     field = "date_collected"
 
