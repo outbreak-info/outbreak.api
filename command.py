@@ -21,6 +21,7 @@ def attach_repository(name):
 
 def fetch_index(name, index_name, index_rename):
     backup_name = f"{name}_backup"
+    print(requests.delete(f'http://localhost:9200/{index_rename}'))
 
     data = {
       "indices": f"{index_name}",
@@ -33,7 +34,7 @@ def fetch_index(name, index_name, index_rename):
     res = requests.post(f"http://localhost:9200/_snapshot/{backup_name}/{index_name}/_restore?pretty", json=data)
     return res
 
-def push():
+def push(restart):
     key = paramiko.RSAKey.from_private_key_file(secrets.PRIVATE_KEY)
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -44,17 +45,25 @@ def push():
             'echo "Performing git pull"',
             'cd outbreak.api',
             'git pull',
+    ]
+    if restart:
+        commands += [
             'echo "Performing server restart"',
             'sudo systemctl restart outbreak_web.service',
             'sudo journalctl -u outbreak_web.service | tail -2'
-    ]
+        ]
     stdin, stdout, stderr = ssh.exec_command(' && '.join(commands))
-    print('\n'.join(stdout.readlines()))
+    print(''.join(stdout.readlines()))
     err = stderr.readlines()
     if err:
         print('----- Errors ----------')
-        print('\n'.join(err))
+        print(''.join(err))
 
 if __name__ == '__main__':
     if argv[1] == 'push':
-        push()
+        restart = True
+        if len(argv) > 2 and argv[2] == '-no-restart':
+            restart = False
+        push(restart)
+    elif argv[1] == 'update':
+        fetch_index('genomics_dev', argv[2], 'outbreak-genomics')
