@@ -46,7 +46,7 @@ class PrevalenceByLocationHandler(BaseHandler):
             }
         else:
             filter_term = {
-                "country": query_county
+                "country": query_country
             }
         query["aggs"]["prevalence"]["filter"] = {
             "term" : filter_term
