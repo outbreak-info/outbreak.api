@@ -173,6 +173,8 @@ class PrevalenceAllLineagesByLocationHandler(BaseHandler):
         query_other_threshold = float(query_other_threshold)
         query_nday_threshold = self.get_argument("nday_threshold", 10)
         query_nday_threshold = float(query_nday_threshold)
+        query_ndays = self.get_argument("ndays", 180)
+        query_ndays = int(query_ndays)
         query_other_exclude = self.get_argument("other_exclude", None)
         query_other_exclude = query_other_exclude.split(",") if query_other_exclude is not None else []
         query = {
@@ -230,7 +232,7 @@ class PrevalenceAllLineagesByLocationHandler(BaseHandler):
             )
             .sort_values("date")
         )
-        df_response = get_major_lineage_prevalence(df_response, "date", query_other_exclude, query_other_threshold, query_nday_threshold)
+        df_response = get_major_lineage_prevalence(df_response, "date", query_other_exclude, query_other_threshold, query_nday_threshold, query_ndays)
         df_response = df_response.groupby("lineage").apply(compute_rolling_mean_all_lineages, "date", "lineage_count", "lineage_count_rolling", "lineage")
         df_response = df_response.groupby("date").apply(compute_total_rolling_count, "lineage_count_rolling", "total_count_rolling")
         df_response.loc[:, "prevalence_rolling"] = df_response["lineage_count_rolling"]/df_response["total_count_rolling"]

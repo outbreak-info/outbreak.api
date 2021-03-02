@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import timedelta, datetime as dt
 from scipy.stats import beta
 import pandas as pd
 
@@ -182,8 +182,9 @@ def classify_other_category(grp, keep_lineages):
     })
     return grp
 
-def get_major_lineage_prevalence(df, index_col, keep_lineages = [], prevalence_threshold = 0.05, nday_threshold = 10):
-    lineages_to_retain = df[df["prevalence"] >= prevalence_threshold]["lineage"].value_counts()
+def get_major_lineage_prevalence(df, index_col, keep_lineages = [], prevalence_threshold = 0.05, nday_threshold = 10, ndays = 180):
+    date_limit = dt.today() - timedelta(days = ndays)
+    lineages_to_retain = df[(df["prevalence"] >= prevalence_threshold) & (df["date"] >= date_limit)]["lineage"].value_counts()
     lineages_to_retain = lineages_to_retain[lineages_to_retain >= nday_threshold].index.tolist()
     lineages_to_retain.extend(keep_lineages)
     df = df.groupby(index_col).apply(classify_other_category, lineages_to_retain)
