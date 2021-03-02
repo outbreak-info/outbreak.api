@@ -50,14 +50,14 @@ def push():
             'sudo journalctl -u outbreak_web.service | tail -2'
     ]
     stdin, stdout, stderr = ssh.exec_command(' && '.join(commands))
-    print('\n'.join(stdout.readlines()))
+    print(stdout.readlines())
     err = stderr.readlines()
     if err:
         print('----- Errors ----------')
-        print('\n'.join(err))
+        print(err)
 
 if __name__ == '__main__':
     if argv[1] == 'push':
         push()
-    if argv[2] == 'update':
-        fetch_index('genomics_dev', argv[3], 'outbreak-genomics')
+    elif argv[1] == 'update':
+        fetch_index('genomics_dev', argv[2], 'outbreak-genomics')
