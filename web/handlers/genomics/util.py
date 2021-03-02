@@ -121,6 +121,8 @@ def transform_prevalence_by_location_and_tiime(flattened_response, ndays = None,
         if ndays is not None:
             date_limit = dt.today() - timedelta(days = ndays)
             df_response = df_response[df_response["date"] >= date_limit]
+        if df_response.shape[0] == 0:
+            return []
         df_response =  df_response.groupby("name").apply(compute_cumulative, ["total_count", "lineage_count"])
         df_response.loc[:,"date"] = df_response["date"].apply(lambda x: x.strftime("%Y-%m-%d"))
         d = calculate_proportion(df_response["cum_lineage_count"], df_response["cum_total_count"])
