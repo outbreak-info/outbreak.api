@@ -2,11 +2,11 @@ from datetime import timedelta, datetime as dt
 from scipy.stats import beta
 import pandas as pd
 
-def calculate_proportion(x, n):
-    x = x.round()
-    n = n.round()
+def calculate_proportion(_x, _n):
+    x = _x.round()
+    n = _n.round()
     ci_low, ci_upp = beta.interval(1 - 0.05, x + 0.5, n - x + 0.5) # Jeffreys Interval
-    est_proportion = x/n
+    est_proportion = _x/_n
     return est_proportion, ci_low, ci_upp
 
 def compute_total_rolling_count(df, col, new_col):
