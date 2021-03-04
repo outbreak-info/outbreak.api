@@ -18,6 +18,13 @@ class BaseHandler(BiothingsBaseHandler):
         )
         return response
 
+    async def asynchronous_fetch_count(self, query):
+        response = await self.web_settings.connections.async_client.count(
+            index = "outbreak-genomics",
+            body = query
+        )
+        return response
+
     def post(self):
         pass
 
