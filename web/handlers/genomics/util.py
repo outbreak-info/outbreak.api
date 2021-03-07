@@ -9,21 +9,36 @@ def calculate_proportion(_x, _n):
     est_proportion = _x/_n
     return est_proportion, ci_low, ci_upp
 
-def compute_total_rolling_count(df, col, new_col):
+def compute_total_count(df, col, new_col):
     df.loc[:,new_col] = df[col].sum()
     return df
 
+def expand_dates(df, date_min, date_max, index_col, grp_col):
+    idx = pd.date_range(date_min, date_max)
+    df = (
+        df
+        .set_index(index_col)
+        .reindex(idx, fill_value = 0)
+        .drop(grp_col, axis = 1)
+        .reset_index()
+        .rename(
+            columns = {
+                "index": "date"
+            }
+        )
+    )
+    return df
+
 def compute_rolling_mean_all_lineages(df, index_col, col, new_col, grp_col):
-    grp_name = df[grp_col].iloc[0]
     idx = pd.date_range(df[index_col].min(), df[index_col].max())
     df = (
         df
         .set_index(index_col)
         .reindex(idx, fill_value = 0)
         .assign(**{
-            new_col: lambda x: x[col].rolling("7d").mean(),
-            grp_col: grp_name
+            new_col: lambda x: x[col].rolling("7d").mean()
         })
+        .drop(grp_col, axis = 1)
         .reset_index()
         .rename(
             columns = {
