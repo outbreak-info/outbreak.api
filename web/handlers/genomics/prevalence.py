@@ -245,6 +245,8 @@ class PrevalenceAllLineagesByLocationHandler(BaseHandler):
             df_response = df_response.fillna("None")
             df_response = df_response[["date", "total_count", "lineage_count", "lineage", "prevalence", "prevalence_rolling"]]
         else:
+            df_response = df_response.groupby("lineage").apply(compute_rolling_mean_all_lineages, "date", "lineage_count", "lineage_count", "lineage")
+            df_response = df_response.groupby("date").apply(compute_total_rolling_count, "lineage_count", "total_count")
             df_response = df_response.groupby("lineage").agg({"total_count": "sum", "lineage_count": "sum"}).reset_index()
             df_response.loc[:,"prevalence"] = df_response["lineage_count"]/df_response["total_count"]
         resp = {"success": True, "results": df_response.to_dict(orient="records")}
@@ -375,3 +377,5 @@ class PrevalenceByAAPositionHandler(BaseHandler):
             dict_response = df_response.to_dict(orient="records")
         resp = {"success": True, "results": dict_response}
         self.write(resp)
+
+
