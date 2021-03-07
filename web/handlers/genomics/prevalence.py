@@ -1,4 +1,4 @@
-from .util import transform_prevalence, transform_prevalence_by_location_and_tiime, compute_rolling_mean, create_nested_mutation_query, get_major_lineage_prevalence, compute_total_rolling_count, compute_rolling_mean_all_lineages
+from .util import transform_prevalence, transform_prevalence_by_location_and_tiime, compute_rolling_mean, create_nested_mutation_query, get_major_lineage_prevalence, compute_total_count, compute_rolling_mean_all_lineages, expand_dates
 from .base import BaseHandler
 from tornado import gen
 import pandas as pd
@@ -238,15 +238,15 @@ class PrevalenceAllLineagesByLocationHandler(BaseHandler):
         )
         df_response = get_major_lineage_prevalence(df_response, "date", query_other_exclude, query_other_threshold, query_nday_threshold, query_ndays)
         if not query_cumulative:
-            df_response = df_response.groupby("lineage").apply(compute_rolling_mean_all_lineages, "date", "lineage_count", "lineage_count_rolling", "lineage")
-            df_response = df_response.groupby("date").apply(compute_total_rolling_count, "lineage_count_rolling", "total_count_rolling")
+            df_response = df_response.groupby("lineage").apply(compute_rolling_mean_all_lineages, "date", "lineage_count", "lineage_count_rolling", "lineage").reset_index()
+            df_response = df_response.groupby("date").apply(compute_total_count, "lineage_count_rolling", "total_count_rolling")
             df_response.loc[:, "prevalence_rolling"] = df_response["lineage_count_rolling"]/df_response["total_count_rolling"]
             df_response.loc[:,"date"] = df_response["date"].apply(lambda x: x.strftime("%Y-%m-%d"))
             df_response = df_response.fillna("None")
             df_response = df_response[["date", "total_count", "lineage_count", "lineage", "prevalence", "prevalence_rolling"]]
         else:
-            df_response = df_response.groupby("lineage").apply(compute_rolling_mean_all_lineages, "date", "lineage_count", "lineage_count", "lineage")
-            df_response = df_response.groupby("date").apply(compute_total_rolling_count, "lineage_count", "total_count")
+            df_response = df_response.groupby("lineage").apply(expand_dates, df_response["date"].min(), df_response["date"].max(), "date", "lineage").reset_index()
+            df_response = df_response.groupby("date").apply(compute_total_count, "lineage_count", "total_count").reset_index()
             df_response = df_response.groupby("lineage").agg({"total_count": "sum", "lineage_count": "sum"}).reset_index()
             df_response.loc[:,"prevalence"] = df_response["lineage_count"]/df_response["total_count"]
         resp = {"success": True, "results": df_response.to_dict(orient="records")}
