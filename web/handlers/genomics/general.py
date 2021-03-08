@@ -125,75 +125,133 @@ class MostRecentCollectionDate(MostRecentDateBase):
 class MostRecentSubmissionDate(MostRecentDateBase):
     field = "date_submitted"
 
-class CountryHandler(BaseHandler):
+
+class LocationHandler(BaseHandler):
+
+    location_type = "country"
 
     @gen.coroutine
     def get(self):
         query_str = self.get_argument("name", None)
+        query_str = query_str.lower()
         query = {
             "size": 0,
             "query": {
                 "wildcard": {
-                    "country": {
+                    "{}_lower".format(self.location_type): {
                         "value": query_str
                     }
                 }
             },
             "aggs": {
+                "location_code_buckets": {
+                    "composite": {
+                        "size": self.size,
+                        "sources": [
+                            {
+                                "location": {
+                                    "terms": {
+                                        "field": self.location_type
+                                    }
+                                }
+                            },
+                            {
+                                "location_id": {
+                                    "terms": {
+                                        "field": "{}_id".format(self.location_type)
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+        if self.location_type == "division": # For division add country_name
+            query["aggs"]["location_code_buckets"]["composite"]["sources"].append({
                 "country": {
                     "terms": {
-                        "field": "country",
-                        "size": 10000
+                        "field": "country"
                     }
                 }
-            }
-        }
-        resp = yield self.asynchronous_fetch(query)
-        path_to_results = ["aggregations", "country", "buckets"]
-        buckets = resp
-        for i in path_to_results:
-            buckets = buckets[i]
-        flattened_response = [{
-            "name": i["key"],
-            "total_count": i["doc_count"]
-        } for i in buckets]
-        resp = {"success": True, "results": flattened_response}
-        self.write(resp)
-
-class DivisionHandler(BaseHandler):
-
-    @gen.coroutine
-    def get(self):
-        query_str = self.get_argument("name", None)
-        query = {
-            "size": 0,
-            "query": {
-                "wildcard": {
-                    "division": {
-                        "value": query_str
+            })
+            query["aggs"]["location_code_buckets"]["composite"]["sources"].append({
+                "country_id": {
+                    "terms": {
+                        "field": "country_id"
                     }
                 }
-            },
-            "aggs": {
+            })
+        elif self.location_type == "county":
+            query["aggs"]["location_code_buckets"]["composite"]["sources"].append({
+                "country": {
+                    "terms": {
+                        "field": "country"
+                    }
+                }
+            })
+            query["aggs"]["location_code_buckets"]["composite"]["sources"].append({
+                "country_id": {
+                    "terms": {
+                        "field": "country_id"
+                    }
+                }
+            })
+            query["aggs"]["location_code_buckets"]["composite"]["sources"].append({
                 "division": {
                     "terms": {
-                        "field": "division",
-                        "size": 10000
+                        "field": "division"
                     }
                 }
-            }
-        }
+            })
+            query["aggs"]["location_code_buckets"]["composite"]["sources"].append({
+                "division_id": {
+                    "terms": {
+                        "field": "division_id"
+                    }
+                }
+            })
         resp = yield self.asynchronous_fetch(query)
-        path_to_results = ["aggregations", "division", "buckets"]
+        path_to_results = ["aggregations", "location_code_buckets", "buckets"]
         buckets = resp
         for i in path_to_results:
             buckets = buckets[i]
-        flattened_response = [{
-            "name": i["key"],
-            "total_count": i["doc_count"]
-        } for i in buckets]
+        flattened_response = []
+        if self.location_type == "country":
+            flattened_response = [{
+                "name": i["key"]["location"],
+                "location_id": i["key"]["location_id"],
+                "total_count": i["doc_count"]
+            } for i in buckets]
+        elif self.location_type == "division":
+            flattened_response = [{
+                "name": i["key"]["location"],
+                "location_id": i["key"]["location_id"],
+                "country_name": i["key"]["country"],
+                "country_id": i["key"]["country_id"],
+                "total_count": i["doc_count"]
+            } for i in buckets]
+        elif self.location_type == "county":
+            flattened_response = [{
+                "name": i["key"]["location"],
+                "location_id": i["key"]["location_id"],
+                "country_name": i["key"]["country"],
+                "country_id": i["key"]["country_id"],
+                "division_name": i["key"]["division"],
+                "division_id": i["key"]["division_id"],
+                "total_count": i["doc_count"]
+            } for i in buckets]
         resp = {"success": True, "results": flattened_response}
         self.write(resp)
+
+class CountryHandler(LocationHandler):
+    location_type="country"
+
+class DivisionHandler(LocationHandler):
+    location_type="division"
+
+class CountyHandler(LocationHandler):
+    location_type="location"
 
 class MutationHandler(BaseHandler):
 
