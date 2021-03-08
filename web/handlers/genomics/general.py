@@ -213,7 +213,7 @@ class LocationHandler(BaseHandler):
                     }
                 }
             })
-        elif self.location_type == "county":
+        elif self.location_type == "location":
             query["aggs"]["location_code_buckets"]["composite"]["sources"].append({
                 "country": {
                     "terms": {
