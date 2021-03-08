@@ -133,7 +133,6 @@ class LocationHandler(BaseHandler):
     @gen.coroutine
     def get(self):
         query_str = self.get_argument("name", None)
-        query_str = query_str.lower()
         query = {
             "size": 0,
             "query": {
