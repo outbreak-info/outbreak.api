@@ -60,6 +60,7 @@ class PrevalenceByLocationHandler(BaseHandler):
 
 # Most recent prevalence
 class PrevalenceByLocationAndTimeHandler(BaseHandler):
+    location_type = "country"
 
     @gen.coroutine
     def get(self):
@@ -79,8 +80,7 @@ class PrevalenceByLocationAndTimeHandler(BaseHandler):
                     "composite": {
                         "size": 10000,
                         "sources": [
-                            {"date_collected": { "terms": {"field": "date_collected"}}},
-                            # {"country": { "terms": {"field": "country"} }}
+                            {"date_collected": { "terms": {"field": "date_collected"}}}
                         ]
                     },
                     "aggregations": {
@@ -165,12 +165,11 @@ class PrevalenceHandler(BaseHandler):
         self.write(resp)
 
 class PrevalenceAllLineagesByLocationHandler(BaseHandler):
+    location_type = "country"
 
     @gen.coroutine
     def get(self):
-        query_country = self.get_argument("country", None)
-        query_division = self.get_argument("division", None)
-        query_county = self.get_argument("county", None)
+        query_location = self.get_argument("name", None)
         query_other_threshold = self.get_argument("other_threshold", 0.05)
         query_other_threshold = float(query_other_threshold)
         query_nday_threshold = self.get_argument("nday_threshold", 10)
@@ -183,6 +182,9 @@ class PrevalenceAllLineagesByLocationHandler(BaseHandler):
         query_cumulative = True if query_cumulative == "true" else False
         query = {
             "size": 0,
+            "query": {
+                "term" : { self.location_type : query_location }
+            },
             "aggs": {
                 "count": {
                     "terms": {
@@ -200,18 +202,6 @@ class PrevalenceAllLineagesByLocationHandler(BaseHandler):
                 }
             }
         }
-        if query_county != None:
-            query["query"] = {
-                "term" : { "location" : query_county }
-            }
-        elif query_division != None:
-            query["query"] = {
-                "term" : { "division" : query_division }
-            }
-        elif query_country != None:
-            query["query"] = {
-                "term" : { "country" : query_country }
-            }
         resp = yield self.asynchronous_fetch(query)
         buckets = resp
         path_to_results = ["aggregations", "count", "buckets"]
@@ -252,6 +242,16 @@ class PrevalenceAllLineagesByLocationHandler(BaseHandler):
             df_response.loc[:,"prevalence"] = df_response["lineage_count"]/df_response["total_count"]
         resp = {"success": True, "results": df_response.to_dict(orient="records")}
         self.write(resp)
+
+
+class PrevalenceAllLineagesByCountryHandler(PrevalenceAllLineagesByLocationHandler):
+    location_type = "country"
+
+class PrevalenceAllLineagesByDivisionHandler(PrevalenceAllLineagesByLocationHandler):
+    location_type = "division"
+
+class PrevalenceAllLineagesByCountyHandler(PrevalenceAllLineagesByLocationHandler):
+    location_type = "location"
 
 class PrevalenceByAAPositionHandler(BaseHandler):
 
