@@ -4,14 +4,49 @@ from tornado import gen
 import pandas as pd
 from datetime import timedelta
 
-class PrevalenceByLocationHandler(BaseHandler):
+# Get global prevalence of lineage by date
+class GlobalPrevalenceByTimeHandler(BaseHandler):
 
     @gen.coroutine
     def get(self):
-        query_country = self.get_argument("country", None)
         query_pangolin_lineage = self.get_argument("pangolin_lineage", None)
-        query_division = self.get_argument("division", None)
-        query_county = self.get_argument("county", None)
+        query_mutations = self.get_argument("mutations", None)
+        cumulative = self.get_argument("cumulative", None)
+        cumulative = True if cumulative == "true" else False
+        query = {
+            "size": 0,
+            "aggs": {
+                "prevalence": {
+                    "terms": {
+                        "field": "date_collected",
+                        "size": self.size
+                    },
+                    "aggs": {
+                        "lineage_count": {
+                            "filter": {}
+                        }
+                    }
+                }
+            }
+        }
+        query_mutations = query_mutations.split(",") if query_mutations is not None else []
+        query_obj = create_nested_mutation_query(lineage = query_pangolin_lineage, mutations = query_mutations)
+        query["aggs"]["prevalence"]["aggs"]["lineage_count"]["filter"] = query_obj
+        resp = yield self.asynchronous_fetch(query)
+        path_to_results = ["aggregations", "prevalence", "buckets"]
+        resp = transform_prevalence(resp, path_to_results, cumulative)
+        self.write(resp)
+
+class PrevalenceByLocationAndTimeHandler(BaseHandler):
+    location_type="country"
+
+    @gen.coroutine
+    def get(self):
+        query_location = self.get_argument("name", None)
+        # query_country = self.get_argument("country", None)
+        query_pangolin_lineage = self.get_argument("pangolin_lineage", None)
+        # query_division = self.get_argument("division", None)
+        # query_county = self.get_argument("county", None)
         query_mutations = self.get_argument("mutations", None)
         query_mutations = query_mutations.split(",") if query_mutations is not None else []
         cumulative = self.get_argument("cumulative", None)
@@ -20,6 +55,11 @@ class PrevalenceByLocationHandler(BaseHandler):
             "size": 0,
             "aggs": {
                 "prevalence": {
+                    "filter": {
+                        "term": {
+                            self.location_type: query_location
+                        }
+                    },
                     "aggs": {
                         "count": {
                             "terms": {
@@ -36,27 +76,22 @@ class PrevalenceByLocationHandler(BaseHandler):
                 }
             }
         }
-        if query_county is not None:
-            filter_term = {
-                "location": query_county
-            }
-        elif query_division is not None:
-            filter_term = {
-                "division": query_division
-            }
-        else:
-            filter_term = {
-                "country": query_country
-            }
-        query["aggs"]["prevalence"]["filter"] = {
-            "term" : filter_term
-        }
-        query_obj = create_nested_mutation_query(division = query_division, country = query_country, county = query_county, lineage = query_pangolin_lineage, mutations = query_mutations)
+        kwargs = {self.location_type: query_location}
+        query_obj = create_nested_mutation_query(lineage = query_pangolin_lineage, mutations = query_mutations, **kwargs)
         query["aggs"]["prevalence"]["aggs"]["count"]["aggs"]["lineage_count"]["filter"] = query_obj
         resp = yield self.asynchronous_fetch(query)
         path_to_results = ["aggregations", "prevalence", "count", "buckets"]
         resp = transform_prevalence(resp, path_to_results, cumulative)
         self.write(resp)
+
+class PrevalenceByCountryAndTimeHandler(PrevalenceByLocationAndTimeHandler):
+    location_type="country"
+
+class PrevalenceByDivisionAndTimeHandler(PrevalenceByLocationAndTimeHandler):
+    location_type="division"
+
+class PrevalenceByCountyAndTimeHandler(PrevalenceByLocationAndTimeHandler):
+    location_type="location"
 
 class CumulativePrevalenceByLocationHandler(BaseHandler):
     location_type = None
@@ -137,39 +172,6 @@ class CumulativePrevalenceByCountryHandler(CumulativePrevalenceByLocationHandler
 
 class CumulativePrevalenceByDivisionHandler(CumulativePrevalenceByLocationHandler):
     location_type="division"
-
-# Get global prevalence of lineage by date
-class PrevalenceHandler(BaseHandler):
-
-    @gen.coroutine
-    def get(self):
-        query_pangolin_lineage = self.get_argument("pangolin_lineage", None)
-        query_mutations = self.get_argument("mutations", None)
-        cumulative = self.get_argument("cumulative", None)
-        cumulative = True if cumulative == "true" else False
-        query = {
-            "size": 0,
-            "aggs": {
-                "prevalence": {
-                    "terms": {
-                        "field": "date_collected",
-                        "size": self.size
-                    },
-                    "aggs": {
-                        "lineage_count": {
-                            "filter": {}
-                        }
-                    }
-                }
-            }
-        }
-        query_mutations = query_mutations.split(",") if query_mutations is not None else []
-        query_obj = create_nested_mutation_query(lineage = query_pangolin_lineage, mutations = query_mutations)
-        query["aggs"]["prevalence"]["aggs"]["lineage_count"]["filter"] = query_obj
-        resp = yield self.asynchronous_fetch(query)
-        path_to_results = ["aggregations", "prevalence", "buckets"]
-        resp = transform_prevalence(resp, path_to_results, cumulative)
-        self.write(resp)
 
 class PrevalenceAllLineagesByLocationHandler(BaseHandler):
     location_type = "country"
