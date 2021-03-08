@@ -1,5 +1,5 @@
 from .lineage import LineageByCountryHandler, LineageByDivisionHandler, LineageAndCountryHandler, LineageAndDivisionHandler, LineageHandler, LineageMutationsHandler, MutationDetailsHandler, MutationsByLineage
-from .prevalence import PrevalenceByLocationHandler, PrevalenceByLocationAndTimeHandler, PrevalenceHandler, PrevalenceAllLineagesByCountryHandler, PrevalenceAllLineagesByDivisionHandler, PrevalenceAllLineagesByCountyHandler, PrevalenceByAAPositionHandler
+from .prevalence import PrevalenceByLocationHandler, CumulativeGlobalPrevalenceHandler, CumulativePrevalenceByCountryHandler, CumulativePrevalenceByDivisionHandler, PrevalenceHandler, PrevalenceAllLineagesByCountryHandler, PrevalenceAllLineagesByDivisionHandler, PrevalenceAllLineagesByCountyHandler, PrevalenceByAAPositionHandler
 from .general import MostRecentCollectionDate, CountryHandler, DivisionHandler, CountyHandler, MetadataHandler, MostRecentSubmissionDate, MutationHandler, SubmissionLagHandler, SequenceCountHandler
 
 routes = [
@@ -14,8 +14,9 @@ routes = [
     (r"/genomics/prevalence-by-county-all-lineages", PrevalenceAllLineagesByCountyHandler),
     (r"/genomics/prevalence-by-position", PrevalenceByAAPositionHandler),
     (r"/genomics/global-prevalence", PrevalenceHandler),
-    (r"/genomics/lineage-by-country-most-recent", PrevalenceByLocationAndTimeHandler),
-    (r"/genomics/lineage-by-division-most-recent", PrevalenceByLocationAndTimeHandler),
+    (r"/genomics/lineage-by-country-most-recent", CumulativeGlobalPrevalenceHandler),
+    (r"/genomics/lineage-by-division-most-recent", CumulativePrevalenceByCountryHandler),
+    (r"/genomics/lineage-by-county-most-recent", CumulativePrevalenceByDivisionHandler),
     (r"/genomics/most-recent-collection-date", MostRecentCollectionDate),
     (r"/genomics/most-recent-submission-date", MostRecentSubmissionDate),
     (r"/genomics/mutation-details", MutationDetailsHandler),
