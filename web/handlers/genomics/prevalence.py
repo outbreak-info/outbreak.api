@@ -58,17 +58,15 @@ class PrevalenceByLocationHandler(BaseHandler):
         resp = transform_prevalence(resp, path_to_results, cumulative)
         self.write(resp)
 
-# Most recent prevalence
-class PrevalenceByLocationAndTimeHandler(BaseHandler):
-    location_type = "country"
+class CumulativePrevalenceByLocationHandler(BaseHandler):
+    location_type = None
 
     @gen.coroutine
     def get(self):
         query_pangolin_lineage = self.get_argument("pangolin_lineage", None)
         query_detected = self.get_argument("detected", None)
         query_mutations = self.get_argument("mutations", None)
-        query_country = self.get_argument("country", None)
-        query_division = self.get_argument("division", None)
+        query_location = self.get_argument("name", None)
         query_mutations = query_mutations.split(",") if query_mutations is not None else []
         query_detected = True if query_detected == "true" else False
         query_ndays = self.get_argument("ndays", None)
@@ -91,21 +89,21 @@ class PrevalenceByLocationAndTimeHandler(BaseHandler):
                 }
             }
         }
-        if query_division is not None:
+        if self.location_type == "division":
             query["query"] = {
-	        "term": {"division": query_division}
+	        "term": {self.location_type: query_location}
             }
             query["aggs"]["sub_date_buckets"]["composite"]["sources"].append(
                 {"sub": { "terms": {"field": "location"} }}
             )
-        elif query_country is not None:
+        elif self.location_type == "country":
             query["query"] = {
-	        "term": {"country": query_country}
+	        "term": {self.location_type: query_location}
             }
             query["aggs"]["sub_date_buckets"]["composite"]["sources"].append(
                 {"sub": { "terms": {"field": "division"} }}
             )
-        else:
+        elif self.location_type is None:
             query["aggs"]["sub_date_buckets"]["composite"]["sources"].append(
                 {"sub": { "terms": {"field": "country"} }}
             )
@@ -130,6 +128,15 @@ class PrevalenceByLocationAndTimeHandler(BaseHandler):
             dict_response = transform_prevalence_by_location_and_tiime(flattened_response, query_ndays, query_detected)
         resp = {"success": True, "results": dict_response}
         self.write(resp)
+
+class CumulativeGlobalPrevalenceHandler(CumulativePrevalenceByLocationHandler):
+    location_type=None
+
+class CumulativePrevalenceByCountryHandler(CumulativePrevalenceByLocationHandler):
+    location_type="country"
+
+class CumulativePrevalenceByDivisionHandler(CumulativePrevalenceByLocationHandler):
+    location_type="division"
 
 # Get global prevalence of lineage by date
 class PrevalenceHandler(BaseHandler):
