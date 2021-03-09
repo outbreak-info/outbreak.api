@@ -190,9 +190,33 @@ class LocationDetailsHandler(BaseHandler):
             }
         query["query"] = parse_location_id_to_query(query_str)
         resp = yield self.asynchronous_fetch(query)
-        # resp = {"success": True, "results": flattened_response}
+        flattened_response = []
+        for country in resp["aggregations"]["country"]["buckets"]:
+            if "division" in country:
+                for division in country["division"]["buckets"]:
+                    if "location" in division:
+                        for location in division["location"]["buckets"]:
+                            flattened_response.append({
+                                "location": location["key"],
+                                "division": division["key"],
+                                "country": country["key"],
+                                "label": ", ".join([location["key"], division["key"], country["key"]])
+                            })
+                    else:
+                        flattened_response.append({
+                            "division": division["key"],
+                            "country": country["key"],
+                            "label": ", ".join([division["key"], country["key"]])
+                        })
+            else:
+                flattened_response.append({
+                    "country": country["key"],
+                    "label": country["key"]
+                })
+        if len(flattened_response) >= 1:
+            flattened_response = flattened_response[0] # ID should match only 1 region
+        resp = {"success": True, "results": flattened_response}
         self.write(resp)
-
 
 class LocationHandler(BaseHandler):
 
