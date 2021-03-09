@@ -211,3 +211,21 @@ def get_major_lineage_prevalence(df, index_col, keep_lineages = [], prevalence_t
     df = df.reset_index()
     df.loc[:,"prevalence"] = df["lineage_count"]/df["total_count"]
     return df
+
+def parse_location_id_to_query(query_id):
+    location_codes = query_id.split("_")
+    query_obj = {
+        "bool": {
+            "must": []
+        }
+    }
+    location_types = ["country_id", "division_id", "location_id"]
+    for i in range(min(3, len(location_codes))):
+        if i == 1 and len(location_codes[i].split("-")) > 1:              # For division remove iso2 code if present
+            location_codes[i] = location_codes[i].split("-")[1]
+        query_obj["bool"]["must"].append({
+            "term": {
+                location_types[i]: location_codes[i]
+            }
+        })
+    return query_obj
