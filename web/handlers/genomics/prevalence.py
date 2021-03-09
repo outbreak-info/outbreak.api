@@ -2,7 +2,7 @@ from .util import transform_prevalence, transform_prevalence_by_location_and_tii
 from .base import BaseHandler
 from tornado import gen
 import pandas as pd
-from datetime import timedelta
+from datetime import timedelta, datetime as dt
 
 # Get global prevalence of lineage by date
 class GlobalPrevalenceByTimeHandler(BaseHandler):
@@ -155,6 +155,8 @@ class PrevalenceAllLineagesByLocationHandler(BaseHandler):
     @gen.coroutine
     def get(self):
         query_location = self.get_argument("location_id", None)
+        query_window = self.get_argument("window", None)
+        query_window = int(query_window) if query_window is not None else None
         query_other_threshold = self.get_argument("other_threshold", 0.05)
         query_other_threshold = float(query_other_threshold)
         query_nday_threshold = self.get_argument("nday_threshold", 10)
@@ -210,6 +212,8 @@ class PrevalenceAllLineagesByLocationHandler(BaseHandler):
             )
             .sort_values("date")
         )
+        if query_window is not None:
+            df_response = df_response[df_response["date"] >= (dt.now() - timedelta(days = query_window))]
         df_response = get_major_lineage_prevalence(df_response, "date", query_other_exclude, query_other_threshold, query_nday_threshold, query_ndays)
         if not query_cumulative:
             df_response = df_response.groupby("lineage").apply(compute_rolling_mean_all_lineages, "date", "lineage_count", "lineage_count_rolling", "lineage").reset_index()
