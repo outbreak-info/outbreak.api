@@ -196,6 +196,8 @@ def get_major_lineage_prevalence(df, index_col, keep_lineages = [], prevalence_t
     return df
 
 def parse_location_id_to_query(query_id, query_obj = None):
+    if query_id == None:
+        return None
     location_codes = query_id.split("_")
     if query_obj == None:
         query_obj = {
