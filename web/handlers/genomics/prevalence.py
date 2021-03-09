@@ -81,14 +81,13 @@ class PrevalenceByLocationAndTimeHandler(BaseHandler):
         self.write(resp)
 
 class CumulativePrevalenceByLocationHandler(BaseHandler):
-    location_type = None
 
     @gen.coroutine
     def get(self):
         query_pangolin_lineage = self.get_argument("pangolin_lineage", None)
         query_detected = self.get_argument("detected", None)
         query_mutations = self.get_argument("mutations", None)
-        query_location = self.get_argument("name", None)
+        query_location = self.get_argument("location_id", None)
         query_mutations = query_mutations.split(",") if query_mutations is not None else []
         query_detected = True if query_detected == "true" else False
         query_ndays = self.get_argument("ndays", None)
@@ -111,24 +110,23 @@ class CumulativePrevalenceByLocationHandler(BaseHandler):
                 }
             }
         }
-        if self.location_type == "division":
-            query["query"] = {
-	        "term": {self.location_type: query_location}
-            }
-            query["aggs"]["sub_date_buckets"]["composite"]["sources"].append(
+        if query_location is not None: # Global
+            query["query"] = parse_location_id_to_query(query_location)
+        if query_location is None:
+            query["aggs"]["sub_date_buckets"]["composite"]["sources"].extend([
+                {"sub": { "terms": {"field": "country"} }},
+                {"sub_id": { "terms": {"field": "country_id"} }}
+            ])
+        elif len(query_location.split("_")) == 2:
+            query["aggs"]["sub_date_buckets"]["composite"]["sources"].extend([
+                {"sub_id": { "terms": {"field": "location_id"} }},
                 {"sub": { "terms": {"field": "location"} }}
-            )
-        elif self.location_type == "country":
-            query["query"] = {
-	        "term": {self.location_type: query_location}
-            }
-            query["aggs"]["sub_date_buckets"]["composite"]["sources"].append(
-                {"sub": { "terms": {"field": "division"} }}
-            )
-        elif self.location_type is None:
-            query["aggs"]["sub_date_buckets"]["composite"]["sources"].append(
-                {"sub": { "terms": {"field": "country"} }}
-            )
+            ])
+        elif len(query_location.split("_")) == 1:
+            query["aggs"]["sub_date_buckets"]["composite"]["sources"].extend([
+                {"sub_id": { "terms": {"field": "division"} }},
+                {"sub": { "terms": {"field": "division_id"} }}
+            ])
         query_obj = create_nested_mutation_query(lineage = query_pangolin_lineage, mutations = query_mutations)
         query["aggs"]["sub_date_buckets"]["aggregations"]["lineage_count"]["filter"] = query_obj
         resp = yield self.asynchronous_fetch(query)
@@ -144,6 +142,7 @@ class CumulativePrevalenceByLocationHandler(BaseHandler):
             flattened_response = [{
                 "date": i["key"]["date_collected"],
                 "name": i["key"]["sub"],
+                "id": i["key"]["sub_id"],
                 "total_count": i["doc_count"],
                 "lineage_count": i["lineage_count"]["doc_count"]
             } for i in buckets if len(i["key"]["date_collected"].split("-")) > 1 and "XX" not in i["key"]["date_collected"]]
@@ -151,21 +150,11 @@ class CumulativePrevalenceByLocationHandler(BaseHandler):
         resp = {"success": True, "results": dict_response}
         self.write(resp)
 
-class CumulativeGlobalPrevalenceHandler(CumulativePrevalenceByLocationHandler):
-    location_type=None
-
-class CumulativePrevalenceByCountryHandler(CumulativePrevalenceByLocationHandler):
-    location_type="country"
-
-class CumulativePrevalenceByDivisionHandler(CumulativePrevalenceByLocationHandler):
-    location_type="division"
-
 class PrevalenceAllLineagesByLocationHandler(BaseHandler):
-    location_type = "country"
 
     @gen.coroutine
     def get(self):
-        query_location = self.get_argument("name", None)
+        query_location = self.get_argument("location_id", None)
         query_other_threshold = self.get_argument("other_threshold", 0.05)
         query_other_threshold = float(query_other_threshold)
         query_nday_threshold = self.get_argument("nday_threshold", 10)
@@ -178,9 +167,7 @@ class PrevalenceAllLineagesByLocationHandler(BaseHandler):
         query_cumulative = True if query_cumulative == "true" else False
         query = {
             "size": 0,
-            "query": {
-                "term" : { self.location_type : query_location }
-            },
+            "query": {},
             "aggs": {
                 "count": {
                     "terms": {
@@ -198,6 +185,7 @@ class PrevalenceAllLineagesByLocationHandler(BaseHandler):
                 }
             }
         }
+        query["query"] = parse_location_id_to_query(query_location)
         resp = yield self.asynchronous_fetch(query)
         buckets = resp
         path_to_results = ["aggregations", "count", "buckets"]
@@ -238,16 +226,6 @@ class PrevalenceAllLineagesByLocationHandler(BaseHandler):
             df_response.loc[:,"prevalence"] = df_response["lineage_count"]/df_response["total_count"]
         resp = {"success": True, "results": df_response.to_dict(orient="records")}
         self.write(resp)
-
-
-class PrevalenceAllLineagesByCountryHandler(PrevalenceAllLineagesByLocationHandler):
-    location_type = "country"
-
-class PrevalenceAllLineagesByDivisionHandler(PrevalenceAllLineagesByLocationHandler):
-    location_type = "division"
-
-class PrevalenceAllLineagesByCountyHandler(PrevalenceAllLineagesByLocationHandler):
-    location_type = "location"
 
 class PrevalenceByAAPositionHandler(BaseHandler):
 
