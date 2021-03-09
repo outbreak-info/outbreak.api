@@ -1,5 +1,5 @@
 from .lineage import LineageByCountryHandler, LineageByDivisionHandler, LineageAndCountryHandler, LineageAndDivisionHandler, LineageHandler, LineageMutationsHandler, MutationDetailsHandler, MutationsByLineage
-from .prevalence import GlobalPrevalenceByTimeHandler, PrevalenceByCountryAndTimeHandler, PrevalenceByDivisionAndTimeHandler, PrevalenceByCountyAndTimeHandler, CumulativeGlobalPrevalenceHandler, CumulativePrevalenceByCountryHandler, CumulativePrevalenceByDivisionHandler, PrevalenceAllLineagesByCountryHandler, PrevalenceAllLineagesByDivisionHandler, PrevalenceAllLineagesByCountyHandler, PrevalenceByAAPositionHandler
+from .prevalence import GlobalPrevalenceByTimeHandler, PrevalenceByLocationAndTimeHandler, CumulativeGlobalPrevalenceHandler, CumulativePrevalenceByCountryHandler, CumulativePrevalenceByDivisionHandler, PrevalenceAllLineagesByCountryHandler, PrevalenceAllLineagesByDivisionHandler, PrevalenceAllLineagesByCountyHandler, PrevalenceByAAPositionHandler
 from .general import LocationHandler, LocationDetailsHandler, MetadataHandler, MutationHandler, SubmissionLagHandler, SequenceCountHandler, MostRecentCollectionDateGlobalHandler, MostRecentCollectionDateByCountryHandler, MostRecentCollectionDateByDivisionHandler, MostRecentCollectionDateByCountyHandler, MostRecentSubmissionDateGlobalHandler, MostRecentSubmissionDateByCountryHandler, MostRecentSubmissionDateByDivisionHandler, MostRecentSubmissionDateByCountyHandler
 
 routes = [
@@ -9,9 +9,7 @@ routes = [
     (r"/genomics/lineage-and-division", LineageAndDivisionHandler),
     (r"/genomics/sequence-count", SequenceCountHandler),
     (r"/genomics/global-prevalence", GlobalPrevalenceByTimeHandler),
-    (r"/genomics/prevalence-by-country", PrevalenceByCountryAndTimeHandler),
-    (r"/genomics/prevalence-by-division", PrevalenceByDivisionAndTimeHandler),
-    (r"/genomics/prevalence-by-county", PrevalenceByCountyAndTimeHandler),
+    (r"/genomics/prevalence-by-location", PrevalenceByLocationAndTimeHandler),
     (r"/genomics/prevalence-by-country-all-lineages", PrevalenceAllLineagesByCountryHandler),
     (r"/genomics/prevalence-by-division-all-lineages", PrevalenceAllLineagesByDivisionHandler),
     (r"/genomics/prevalence-by-county-all-lineages", PrevalenceAllLineagesByCountyHandler),
