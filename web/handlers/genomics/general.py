@@ -225,17 +225,19 @@ class LocationHandler(BaseHandler):
                     })
             if loc =="division":
                 for rec in resp["aggregations"]["loc_agg"]["buckets"]:
+                    country_iso2_code = self.country_iso3_to_iso2[rec["key"]["country_id"]] if rec["key"]["country_id"] in self.country_iso3_to_iso2 else rec["key"]["country_id"]
                     flattened_response.append({
                         "country": rec["key"]["country"],
                         "country_id": rec["key"]["country_id"],
                         "division": rec["key"]["division"],
                         "division_id": rec["key"]["division_id"],
-                        "id": "_".join([rec["key"]["country_id"], self.country_iso3_to_iso2[rec["key"]["country_id"]] + "-" + rec["key"]["division_id"]]),
+                        "id": "_".join([rec["key"]["country_id"], country_iso2_code + "-" + rec["key"]["division_id"]]),
                         "label": ", ".join([rec["key"]["division"], rec["key"]["country"]]),
                         "admin_level": 1
                     })
             if loc =="location":
                 for rec in resp["aggregations"]["loc_agg"]["buckets"]:
+                    country_iso2_code = self.country_iso3_to_iso2[rec["key"]["country_id"]] if rec["key"]["country_id"] in self.country_iso3_to_iso2 else rec["key"]["country_id"]
                     flattened_response.append({
                         "country": rec["key"]["country"],
                         "country_id": rec["key"]["country_id"],
@@ -243,7 +245,7 @@ class LocationHandler(BaseHandler):
                         "division_id": rec["key"]["division_id"],
                         "location": rec["key"]["location"],
                         "location_id": rec["key"]["location_id"],
-                        "id": "_".join([rec["key"]["country_id"], self.country_iso3_to_iso2[rec["key"]["country_id"]] + "-" + rec["key"]["division_id"], rec["key"]["location_id"]]),
+                        "id": "_".join([rec["key"]["country_id"], country_iso2_code + "-" + rec["key"]["division_id"], rec["key"]["location_id"]]),
                         "label": ", ".join([rec["key"]["location"], rec["key"]["division"], rec["key"]["country"]]),
                         "admin_level": 2
                     })
