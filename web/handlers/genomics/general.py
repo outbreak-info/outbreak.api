@@ -63,17 +63,13 @@ class SequenceCountHandler(BaseHandler):
         resp = {"success": True, "results": flattened_response}
         self.write(resp)
 
-class MostRecentDateBase(BaseHandler):
+class MostRecentDateHandler(BaseHandler):
     field = "date_collected"
-    location_type = None
 
     @gen.coroutine
     def get(self):
         query_pangolin_lineage = self.get_argument("pangolin_lineage", None)
-        query_location = self.get_argument("name", None)
-        # query_country = self.get_argument("country", None)
-        # query_division = self.get_argument("division", None)
-        # query_county = self.get_argument("county", None)
+        query_location = self.get_argument("location_id", None)
         query_mutations = self.get_argument("mutations", None)
         query_mutations = query_mutations.split(",") if query_mutations is not None else []
         query = {
@@ -88,10 +84,7 @@ class MostRecentDateBase(BaseHandler):
                 }
             }
         }
-        kwargs = {}
-        if self.location_type is not None:
-            kwargs = {self.location_type: query_location}
-        query_obj = create_nested_mutation_query(lineage = query_pangolin_lineage, mutations = query_mutations, **kwargs)
+        query_obj = create_nested_mutation_query(lineage = query_pangolin_lineage, mutations = query_mutations, location_id = query_location)
         query["query"] = query_obj
         resp = yield self.asynchronous_fetch(query)
         print(resp)
@@ -124,37 +117,11 @@ class MostRecentDateBase(BaseHandler):
         resp = {"success": True, "results": dict_response}
         self.write(resp)
 
-class MostRecentCollectionDateGlobalHandler(MostRecentDateBase):
+class MostRecentCollectionDateHandler(MostRecentDateHandler):
     field = "date_collected"
-    location_type = None
 
-class MostRecentCollectionDateByCountryHandler(MostRecentDateBase):
-    field = "date_collected"
-    location_type = "country"
-
-class MostRecentCollectionDateByDivisionHandler(MostRecentDateBase):
-    field = "date_collected"
-    location_type = "division"
-
-class MostRecentCollectionDateByCountyHandler(MostRecentDateBase):
-    field = "date_collected"
-    location_type = "location"
-
-class MostRecentSubmissionDateGlobalHandler(MostRecentDateBase):
+class MostRecentSubmissionDateHandler(MostRecentDateHandler):
     field = "date_submitted"
-    location_type = None
-
-class MostRecentSubmissionDateByCountryHandler(MostRecentDateBase):
-    field = "date_submitted"
-    location_type = "country"
-
-class MostRecentSubmissionDateByDivisionHandler(MostRecentDateBase):
-    field = "date_submitted"
-    location_type = "division"
-
-class MostRecentSubmissionDateByCountyHandler(MostRecentDateBase):
-    field = "date_submitted"
-    location_type = "location"
 
 class LocationDetailsHandler(BaseHandler):
 
