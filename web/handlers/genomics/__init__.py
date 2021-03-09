@@ -1,5 +1,5 @@
 from .lineage import LineageByCountryHandler, LineageByDivisionHandler, LineageAndCountryHandler, LineageAndDivisionHandler, LineageHandler, LineageMutationsHandler, MutationDetailsHandler, MutationsByLineage
-from .prevalence import GlobalPrevalenceByTimeHandler, PrevalenceByLocationAndTimeHandler, CumulativeGlobalPrevalenceHandler, CumulativePrevalenceByCountryHandler, CumulativePrevalenceByDivisionHandler, PrevalenceAllLineagesByCountryHandler, PrevalenceAllLineagesByDivisionHandler, PrevalenceAllLineagesByCountyHandler, PrevalenceByAAPositionHandler
+from .prevalence import GlobalPrevalenceByTimeHandler, PrevalenceByLocationAndTimeHandler, CumulativePrevalenceByLocationHandler, PrevalenceAllLineagesByLocationHandler, PrevalenceByAAPositionHandler
 from .general import LocationHandler, LocationDetailsHandler, MetadataHandler, MutationHandler, SubmissionLagHandler, SequenceCountHandler, MostRecentCollectionDateGlobalHandler, MostRecentCollectionDateByCountryHandler, MostRecentCollectionDateByDivisionHandler, MostRecentCollectionDateByCountyHandler, MostRecentSubmissionDateGlobalHandler, MostRecentSubmissionDateByCountryHandler, MostRecentSubmissionDateByDivisionHandler, MostRecentSubmissionDateByCountyHandler
 
 routes = [
@@ -10,13 +10,9 @@ routes = [
     (r"/genomics/sequence-count", SequenceCountHandler),
     (r"/genomics/global-prevalence", GlobalPrevalenceByTimeHandler),
     (r"/genomics/prevalence-by-location", PrevalenceByLocationAndTimeHandler),
-    (r"/genomics/prevalence-by-country-all-lineages", PrevalenceAllLineagesByCountryHandler),
-    (r"/genomics/prevalence-by-division-all-lineages", PrevalenceAllLineagesByDivisionHandler),
-    (r"/genomics/prevalence-by-county-all-lineages", PrevalenceAllLineagesByCountyHandler),
+    (r"/genomics/prevalence-by-location-all-lineages", PrevalenceAllLineagesByLocationHandler),
     (r"/genomics/prevalence-by-position", PrevalenceByAAPositionHandler),
-    (r"/genomics/lineage-by-country-most-recent", CumulativeGlobalPrevalenceHandler),
-    (r"/genomics/lineage-by-division-most-recent", CumulativePrevalenceByCountryHandler),
-    (r"/genomics/lineage-by-county-most-recent", CumulativePrevalenceByDivisionHandler),
+    (r"/genomics/lineage-by-sub-admin-most-recent", CumulativePrevalenceByLocationHandler),
     (r"/genomics/most-recent-collection-date", MostRecentCollectionDateGlobalHandler),
     (r"/genomics/most-recent-collection-date-by-country", MostRecentCollectionDateByCountryHandler),
     (r"/genomics/most-recent-collection-date-by-division", MostRecentCollectionDateByDivisionHandler),
