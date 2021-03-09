@@ -1,6 +1,6 @@
 from .lineage import LineageByCountryHandler, LineageByDivisionHandler, LineageAndCountryHandler, LineageAndDivisionHandler, LineageHandler, LineageMutationsHandler, MutationDetailsHandler, MutationsByLineage
 from .prevalence import GlobalPrevalenceByTimeHandler, PrevalenceByLocationAndTimeHandler, CumulativePrevalenceByLocationHandler, PrevalenceAllLineagesByLocationHandler, PrevalenceByAAPositionHandler
-from .general import LocationHandler, LocationDetailsHandler, MetadataHandler, MutationHandler, SubmissionLagHandler, SequenceCountHandler, MostRecentCollectionDateGlobalHandler, MostRecentCollectionDateByCountryHandler, MostRecentCollectionDateByDivisionHandler, MostRecentCollectionDateByCountyHandler, MostRecentSubmissionDateGlobalHandler, MostRecentSubmissionDateByCountryHandler, MostRecentSubmissionDateByDivisionHandler, MostRecentSubmissionDateByCountyHandler
+from .general import LocationHandler, LocationDetailsHandler, MetadataHandler, MutationHandler, SubmissionLagHandler, SequenceCountHandler, MostRecentSubmissionDateHandler, MostRecentCollectionDateHandler
 
 routes = [
     (r"/genomics/lineage-by-country", LineageByCountryHandler),
@@ -13,14 +13,8 @@ routes = [
     (r"/genomics/prevalence-by-location-all-lineages", PrevalenceAllLineagesByLocationHandler),
     (r"/genomics/prevalence-by-position", PrevalenceByAAPositionHandler),
     (r"/genomics/lineage-by-sub-admin-most-recent", CumulativePrevalenceByLocationHandler),
-    (r"/genomics/most-recent-collection-date", MostRecentCollectionDateGlobalHandler),
-    (r"/genomics/most-recent-collection-date-by-country", MostRecentCollectionDateByCountryHandler),
-    (r"/genomics/most-recent-collection-date-by-division", MostRecentCollectionDateByDivisionHandler),
-    (r"/genomics/most-recent-collection-date-by-county", MostRecentCollectionDateByCountyHandler),
-    (r"/genomics/most-recent-submission-date", MostRecentSubmissionDateGlobalHandler),
-    (r"/genomics/most-recent-submission-date-by-country", MostRecentSubmissionDateByCountryHandler),
-    (r"/genomics/most-recent-submission-date-by-division", MostRecentSubmissionDateByDivisionHandler),
-    (r"/genomics/most-recent-submission-date-by-county", MostRecentSubmissionDateByCountyHandler),
+    (r"/genomics/most-recent-collection-date-by-location", MostRecentCollectionDateHandler),
+    (r"/genomics/most-recent-submission-date-by-location", MostRecentSubmissionDateHandler),
     (r"/genomics/mutation-details", MutationDetailsHandler),
     (r"/genomics/mutations-by-lineage", MutationsByLineage),
     (r"/genomics/lineage-mutations", LineageMutationsHandler),
