@@ -151,7 +151,7 @@ def transform_prevalence_by_location_and_tiime(flattened_response, ndays = None,
         }
     return dict_response
 
-def create_nested_mutation_query(country = None, division = None, location = None, lineage = None, mutations = []):
+def create_nested_mutation_query(location_id = None, lineage = None, mutations = []):
     query_obj = {
         "bool": {
             "must": []
@@ -173,25 +173,8 @@ def create_nested_mutation_query(country = None, division = None, location = Non
                 "pangolin_lineage": lineage
             }
         })
-    if country is not None:
-        bool_must.append({
-            "term": {
-                "country": country
-            }
-        })
-    if division is not None:
-        bool_must.append({
-            "term": {
-                "division": division
-            }
-        })
-    if location is not None:
-        bool_must.append({
-            "term": {
-                "location": location
-            }
-        })
     query_obj["bool"]["must"] = bool_must
+    parse_location_id_to_query(location_id, query_obj)
     return query_obj
 
 def classify_other_category(grp, keep_lineages):
@@ -212,13 +195,14 @@ def get_major_lineage_prevalence(df, index_col, keep_lineages = [], prevalence_t
     df.loc[:,"prevalence"] = df["lineage_count"]/df["total_count"]
     return df
 
-def parse_location_id_to_query(query_id):
+def parse_location_id_to_query(query_id, query_obj = None):
     location_codes = query_id.split("_")
-    query_obj = {
-        "bool": {
-            "must": []
+    if query_obj == None:
+        query_obj = {
+            "bool": {
+                "must": []
+            }
         }
-    }
     location_types = ["country_id", "division_id", "location_id"]
     for i in range(min(3, len(location_codes))):
         if i == 1 and len(location_codes[i].split("-")) > 1:              # For division remove iso2 code if present
