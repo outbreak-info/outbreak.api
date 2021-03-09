@@ -1,4 +1,4 @@
-from .util import transform_prevalence, transform_prevalence_by_location_and_tiime, compute_rolling_mean, create_nested_mutation_query, get_major_lineage_prevalence, compute_total_count, compute_rolling_mean_all_lineages, expand_dates
+from .util import transform_prevalence, transform_prevalence_by_location_and_tiime, compute_rolling_mean, create_nested_mutation_query, get_major_lineage_prevalence, compute_total_count, compute_rolling_mean_all_lineages, expand_dates, parse_location_id_to_query
 from .base import BaseHandler
 from tornado import gen
 import pandas as pd
@@ -38,15 +38,11 @@ class GlobalPrevalenceByTimeHandler(BaseHandler):
         self.write(resp)
 
 class PrevalenceByLocationAndTimeHandler(BaseHandler):
-    location_type="country"
 
     @gen.coroutine
     def get(self):
-        query_location = self.get_argument("name", None)
-        # query_country = self.get_argument("country", None)
+        query_location = self.get_argument("location_id", None)
         query_pangolin_lineage = self.get_argument("pangolin_lineage", None)
-        # query_division = self.get_argument("division", None)
-        # query_county = self.get_argument("county", None)
         query_mutations = self.get_argument("mutations", None)
         query_mutations = query_mutations.split(",") if query_mutations is not None else []
         cumulative = self.get_argument("cumulative", None)
@@ -56,8 +52,8 @@ class PrevalenceByLocationAndTimeHandler(BaseHandler):
             "aggs": {
                 "prevalence": {
                     "filter": {
-                        "term": {
-                            self.location_type: query_location
+                        "bool": {
+                            "must": []
                         }
                     },
                     "aggs": {
@@ -76,22 +72,13 @@ class PrevalenceByLocationAndTimeHandler(BaseHandler):
                 }
             }
         }
-        kwargs = {self.location_type: query_location}
-        query_obj = create_nested_mutation_query(lineage = query_pangolin_lineage, mutations = query_mutations, **kwargs)
+        parse_location_id_to_query(query_location, query["aggs"]["prevalence"]["filter"])
+        query_obj = create_nested_mutation_query(lineage = query_pangolin_lineage, mutations = query_mutations, location_id = query_location)
         query["aggs"]["prevalence"]["aggs"]["count"]["aggs"]["lineage_count"]["filter"] = query_obj
         resp = yield self.asynchronous_fetch(query)
         path_to_results = ["aggregations", "prevalence", "count", "buckets"]
         resp = transform_prevalence(resp, path_to_results, cumulative)
         self.write(resp)
-
-class PrevalenceByCountryAndTimeHandler(PrevalenceByLocationAndTimeHandler):
-    location_type="country"
-
-class PrevalenceByDivisionAndTimeHandler(PrevalenceByLocationAndTimeHandler):
-    location_type="division"
-
-class PrevalenceByCountyAndTimeHandler(PrevalenceByLocationAndTimeHandler):
-    location_type="location"
 
 class CumulativePrevalenceByLocationHandler(BaseHandler):
     location_type = None
