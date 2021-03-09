@@ -1,7 +1,7 @@
 import pandas as pd
 from .base import BaseHandler
 from tornado import gen
-from .util import create_nested_mutation_query
+from .util import create_nested_mutation_query, parse_location_id_to_query
 
 class SequenceCountHandler(BaseHandler):
 
@@ -156,6 +156,42 @@ class MostRecentSubmissionDateByCountyHandler(MostRecentDateBase):
     field = "date_submitted"
     location_type = "location"
 
+class LocationDetailsHandler(BaseHandler):
+
+    @gen.coroutine
+    def get(self):
+        query_str = self.get_argument("id", None)
+        query_ids = query_str.split("_")
+        query = {
+            "query": {},
+            "aggs": {
+                "country": {
+                    "terms": {
+                        "field": "country"
+                    }
+                }
+            }
+        }
+        if len(query_ids) >= 2:
+            query["aggs"]["country"]["aggs"] = {
+                "division": {
+                    "terms": {
+                        "field": "division"
+                    }
+                }
+            }
+        if len(query_ids) == 3: # 3 is max length
+            query["aggs"]["country"]["aggs"]["division"]["aggs"] = {
+                "location": {
+                    "terms": {
+                        "field": "location"
+                    }
+                }
+            }
+        query["query"] = parse_location_id_to_query(query_str)
+        resp = yield self.asynchronous_fetch(query)
+        # resp = {"success": True, "results": flattened_response}
+        self.write(resp)
 
 
 class LocationHandler(BaseHandler):
