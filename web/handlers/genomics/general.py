@@ -7,12 +7,10 @@ class SequenceCountHandler(BaseHandler):
 
     @gen.coroutine
     def get(self):
-        query_country = self.get_argument("country", None)
-        query_division = self.get_argument("division", None)
-        query_county = self.get_argument("county", None)
+        query_location = self.get_argument("location_id", None)
         query_cumulative = self.get_argument("cumulative", None)
         query_cumulative = True if query_cumulative == "true" else False
-        if query_cumulative:
+        if query_cumulative or query_location is None:
             query = {}
             resp = yield self.asynchronous_fetch_count(query)
             flattened_response = {
@@ -31,26 +29,11 @@ class SequenceCountHandler(BaseHandler):
                     }
                 }
             }
-            if query_county is not None:
-                query["query"] = {
-                    "match": {
-                        "location": query_county
-                    }
-                }
+            query["query"] = parse_location_id_to_query(query_location)
+            if len(query_location.split("_")) == 3:
                 query["aggs"]["country"]["terms"]["field"] = "location"
-            elif query_division is not None:
-                query["query"] = {
-                    "match": {
-                        "division": query_division
-                    }
-                }
+            elif len(query_location.split("_")) == 2:
                 query["aggs"]["country"]["terms"]["field"] = "division"
-            elif query_country is not None:
-                query["query"] = {
-                    "match": {
-                        "country": query_country
-                    }
-                }
             resp = yield self.asynchronous_fetch(query)
             path_to_results = ["aggregations", "country", "buckets"]
             buckets = resp
