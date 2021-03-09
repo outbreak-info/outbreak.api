@@ -124,8 +124,8 @@ class CumulativePrevalenceByLocationHandler(BaseHandler):
             ])
         elif len(query_location.split("_")) == 1:
             query["aggs"]["sub_date_buckets"]["composite"]["sources"].extend([
-                {"sub_id": { "terms": {"field": "division"} }},
-                {"sub": { "terms": {"field": "division_id"} }}
+                {"sub_id": { "terms": {"field": "division_id"} }},
+                {"sub": { "terms": {"field": "division"} }}
             ])
         query_obj = create_nested_mutation_query(lineage = query_pangolin_lineage, mutations = query_mutations)
         query["aggs"]["sub_date_buckets"]["aggregations"]["lineage_count"]["filter"] = query_obj
