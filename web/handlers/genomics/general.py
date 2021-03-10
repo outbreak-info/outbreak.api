@@ -260,6 +260,7 @@ class LocationHandler(BaseHandler):
                         "admin_level": 2,
                         "total_count": rec["doc_count"]
                     })
+        flattened_response = sorted(flattened_response, key = lambda x: -x["total_count"])
         resp = {"success": True, "results": flattened_response}
         self.write(resp)
 
