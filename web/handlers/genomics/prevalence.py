@@ -236,8 +236,10 @@ class PrevalenceByAAPositionHandler(BaseHandler):
     @gen.coroutine
     def get(self):
         query_str = self.get_argument("name", None)
-        query_country = self.get_argument("country", None)
-        query_division = self.get_argument("division", None)
+        query_location = self.get_argument("location", None)
+        query_lineage = self.get_argument("pangolin_lineage", None)
+        # query_country = self.get_argument("country", None)
+        # query_division = self.get_argument("division", None)
         query_gene = query_str.split(":")[0]
         query_aa_position = int(query_str.split(":")[1])
         # Get ref codon
@@ -307,18 +309,21 @@ class PrevalenceByAAPositionHandler(BaseHandler):
 		    }
 	        }
             }
-            if query_division != None:
-                query["query"]= {
-                    "match": {
-                        "division": query_division
+            if query_location is not None:
+                query["query"] = parse_location_id_to_query(query_location, query["aggs"]["prevalence"]["filter"])
+            if query_lineage is not None:
+                if "query" in query:
+                    query["query"]["bool"]["must"].append({
+                        "term": {
+                            "pangolin_lineage": query_lineage
+                        }
+                    })
+                else:
+                    query["query"] = {
+                        "term": {
+                            "pangolin_lineage": query_lineage
+                        }
                     }
-                }
-            elif query_country != None:
-                query["query"]= {
-                    "match": {
-                        "country": query_country
-                    }
-                }
             resp = yield self.asynchronous_fetch(query)
             buckets = resp
             path_to_results = ["aggregations", "by_date", "buckets"]
