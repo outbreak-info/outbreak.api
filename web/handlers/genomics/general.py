@@ -229,7 +229,8 @@ class LocationHandler(BaseHandler):
                         "country_id": rec["key"]["country_id"],
                         "id": rec["key"]["country_id"],
                         "label": rec["key"]["country"],
-                        "admin_level": 0
+                        "admin_level": 0,
+                        "total_count": rec["doc_count"]
                     })
             if loc =="division":
                 for rec in resp["aggregations"]["loc_agg"]["buckets"]:
@@ -241,7 +242,8 @@ class LocationHandler(BaseHandler):
                         "division_id": rec["key"]["division_id"],
                         "id": "_".join([rec["key"]["country_id"], country_iso2_code + "-" + rec["key"]["division_id"]]),
                         "label": ", ".join([rec["key"]["division"], rec["key"]["country"]]),
-                        "admin_level": 1
+                        "admin_level": 1,
+                        "total_count": rec["doc_count"]
                     })
             if loc =="location":
                 for rec in resp["aggregations"]["loc_agg"]["buckets"]:
@@ -255,7 +257,8 @@ class LocationHandler(BaseHandler):
                         "location_id": rec["key"]["location_id"],
                         "id": "_".join([rec["key"]["country_id"], country_iso2_code + "-" + rec["key"]["division_id"], rec["key"]["location_id"]]),
                         "label": ", ".join([rec["key"]["location"], rec["key"]["division"], rec["key"]["country"]]),
-                        "admin_level": 2
+                        "admin_level": 2,
+                        "total_count": rec["doc_count"]
                     })
         resp = {"success": True, "results": flattened_response}
         self.write(resp)
