@@ -10,39 +10,34 @@ class SequenceCountHandler(BaseHandler):
         query_location = self.get_argument("location_id", None)
         query_cumulative = self.get_argument("cumulative", None)
         query_cumulative = True if query_cumulative == "true" else False
-        if query_cumulative or query_location is None:
-            query = {}
-            resp = yield self.asynchronous_fetch_count(query)
-            flattened_response = {
-                "name": "global",
-                "total_count": resp["count"]
-            }
-        else:
-            query = {
-                "size": 0,
-                "aggs": {
-                    "country": {
-                        "terms": {
-                            "field": "country",
-                            "size": 10000
-                        }
+        query = {}
+        if query_location is not None:
+            query["query"] = parse_location_id_to_query(query_location)
+        flattened_response = []
+        if not query_cumulative:
+            query["aggs"] = {
+                "date": {
+                    "terms": {
+                        "field": "date_collected",
+                        "size": self.size
                     }
                 }
             }
-            query["query"] = parse_location_id_to_query(query_location)
-            if len(query_location.split("_")) == 3:
-                query["aggs"]["country"]["terms"]["field"] = "location"
-            elif len(query_location.split("_")) == 2:
-                query["aggs"]["country"]["terms"]["field"] = "division"
             resp = yield self.asynchronous_fetch(query)
-            path_to_results = ["aggregations", "country", "buckets"]
+            path_to_results = ["aggregations", "date", "buckets"]
             buckets = resp
             for i in path_to_results:
                 buckets = buckets[i]
             flattened_response = [{
-                "name": i["key"],
+                "date": i["key"],
                 "total_count": i["doc_count"]
-            } for i in buckets]
+            } for i in buckets if not (len(i["key"].split("-")) < 3 or "XX" in i["key"])]
+            flattened_response = sorted(flattened_response, key = lambda x: x["date"])
+        else:
+            resp = yield self.asynchronous_fetch(query)
+            flattened_response = {
+                "total_count": resp["hits"]["total"]
+            }
         resp = {"success": True, "results": flattened_response}
         self.write(resp)
 
