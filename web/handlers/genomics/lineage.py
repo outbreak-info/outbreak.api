@@ -78,7 +78,6 @@ class LineageAndCountryHandler(BaseHandler):
         resp = yield self.asynchronous_fetch(query)
         self.write(resp)
 
-
 # Calculate total number of sequences with a particular lineage in a division
 class LineageAndDivisionHandler(BaseHandler):
 
@@ -132,6 +131,22 @@ class LineageHandler(BaseHandler):
         self.write(resp)
 
 class LineageMutationsHandler(BaseHandler):
+
+    gene_mapping = {
+        "orf1a" : "ORF1a",
+        "orf1b" : "ORF1b",
+        "s" : "S",
+        "orf3a" : "ORF3a",
+        "e": "E",
+        "m" : "M",
+        "orf6": "ORF6",
+        "orf7a" : "ORF7a",
+        "orf7b" : "ORF7b",
+        "orf8" : "ORF8",
+        "n" : "N",
+        "orf10" : "ORF10"
+    }
+
     @gen.coroutine
     def get(self):
         pangolin_lineage = self.get_argument("pangolin_lineage", None)
@@ -177,10 +192,10 @@ class LineageMutationsHandler(BaseHandler):
             df_response = (
                 pd.DataFrame(flattened_response)
                 .assign(
-                    gene = lambda x: x["mutation"].apply(lambda k: k.split(":")[0]),
-                    ref_aa = lambda x: x["mutation"].apply(lambda k: re.findall("[A-Za-z]+", k.split(":")[1])[0] if "DEL" not in k and "del" not in k and "_" not in k else k),
-                    alt_aa = lambda x: x["mutation"].apply(lambda k: re.findall("[A-Za-z]+", k.split(":")[1])[1] if "DEL" not in k and "del" not in k and "_" not in k else k.split(":")[1]),
-                    codon_num = lambda x: x["mutation"].apply(lambda k: re.findall("[0-9]+", k.split(":")[1])[0] if "DEL" not in k and "del" not in k and "_" not in k else k.split(":")[1]),
+                    gene = lambda x: x["mutation"].apply(lambda k: self.gene_mapping[k.split(":")[0]] if k.split(":")[0] in self.gene_mapping else k.split(":")[0]),
+                    ref_aa = lambda x: x["mutation"].apply(lambda k: re.findall("[A-Za-z]+", k.split(":")[1])[0] if "DEL" not in k and "del" not in k and "_" not in k else k).str.upper(),
+                    alt_aa = lambda x: x["mutation"].apply(lambda k: re.findall("[A-Za-z]+", k.split(":")[1])[1] if "DEL" not in k and "del" not in k and "_" not in k else k.split(":")[1]).str.upper(),
+                    codon_num = lambda x: x["mutation"].apply(lambda k: int(re.findall("[0-9]+", k.split(":")[1])[0])),
                     type = lambda x: x["mutation"].apply(lambda k: "deletion" if "DEL" in k or "del" in k else "substitution")
                 )
             )
