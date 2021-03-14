@@ -229,7 +229,7 @@ class LocationHandler(BaseHandler):
                     })
             if loc =="division":
                 for rec in resp["aggregations"]["loc_agg"]["buckets"]:
-                    if rec["key"]["division"].lower() == "none":
+                    if rec["key"]["location"].lower() in ["none", "unknown"] or rec["key"]["location"].lower().replace(" ", "").replace("-", "") == "outofstate":
                         continue
                     country_iso2_code = self.country_iso3_to_iso2[rec["key"]["country_id"]] if rec["key"]["country_id"] in self.country_iso3_to_iso2 else rec["key"]["country_id"]
                     flattened_response.append({
@@ -244,7 +244,7 @@ class LocationHandler(BaseHandler):
                     })
             if loc =="location":
                 for rec in resp["aggregations"]["loc_agg"]["buckets"]:
-                    if rec["key"]["location"].lower() == "none":
+                    if rec["key"]["location"].lower() in ["none", "unknown"] or rec["key"]["location"].lower().replace(" ", "").replace("-", "") == "outofstate":
                         continue
                     country_iso2_code = self.country_iso3_to_iso2[rec["key"]["country_id"]] if rec["key"]["country_id"] in self.country_iso3_to_iso2 else rec["key"]["country_id"]
                     flattened_response.append({
