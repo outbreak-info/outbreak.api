@@ -139,13 +139,22 @@ class CumulativePrevalenceByLocationHandler(BaseHandler):
             buckets.extend(resp["aggregations"]["sub_date_buckets"]["buckets"])
         dict_response = {"success": True, "results": []}
         if len(buckets) > 0:
-            flattened_response = [{
-                "date": i["key"]["date_collected"],
-                "name": i["key"]["sub"],
-                "id": i["key"]["sub_id"],
-                "total_count": i["doc_count"],
-                "lineage_count": i["lineage_count"]["doc_count"]
-            } for i in buckets if len(i["key"]["date_collected"].split("-")) > 1 and "XX" not in i["key"]["date_collected"]]
+            flattened_response = []
+            for i in buckets:
+                if len(i["key"]["date_collected"].split("-")) < 3 or "XX" in i["key"]["date_collected"]:
+                    continue
+                # Check for None and out of state
+                if i["key"]["sub"].lower().replace("-", "").replace(" ", "") == "outofstate":
+                    i["key"]["sub"] = "Out of state"
+                if i["key"]["sub"].lower() in ["none", "unknown"]:
+                    i["key"]["sub"] = "Unknown"
+                flattened_response.append({
+                    "date": i["key"]["date_collected"],
+                    "name": i["key"]["sub"],
+                    "id": i["key"]["sub_id"],
+                    "total_count": i["doc_count"],
+                    "lineage_count": i["lineage_count"]["doc_count"]
+                })
             dict_response = transform_prevalence_by_location_and_tiime(flattened_response, query_ndays, query_detected)
         resp = {"success": True, "results": dict_response}
         self.write(resp)
