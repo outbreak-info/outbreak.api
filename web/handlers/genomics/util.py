@@ -109,13 +109,11 @@ def transform_prevalence(resp, path_to_results = [], cumulative = False):
 
 def compute_cumulative(grp, cols):
     grp = grp.sort_values("date")
-    first_date = grp[grp["lineage_count"] > 0]["date"].min()
-    tmp_grp = grp[grp["date"] >= first_date]
-    if tmp_grp.shape[0] != 0:
+    if grp.shape[0] != 0:
         for i in cols:
-            tmp_grp.loc[:, "cum_{}".format(i)] = tmp_grp[i].cumsum()
-            tmp_grp.loc[:, "cum_{}".format(i)] = tmp_grp[i].cumsum()
-        return tmp_grp.tail(1)
+            grp.loc[:, "cum_{}".format(i)] = grp[i].cumsum()
+            grp.loc[:, "cum_{}".format(i)] = grp[i].cumsum()
+        return grp.tail(1)
     else:
         for i in cols:
             if i == "total_count":
