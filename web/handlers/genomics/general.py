@@ -313,8 +313,7 @@ class SubmissionLagHandler(BaseHandler):
 
     @gen.coroutine
     def get(self):
-        query_country = self.get_argument("country", None)
-        query_division = self.get_argument("division", None)
+        query_location = self.get_argument("location_id", None)
         query = {
             "aggs": {
                 "date_collected_submitted_buckets": {
@@ -328,18 +327,8 @@ class SubmissionLagHandler(BaseHandler):
                 }
             }
         }
-        if query_division is not None:
-            query["query"] = {
-                "match": {
-                    "division": query_division
-                }
-            }
-        if query_country is not None:
-            query["query"] = {
-                "match": {
-                    "country": query_country
-                }
-            }
+        if query_location is not None:
+            query["query"] = parse_location_id_to_query(query_location)
         resp = yield self.asynchronous_fetch(query)
         path_to_results = ["aggregations", "date_collected_submitted_buckets", "buckets"]
         buckets = resp
