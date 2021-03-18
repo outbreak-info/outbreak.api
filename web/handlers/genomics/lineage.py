@@ -1,7 +1,7 @@
 from .base import BaseHandler
 from tornado import gen
 import pandas as pd
-from .util import create_nested_mutation_query, calculate_proportion
+from .util import create_nested_mutation_query, calculate_proportion, parse_location_id_to_query
 
 import re
 
@@ -259,6 +259,7 @@ class MutationDetailsHandler(BaseHandler):
 class MutationsByLineage(BaseHandler):
     @gen.coroutine
     def get(self):
+        query_location = self.get_argument("location_id", None)
         query_mutations = self.get_argument("mutations", None)
         query_mutations = query_mutations.split(",") if query_mutations is not None else []
         query = {
@@ -274,6 +275,8 @@ class MutationsByLineage(BaseHandler):
                 }
             }
         }
+        if query_location is not None:
+            query["query"] = parse_location_id_to_query(query_location)
         query["aggs"]["lineage"]["aggs"]["mutations"]["filter"] = create_nested_mutation_query(mutations = query_mutations)
         resp = yield self.asynchronous_fetch(query)
         path_to_results = ["aggregations", "lineage", "buckets"]
