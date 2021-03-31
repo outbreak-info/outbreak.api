@@ -1,7 +1,7 @@
 from .base import BaseHandler
 from tornado import gen
 import pandas as pd
-from .util import create_nested_mutation_query, calculate_proportion
+from .util import create_nested_mutation_query, calculate_proportion, parse_location_id_to_query
 
 import re
 
@@ -193,8 +193,8 @@ class LineageMutationsHandler(BaseHandler):
                 pd.DataFrame(flattened_response)
                 .assign(
                     gene = lambda x: x["mutation"].apply(lambda k: self.gene_mapping[k.split(":")[0]] if k.split(":")[0] in self.gene_mapping else k.split(":")[0]),
-                    ref_aa = lambda x: x["mutation"].apply(lambda k: re.findall("[A-Za-z]+", k.split(":")[1])[0] if "DEL" not in k and "del" not in k and "_" not in k else k).str.upper(),
-                    alt_aa = lambda x: x["mutation"].apply(lambda k: re.findall("[A-Za-z]+", k.split(":")[1])[1] if "DEL" not in k and "del" not in k and "_" not in k else k.split(":")[1]).str.upper(),
+                    ref_aa = lambda x: x["mutation"].apply(lambda k: re.findall("[A-Za-z*]+", k.split(":")[1])[0] if "DEL" not in k and "del" not in k and "_" not in k else k).str.upper(),
+                    alt_aa = lambda x: x["mutation"].apply(lambda k: re.findall("[A-Za-z*]+", k.split(":")[1])[1] if "DEL" not in k and "del" not in k and "_" not in k else k.split(":")[1]).str.upper(),
                     codon_num = lambda x: x["mutation"].apply(lambda k: int(re.findall("[0-9]+", k.split(":")[1])[0])),
                     type = lambda x: x["mutation"].apply(lambda k: "deletion" if "DEL" in k or "del" in k else "substitution")
                 )
@@ -259,6 +259,7 @@ class MutationDetailsHandler(BaseHandler):
 class MutationsByLineage(BaseHandler):
     @gen.coroutine
     def get(self):
+        query_location = self.get_argument("location_id", None)
         query_mutations = self.get_argument("mutations", None)
         query_mutations = query_mutations.split(",") if query_mutations is not None else []
         query = {
@@ -274,6 +275,8 @@ class MutationsByLineage(BaseHandler):
                 }
             }
         }
+        if query_location is not None:
+            query["query"] = parse_location_id_to_query(query_location)
         query["aggs"]["lineage"]["aggs"]["mutations"]["filter"] = create_nested_mutation_query(mutations = query_mutations)
         resp = yield self.asynchronous_fetch(query)
         path_to_results = ["aggregations", "lineage", "buckets"]
