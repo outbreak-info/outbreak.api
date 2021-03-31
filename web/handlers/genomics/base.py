@@ -1,6 +1,6 @@
-from biothings.web.handlers import BaseHandler as BiothingsBaseHandler
+from biothings.web.handlers import BaseAPIHandler
 
-class BaseHandler(BiothingsBaseHandler):
+class BaseHandler(BaseAPIHandler):
 
     def set_default_headers(self):
         self.set_header("Content-Type", "application/json")
