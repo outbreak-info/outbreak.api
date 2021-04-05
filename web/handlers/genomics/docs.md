@@ -87,6 +87,7 @@ Parameters:
 * `location_id`  (Optional). If not specified, return cumulative prevalence at the country level globally.
 * `ndays` (Optional). Specify number of days from current date to calculative cumuative counts. If not specified, there is no limit on the window.
 
+
 5. Most recent collection date by location
 
 Endpoint: https://api.outbreak.info/genomics/most-recent-collection-date-by-location
@@ -224,3 +225,20 @@ Examples,
 
 Get all mutations that start with S:E484
 https://api.outbreak.info/genomics/mutations?name=S:E484*
+
+15. Get prevalence of all lineages over time for a location
+
+Endpoint: https://api.outbreak.info/genomics/prevalence-by-location-all-lineages
+
+Paramters:
+* `location_id` (Required)
+* `other_threshold` (Default: `0.05`) Minimum prevalence threshold below which lineages must be accumulated under "Other".
+* `nday_threshold` (Default: `10`) Minimum number of days in which the prevalence of a lineage must be below `other_threshold` to be accumulated under "Other".
+* `ndays` (Default: `180`) The number of days before the current date to be used as a window to accumulate linegaes under "Other".
+* `other_exclude` Comma separated lineages that are NOT to be included under "Other" even if the conditions specified by the three thresholds above are met.
+* `cumulative` (Default: `false`) If `true` return the cumulative prevalence.
+
+Examples,
+
+Give me the prevalence of all lineages in the U.S., classify lineages that are below 0.03 prevalence for atleast 5 days over the last 60 days as "Other", and exclude p.1 from "Other" even if conditions for "Other" are satisfied.
+https://api.outbreak.info/genomics/prevalence-by-location-all-lineages?location_id=USA&other_threshold=0.03&nday_threshold=5&ndays=60&other_exclude=p.1
