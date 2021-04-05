@@ -1,6 +1,6 @@
-## API Documentation
+# API Documentation
 
-1. Sequence counts
+## 1. Sequence counts
 
 Description
 ```
@@ -25,7 +25,7 @@ https://api.outbreak.info/genomics/sequence-count?location_id=USA&cumulative=tru
 Daily number of sequences for California
 https://api.outbreak.info/genomics/sequence-count?location_id=USA_US-CA
 
-2. Global daily prevalence of a PANGO lineage
+## 2. Global daily prevalence of a PANGO lineage
 
 ```
 Returns the global daily prevalence of a PANGO lineage
@@ -49,8 +49,7 @@ https://api.outbreak.info/genomics/global-prevalence?pangolin_lineage=b.1.1.7&mu
 Cumulative global prevalence of B.1.1.7
 https://api.outbreak.info/genomics/global-prevalence?pangolin_lineage=b.1.1.7&cumulative=true
 
-
-3. Daily prevalence of a PANGO lineage by location
+## 3. Daily prevalence of a PANGO lineage by location
 
 ```
 Returns the daily prevalence of a PANGO lineage by location
@@ -76,7 +75,7 @@ Cumulative global prevalence of B.1.1.7
 https://api.outbreak.info/genomics/global-prevalence?pangolin_lineage=b.1.1.7&cumulative=true
 
 
-4. Cumulative prevalence of a PANGO lineage by the immediate admin level of a location
+## 4. Cumulative prevalence of a PANGO lineage by the immediate admin level of a location
 
 Endpoint: https://api.outbreak.info/genomics/lineage-by-sub-admin-most-recent
 
@@ -88,7 +87,7 @@ Parameters:
 * `ndays` (Optional). Specify number of days from current date to calculative cumuative counts. If not specified, there is no limit on the window.
 
 
-5. Most recent collection date by location
+## 5. Most recent collection date by location
 
 Endpoint: https://api.outbreak.info/genomics/most-recent-collection-date-by-location
 
@@ -109,7 +108,7 @@ https://api.outbreak.info/genomics/most-recent-collection-date-by-location?pango
 Most recent collection date of B.1.1.7 PANGO lineage in California
 https://api.outbreak.info/genomics/most-recent-collection-date-by-location?pangolin_lineage=b.1.1.7&location_id=USA_US-CA
 
-6. Most recent submission date by location
+## 6. Most recent submission date by location
 
 Endpoint: https://api.outbreak.info/genomics/most-recent-submission-date-by-location
 
@@ -130,7 +129,7 @@ https://api.outbreak.info/genomics/most-recent-submission-date-by-location?pango
 Most recent submission date of B.1.1.7 PANGO lineage in California
 https://api.outbreak.info/genomics/most-recent-submission-date-by-location?pangolin_lineage=b.1.1.7&location_id=USA_US-CA
 
-7. Get details of a mutation
+## 7. Get details of a mutation
 
 Endpoint: https://api.outbreak.info/genomics/mutation-details
 
@@ -142,7 +141,7 @@ Examples,
 Get details of S:E484K and S:N501Y
 https://api.outbreak.info/genomics/mutation-details?mutations=S:E484K,S:N501Y
 
-8. Get prevalence of a mutation across lineages per location
+## 8. Get prevalence of a mutation across lineages per location
 
 Endpoint: https://api.outbreak.info/genomics/mutations-by-lineage
 
@@ -156,7 +155,7 @@ Examples,
 Get prevalence of S:E484K across all lineages in the U.S.
 https://api.outbreak.info/genomics/mutations-by-lineage?mutations=S:E484K&location_id=USA
 
-9. Get prevalence of mutations in a lineage above a frequency threshold
+## 9. Get prevalence of mutations in a lineage above a frequency threshold
 
 Endpoint: https://api.outbreak.info/genomics/lineage-mutations
 
@@ -170,7 +169,7 @@ Examples,
 Get all mutations in A.27 lineage.
 https://api.outbreak.info/genomics/lineage-mutations?pangolin_lineage=A.27
 
-10. Return the daily lag between collection and submission dates by location
+## 10. Return the daily lag between collection and submission dates by location
 
 Endpoint: https://api.outbreak.info/genomics/collection-submission
 
@@ -178,7 +177,7 @@ Parameters:
 
 * `location_id` (Optional). If not specified, return lag globally.
 
-11. Match lineage name using wildcards.
+## 11. Match lineage name using wildcards.
 
 Endpoint: https://api.outbreak.info/genomics/lineage
 
@@ -191,7 +190,7 @@ Examples,
 Get all lineages that start with b.1
 https://api.outbreak.info/genomics/lineage?name=b.1.*
 
-12. Match location name using wildcards.
+## 12. Match location name using wildcards.
 
 Endpoint: https://api.outbreak.info/genomics/location
 
@@ -204,7 +203,7 @@ Examples,
 Get all locations that start with united
 https://api.outbreak.info/genomics/location?name=united*
 
-13. Get location details using ID.
+## 13. Get location details using ID.
 
 Parameters:
 * `id` (Required).
@@ -214,7 +213,7 @@ Examples,
 Get location details using id: `USA_US-CA`
 https://dev.outbreak.info/genomics/location-lookup?id=USA_US-CA
 
-14. Match mutations using wildcards.
+## 14. Match mutations using wildcards.
 
 Endpoint: https://api.outbreak.info/genomics/mutations
 
@@ -226,7 +225,7 @@ Examples,
 Get all mutations that start with S:E484
 https://api.outbreak.info/genomics/mutations?name=S:E484*
 
-15. Get prevalence of all lineages over time for a location
+## 15. Get prevalence of all lineages over time for a location
 
 Endpoint: https://api.outbreak.info/genomics/prevalence-by-location-all-lineages
 
