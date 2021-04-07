@@ -186,6 +186,9 @@ def classify_other_category(grp, keep_lineages):
 def get_major_lineage_prevalence(df, index_col, keep_lineages = [], prevalence_threshold = 0.05, nday_threshold = 10, ndays = 180):
     date_limit = dt.today() - timedelta(days = ndays)
     lineages_to_retain = df[(df["prevalence"] >= prevalence_threshold) & (df["date"] >= date_limit)]["lineage"].value_counts()
+    num_unique_dates = df[df["date"] >= date_limit]["date"].unique().shape[0]
+    if num_unique_dates < nday_threshold:
+        nday_threshold = round((nday_threshold/ndays) * num_unique_dates)
     lineages_to_retain = lineages_to_retain[lineages_to_retain >= nday_threshold].index.tolist()
     lineages_to_retain.extend(keep_lineages)
     df = df.groupby(index_col).apply(classify_other_category, lineages_to_retain)
