@@ -254,7 +254,11 @@ class MutationDetailsHandler(BaseHandler):
         flattened_response = []
         for i in buckets:
             for j in i["by_nested"]["hits"]["hits"]:
-                flattened_response.append(j["_source"])
+                tmp = j["_source"]
+                for k in ["change_length_nt", "codon_num", "pos"]:
+                    if tmp[k] != "None":
+                        tmp[k] = int(float(tmp[k]))
+                flattened_response.append(tmp)
         resp = {"success": True, "results": flattened_response}
         self.write(resp)
 
