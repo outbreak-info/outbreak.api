@@ -267,6 +267,7 @@ class MutationsByLineage(BaseHandler):
     def get(self):
         query_location = self.get_argument("location_id", None)
         query_mutations = self.get_argument("mutations", None)
+        query_pangolin_lineage = self.get_argument("pangolin_lineage", None)
         query_mutations = query_mutations.split(",") if query_mutations is not None else []
         query = {
             "size": 0,
@@ -283,6 +284,19 @@ class MutationsByLineage(BaseHandler):
         }
         if query_location is not None:
             query["query"] = parse_location_id_to_query(query_location)
+        if query_pangolin_lineage is not None:
+            if "query" in query: # Only query added will be bool for location
+                query["query"]["bool"]["must"].append({
+                    "term": {
+                        "pangolin_lineage": query_pangolin_lineage
+                    }
+                })
+            else:
+                query["query"] = {
+                    "term": {
+                        "pangolin_lineage": query_pangolin_lineage
+                    }
+                }
         query["aggs"]["lineage"]["aggs"]["mutations"]["filter"] = create_nested_mutation_query(mutations = query_mutations)
         resp = yield self.asynchronous_fetch(query)
         path_to_results = ["aggregations", "lineage", "buckets"]
@@ -299,9 +313,10 @@ class MutationsByLineage(BaseHandler):
                 "mutation_count": i["mutations"]["doc_count"]
             })
         df_response = pd.DataFrame(flattened_response)
-        prop = calculate_proportion(df_response["mutation_count"], df_response["lineage_count"])
-        df_response.loc[:, "proportion"] = prop[0]
-        df_response.loc[:, "proportion_ci_lower"] = prop[1]
-        df_response.loc[:, "proportion_ci_upper"] = prop[2]
+        if df_response.shape[0] > 0:
+            prop = calculate_proportion(df_response["mutation_count"], df_response["lineage_count"])
+            df_response.loc[:, "proportion"] = prop[0]
+            df_response.loc[:, "proportion_ci_lower"] = prop[1]
+            df_response.loc[:, "proportion_ci_upper"] = prop[2]
         resp = {"success": True, "results": df_response.to_dict(orient="records")}
         self.write(resp)
