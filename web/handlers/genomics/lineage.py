@@ -196,12 +196,14 @@ class LineageMutationsHandler(BaseHandler):
                     ref_aa = lambda x: x["mutation"].apply(lambda k: re.findall("[A-Za-z*]+", k.split(":")[1])[0] if "DEL" not in k and "del" not in k and "_" not in k else k).str.upper(),
                     alt_aa = lambda x: x["mutation"].apply(lambda k: re.findall("[A-Za-z*]+", k.split(":")[1])[1] if "DEL" not in k and "del" not in k and "_" not in k else k.split(":")[1]).str.upper(),
                     codon_num = lambda x: x["mutation"].apply(lambda k: int(re.findall("[0-9]+", k.split(":")[1])[0])),
+                    codon_end = lambda x: x["mutation"].apply(lambda k: int(re.findall("[0-9]+", k.split(":")[1])[1]) if "/" in k and ("DEL" in k or "del" in k) else None),
                     type = lambda x: x["mutation"].apply(lambda k: "deletion" if "DEL" in k or "del" in k else "substitution")
                 )
             )
             df_response = df_response[df_response["ref_aa"] != df_response["alt_aa"]]
             df_response.loc[:, "prevalence"] = df_response["mutation_count"]/df_response["lineage_count"]
-            df_response = df_response[df_response["prevalence"] >= frequency]
+            df_response.loc[~df_response["codon_end"].isna(), "change_length_nt"] = ((df_response["codon_end"] - df_response["codon_num"]) + 1) * 3
+            df_response = df_response[df_response["prevalence"] >= frequency].fillna("None")
             dict_response = df_response.to_dict(orient="records")
         resp = {"success": True, "results": dict_response}
         self.write(resp)
