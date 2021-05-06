@@ -74,11 +74,12 @@ def transform_prevalence(resp, path_to_results = [], cumulative = False):
         .sort_values("date")
     )
     first_date = df_response[df_response["lineage_count"] > 0]["date"].min()
-    df_response = df_response[df_response["date"] >= first_date]
     dict_response = {}
     if not cumulative:
+        df_response = df_response[df_response["date"] >= first_date - pd.to_timedelta(6, unit='d')]
         df_response = compute_rolling_mean(df_response, "date", "total_count", "total_count_rolling")
         df_response = compute_rolling_mean(df_response, "date", "lineage_count", "lineage_count_rolling")
+        df_response = df_response[df_response["date"] >= first_date]
         d = calculate_proportion(df_response["lineage_count_rolling"], df_response["total_count_rolling"])
         df_response.loc[:, "proportion"] = d[0]
         df_response.loc[:, "proportion_ci_lower"] = d[1]
@@ -86,6 +87,7 @@ def transform_prevalence(resp, path_to_results = [], cumulative = False):
         df_response.loc[:,"date"] = df_response["date"].apply(lambda x: x.strftime("%Y-%m-%d"))
         dict_response = df_response.to_dict(orient="records")
     else:                       # For cumulative only calculate cumsum prevalence
+        df_response = df_response[df_response["date"] >= first_date]
         if df_response.shape[0] == 0:
             dict_response = {
                 "global_prevalence": 0,
