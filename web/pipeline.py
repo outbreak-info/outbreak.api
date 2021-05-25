@@ -12,6 +12,7 @@ class QueryBuilder(ESQueryBuilder):
     def default_string_query(self, q, options):
         search = AsyncSearch()
         
+        """
         if q == '__all__':
             search = search.query()
 
@@ -19,20 +20,21 @@ class QueryBuilder(ESQueryBuilder):
             search = search.query('function_score', random_score={})
             
         else:  # elasticsearch default
-            query = {
-                "query": {
-                    "query_string": {
-                        "query": q,
-                        "fields": [
-                            "name^4",
-                            "interventions.name^3",
-                            "description",
-                            "all"
-                        ]
-                    }
+        """
+        query = { "query": {
+                "query_string": {
+                    "query": q,
+                    "fields": [
+                        "name^4",
+                        "interventions.name^3",
+                        "description",
+                        "all"
+                    ]
                 }
             }
-            search = search.query("query_string", query=str(query))
+        }
+
+        search = search.query("query_string", query=str(query))
         
         return search
 
@@ -45,3 +47,6 @@ class QueryBuilder(ESQueryBuilder):
             search = search.filter('term', **{'@type':options._type})
 
         return search
+
+class ResourceTransform(ESResultTransform):
+    pass
