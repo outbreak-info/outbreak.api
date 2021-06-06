@@ -216,3 +216,24 @@ def parse_location_id_to_query(query_id, query_obj = None):
             }
         })
     return query_obj
+
+def create_OR_query(queries, query_tmpl):
+    queries = queries.split(",")
+    if len(queries) == 1:
+        query_tmpl["query"] = {
+            "bool": {
+                "filter": [
+                    {"term": {"pangolin_lineage": queries[0]}}
+                ]
+            }
+        }
+    else:
+        query_tmpl["query"] = {
+            "bool": {
+                "should": [
+                    {"term": {"pangolin_lineage": i}}
+                    for i in queries
+                ]
+            }
+        }
+

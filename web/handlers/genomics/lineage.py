@@ -1,7 +1,7 @@
 from .base import BaseHandler
 from tornado import gen
 import pandas as pd
-from .util import create_nested_mutation_query, calculate_proportion, parse_location_id_to_query
+from .util import create_nested_mutation_query, calculate_proportion, parse_location_id_to_query, create_OR_query
 
 import re
 
@@ -154,39 +154,45 @@ class LineageMutationsHandler(BaseHandler):
         frequency = float(frequency) if frequency != None else 0.8
         query = {
                 "size": 0,
-                "query": {
-                    "bool": {
-                        "filter": [
-                            {"term": {"pangolin_lineage": pangolin_lineage}}
-                            ]
-                        }
-                    },
+                "query": {},
                 "aggs": {
-                    "mutations": {
-                        "nested": {
-                            "path": "mutations"
-                            },
+                    "lineage": {
+                        "terms": {
+                            "field": "pangolin_lineage",
+                            "size": 10000
+                        },
                         "aggs": {
                             "mutations": {
-                                "terms": {
-                                    "field": "mutations.mutation",
-                                    "size": 10000
+                                "nested": {
+                                    "path": "mutations"
+                                },
+                                "aggs": {
+                                    "mutations": {
+                                        "terms": {
+                                            "field": "mutations.mutation",
+                                            "size": 10000
+                                        }
                                     }
                                 }
                             }
                         }
                     }
                 }
+        }
+        create_OR_query(pangolin_lineage, query)
         resp = yield self.asynchronous_fetch(query)
-        path_to_results = ["aggregations", "mutations", "mutations", "buckets"]
+        path_to_results = ["aggregations", "lineage", "buckets"]
         buckets = resp
         for i in path_to_results:
             buckets = buckets[i]
-        flattened_response = [{
-            "mutation": i["key"],
-            "mutation_count": i["doc_count"],
-            "lineage_count": resp["hits"]["total"]
-            } for i in buckets]
+        flattened_response = [
+            {
+                "mutation": mutations["key"],
+                "mutation_count": mutations["doc_count"],
+                "lineage_count": lineage["doc_count"],
+                "lineage": lineage["key"]
+            } for lineage in buckets for mutations in lineage["mutations"]["mutations"]["buckets"]
+        ]
         dict_response = []
         if len(flattened_response) > 0:
             df_response = (
@@ -204,10 +210,12 @@ class LineageMutationsHandler(BaseHandler):
             df_response.loc[:, "prevalence"] = df_response["mutation_count"]/df_response["lineage_count"]
             df_response.loc[~df_response["codon_end"].isna(), "change_length_nt"] = ((df_response["codon_end"] - df_response["codon_num"]) + 1) * 3
             df_response = df_response[df_response["prevalence"] >= frequency].fillna("None")
-            dict_response = df_response.to_dict(orient="records")
+            dict_response = [
+                {n: grp.drop("lineage", axis = 1).to_dict(orient="records")}
+                for n, grp in df_response.groupby("lineage")
+            ]
         resp = {"success": True, "results": dict_response}
         self.write(resp)
-
 
 class MutationDetailsHandler(BaseHandler):
     @gen.coroutine
