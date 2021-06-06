@@ -210,10 +210,10 @@ class LineageMutationsHandler(BaseHandler):
             df_response.loc[:, "prevalence"] = df_response["mutation_count"]/df_response["lineage_count"]
             df_response.loc[~df_response["codon_end"].isna(), "change_length_nt"] = ((df_response["codon_end"] - df_response["codon_num"]) + 1) * 3
             df_response = df_response[df_response["prevalence"] >= frequency].fillna("None")
-            dict_response = [
-                {n: grp.drop("lineage", axis = 1).to_dict(orient="records")}
+            dict_response = {
+                n: grp.drop("lineage", axis = 1).to_dict(orient="records")
                 for n, grp in df_response.groupby("lineage")
-            ]
+            }
         resp = {"success": True, "results": dict_response}
         self.write(resp)
 
