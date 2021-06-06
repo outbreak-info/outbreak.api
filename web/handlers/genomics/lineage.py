@@ -277,6 +277,8 @@ class MutationsByLineage(BaseHandler):
         query_mutations = self.get_argument("mutations", None)
         query_pangolin_lineage = self.get_argument("pangolin_lineage", None)
         query_mutations = query_mutations.split(",") if query_mutations is not None else []
+        query_frequency_threshold = self.get_argument("frequency", None)
+        query_frequency_threshold = float(query_frequency_threshold) if query_frequency_threshold is not None else 0
         query = {
             "size": 0,
             "aggs": {
@@ -326,5 +328,6 @@ class MutationsByLineage(BaseHandler):
             df_response.loc[:, "proportion"] = prop[0]
             df_response.loc[:, "proportion_ci_lower"] = prop[1]
             df_response.loc[:, "proportion_ci_upper"] = prop[2]
+        df_response = df_response[df_response["proportion"] >= query_frequency_threshold]
         resp = {"success": True, "results": df_response.to_dict(orient="records")}
         self.write(resp)
