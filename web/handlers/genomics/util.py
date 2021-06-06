@@ -217,7 +217,7 @@ def parse_location_id_to_query(query_id, query_obj = None):
         })
     return query_obj
 
-def create_OR_query(queries, query_tmpl):
+def create_lineage_concat_query(queries, query_tmpl):
     queries = queries.split(",")
     if len(queries) == 1:
         query_tmpl["query"] = {
@@ -236,4 +236,3 @@ def create_OR_query(queries, query_tmpl):
                 ]
             }
         }
-
