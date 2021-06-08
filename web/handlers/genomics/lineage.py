@@ -194,6 +194,7 @@ class LineageMutationsHandler(BaseHandler):
             } for lineage in buckets for mutations in lineage["mutations"]["mutations"]["buckets"]
         ]
         dict_response = []
+        map_key = lambda x: next(i for i in pangolin_lineage.split(",") if i.lower() == x)
         if len(flattened_response) > 0:
             df_response = (
                 pd.DataFrame(flattened_response)
@@ -203,7 +204,8 @@ class LineageMutationsHandler(BaseHandler):
                     alt_aa = lambda x: x["mutation"].apply(lambda k: re.findall("[A-Za-z*]+", k.split(":")[1])[1] if "DEL" not in k and "del" not in k and "_" not in k else k.split(":")[1]).str.upper(),
                     codon_num = lambda x: x["mutation"].apply(lambda k: int(re.findall("[0-9]+", k.split(":")[1])[0])),
                     codon_end = lambda x: x["mutation"].apply(lambda k: int(re.findall("[0-9]+", k.split(":")[1])[1]) if "/" in k and ("DEL" in k or "del" in k) else None),
-                    type = lambda x: x["mutation"].apply(lambda k: "deletion" if "DEL" in k or "del" in k else "substitution")
+                    type = lambda x: x["mutation"].apply(lambda k: "deletion" if "DEL" in k or "del" in k else "substitution"),
+                    lineage = lambda x: x["lineage"].apply(map_key)
                 )
             )
             df_response = df_response[df_response["ref_aa"] != df_response["alt_aa"]]
