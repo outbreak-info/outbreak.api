@@ -152,70 +152,62 @@ class LineageMutationsHandler(BaseHandler):
         pangolin_lineage = self.get_argument("pangolin_lineage", None)
         frequency = self.get_argument("frequency", None)
         frequency = float(frequency) if frequency != None else 0.8
-        query = {
+        dict_response = {}
+        for query_lineage in pangolin_lineage.split(","):
+            query = {
                 "size": 0,
-                "query": {},
+                "query": {
+                    "bool": {
+                        "filter": [
+                            {"term": {"pangolin_lineage": query_lineage}}
+                        ]
+                    }
+                },
                 "aggs": {
-                    "lineage": {
-                        "terms": {
-                            "field": "pangolin_lineage",
-                            "size": 10000
+                    "mutations": {
+                        "nested": {
+                            "path": "mutations"
                         },
-                         "aggs": {
+                        "aggs": {
                             "mutations": {
-                                "nested": {
-                                    "path": "mutations"
-                                },
-                                "aggs": {
-                                    "mutations": {
-                                        "terms": {
-                                            "field": "mutations.mutation",
-                                            "size": 10000
-                                        }
-                                    }
+                                "terms": {
+                                    "field": "mutations.mutation",
+                                    "size": 10000
                                 }
                             }
                         }
                     }
                 }
-        }
-        create_lineage_concat_query(pangolin_lineage, query)
-        resp = yield self.asynchronous_fetch(query)
-        path_to_results = ["aggregations", "lineage", "buckets"]
-        buckets = resp
-        for i in path_to_results:
-            buckets = buckets[i]
-        flattened_response = [
-            {
-                "mutation": mutations["key"],
-                "mutation_count": mutations["doc_count"],
-                "lineage_count": lineage["doc_count"],
-                "lineage": lineage["key"]
-            } for lineage in buckets for mutations in lineage["mutations"]["mutations"]["buckets"]
-        ]
-        dict_response = []
-        map_key = lambda x: next(i for i in pangolin_lineage.split(",") if i.lower() == x)
-        if len(flattened_response) > 0:
-            df_response = (
-                pd.DataFrame(flattened_response)
-                .assign(
-                    gene = lambda x: x["mutation"].apply(lambda k: self.gene_mapping[k.split(":")[0]] if k.split(":")[0] in self.gene_mapping else k.split(":")[0]),
-                    ref_aa = lambda x: x["mutation"].apply(lambda k: re.findall("[A-Za-z*]+", k.split(":")[1])[0] if "DEL" not in k and "del" not in k and "_" not in k else k).str.upper(),
-                    alt_aa = lambda x: x["mutation"].apply(lambda k: re.findall("[A-Za-z*]+", k.split(":")[1])[1] if "DEL" not in k and "del" not in k and "_" not in k else k.split(":")[1]).str.upper(),
-                    codon_num = lambda x: x["mutation"].apply(lambda k: int(re.findall("[0-9]+", k.split(":")[1])[0])),
-                    codon_end = lambda x: x["mutation"].apply(lambda k: int(re.findall("[0-9]+", k.split(":")[1])[1]) if "/" in k and ("DEL" in k or "del" in k) else None),
-                    type = lambda x: x["mutation"].apply(lambda k: "deletion" if "DEL" in k or "del" in k else "substitution"),
-                    lineage = lambda x: x["lineage"].apply(map_key)
-                )
-            )
-            df_response = df_response[df_response["ref_aa"] != df_response["alt_aa"]]
-            df_response.loc[:, "prevalence"] = df_response["mutation_count"]/df_response["lineage_count"]
-            df_response.loc[~df_response["codon_end"].isna(), "change_length_nt"] = ((df_response["codon_end"] - df_response["codon_num"]) + 1) * 3
-            df_response = df_response[df_response["prevalence"] >= frequency].fillna("None")
-            dict_response = {
-                n: grp.drop("lineage", axis = 1).to_dict(orient="records")
-                for n, grp in df_response.groupby("lineage")
             }
+            resp = yield self.asynchronous_fetch(query)
+            path_to_results = ["aggregations", "mutations", "mutations", "buckets"]
+            buckets = resp
+            for i in path_to_results:
+                buckets = buckets[i]
+            flattened_response = [{
+                "mutation": i["key"],
+                "mutation_count": i["doc_count"],
+                "lineage_count": resp["hits"]["total"]["value"] if isinstance(resp["hits"]["total"], dict) else resp["hits"]["total"], # To account for difference in ES versions 7.12.0 vs 6.8.13
+                "lineage": query_lineage
+            } for i in buckets]
+            if len(flattened_response) > 0:
+                df_response = (
+                    pd.DataFrame(flattened_response)
+                    .assign(
+                        gene = lambda x: x["mutation"].apply(lambda k: self.gene_mapping[k.split(":")[0]] if k.split(":")[0] in self.gene_mapping else k.split(":")[0]),
+                        ref_aa = lambda x: x["mutation"].apply(lambda k: re.findall("[A-Za-z*]+", k.split(":")[1])[0] if "DEL" not in k and "del" not in k and "_" not in k else k).str.upper(),
+                        alt_aa = lambda x: x["mutation"].apply(lambda k: re.findall("[A-Za-z*]+", k.split(":")[1])[1] if "DEL" not in k and "del" not in k and "_" not in k else k.split(":")[1]).str.upper(),
+                        codon_num = lambda x: x["mutation"].apply(lambda k: int(re.findall("[0-9]+", k.split(":")[1])[0])),
+                        codon_end = lambda x: x["mutation"].apply(lambda k: int(re.findall("[0-9]+", k.split(":")[1])[1]) if "/" in k and ("DEL" in k or "del" in k) else None),
+                        type = lambda x: x["mutation"].apply(lambda k: "deletion" if "DEL" in k or "del" in k else "substitution")
+                    )
+                )
+                df_response = df_response[df_response["ref_aa"] != df_response["alt_aa"]]
+                print(df_response.head())
+                df_response.loc[:, "prevalence"] = df_response["mutation_count"]/df_response["lineage_count"]
+                df_response.loc[~df_response["codon_end"].isna(), "change_length_nt"] = ((df_response["codon_end"] - df_response["codon_num"]) + 1) * 3
+                df_response = df_response[df_response["prevalence"] >= frequency].fillna("None")
+                dict_response[query_lineage] = df_response.to_dict(orient="records")
         resp = {"success": True, "results": dict_response}
         self.write(resp)
 
