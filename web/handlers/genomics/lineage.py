@@ -204,7 +204,6 @@ class LineageMutationsHandler(BaseHandler):
                     )
                 )
                 df_response = df_response[df_response["ref_aa"] != df_response["alt_aa"]]
-                print(df_response.head())
                 df_response.loc[:, "prevalence"] = df_response["mutation_count"]/df_response["lineage_count"]
                 df_response.loc[~df_response["codon_end"].isna(), "change_length_nt"] = ((df_response["codon_end"] - df_response["codon_num"]) + 1) * 3
                 df_response = df_response[df_response["prevalence"] >= frequency].fillna("None")
