@@ -150,6 +150,7 @@ class LineageMutationsHandler(BaseHandler):
     @gen.coroutine
     def get(self):
         pangolin_lineage = self.get_argument("pangolin_lineage", None)
+        query_mutations = self.get_argument("mutations", None)
         frequency = self.get_argument("frequency", None)
         frequency = float(frequency) if frequency != None else 0.8
         dict_response = {}
@@ -157,11 +158,6 @@ class LineageMutationsHandler(BaseHandler):
             query = {
                 "size": 0,
                 "query": {
-                    "bool": {
-                        "filter": [
-                            {"term": {"pangolin_lineage": query_lineage}}
-                        ]
-                    }
                 },
                 "aggs": {
                     "mutations": {
@@ -179,6 +175,8 @@ class LineageMutationsHandler(BaseHandler):
                     }
                 }
             }
+            query_mutations = query_mutations.split(",") if query_mutations is not None else []
+            query["query"] = create_nested_mutation_query(lineage = pangolin_lineage, mutations = query_mutations)
             resp = yield self.asynchronous_fetch(query)
             path_to_results = ["aggregations", "mutations", "mutations", "buckets"]
             buckets = resp
