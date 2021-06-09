@@ -150,7 +150,6 @@ class LineageMutationsHandler(BaseHandler):
     @gen.coroutine
     def get(self):
         pangolin_lineage = self.get_argument("pangolin_lineage", None)
-        query_mutations = self.get_argument("mutations", None)
         frequency = self.get_argument("frequency", None)
         frequency = float(frequency) if frequency != None else 0.8
         dict_response = {}
@@ -175,8 +174,12 @@ class LineageMutationsHandler(BaseHandler):
                     }
                 }
             }
-            query_mutations = query_mutations.split(",") if query_mutations is not None else []
-            query["query"] = create_nested_mutation_query(lineage = pangolin_lineage, mutations = query_mutations)
+            query_lineage_split = query_lineage.split(" AND ")
+            query_mutations = []
+            query_pangolin_lineage = query_lineage_split[0] # First parameter always lineage
+            if len(query_lineage_split) > 1:
+                query_mutations = query_lineage_split[1:] # First parameter is always lineage
+            query["query"] = create_nested_mutation_query(lineage = query_pangolin_lineage, mutations = query_mutations)
             resp = yield self.asynchronous_fetch(query)
             path_to_results = ["aggregations", "mutations", "mutations", "buckets"]
             buckets = resp
