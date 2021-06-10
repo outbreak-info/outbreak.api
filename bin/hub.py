@@ -13,7 +13,13 @@ logging = config.logger
 from biothings.hub import HubServer
 import hub.dataload.sources
 
-server = HubServer(hub.dataload.sources, name=config.HUB_NAME)
+
+if getattr(config, "HUB_FEATURES", None):
+    class OutBreakHubServer(HubServer):
+        DEFAULT_FEATURES = config.HUB_FEATURES
+    server = OutBreakHubServer(hub.dataload.sources, name=config.HUB_NAME)
+else:
+    server = HubServer(hub.dataload.sources, name=config.HUB_NAME)
 
 
 if __name__ == "__main__":
