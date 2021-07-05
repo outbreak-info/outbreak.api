@@ -1,7 +1,6 @@
-import re
 
-from biothings.utils.web.es_dsl import AsyncSearch
-from biothings.web.pipeline import ESQueryBuilder, ESResultTransform
+from elasticsearch_dsl import Search
+from biothings.web.query import ESQueryBuilder
 
 
 class QueryBuilder(ESQueryBuilder):
@@ -10,38 +9,30 @@ class QueryBuilder(ESQueryBuilder):
     '''
 
     def default_string_query(self, q, options):
-        search = AsyncSearch()
-        
-        if q == '__all__':
-            search = search.query()
 
-        elif q == '__any__' and self.allow_random_query:
-            search = search.query('function_score', random_score={})
-            
-        else:  # elasticsearch default
-            query = {
-                "query": {
-                    "query_string": {
-                        "query": q,
-                        "fields": [
-                            "name^4",
-                            "interventions.name^3",
-                            "description",
-                            "all"
-                        ]
-                    }
+        query = {
+            "query": {
+                "query_string": {
+                    "query": q,
+                    "fields": [
+                        "name^4",
+                        "interventions.name^3",
+                        "description",
+                        "all"
+                    ]
                 }
             }
-            search = search.query("query_string", query=str(query))
-        
+        }
+        search = Search()
+        search = search.update_from_dict(query)
+
         return search
 
-    
-    def _apply_extras(self, search, options):
+    def apply_extras(self, search, options):
 
-        search = super()._apply_extras(search, options)
+        search = super().apply_extras(search, options)
 
         if options._type:
-            search = search.filter('term', **{'@type':options._type})
+            search = search.filter('term', **{'@type': options._type})
 
         return search
