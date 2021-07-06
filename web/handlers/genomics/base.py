@@ -11,7 +11,7 @@ class BaseHandler(BaseAPIHandler):
     size = 10000
 
     async def asynchronous_fetch(self, query):
-        response = await self.web_settings.connections.async_client.search(
+        response = await self.biothings.db.async_client.search(
             index = "outbreak-genomics",
             body = query,
             size = 0
@@ -19,7 +19,7 @@ class BaseHandler(BaseAPIHandler):
         return response
 
     async def asynchronous_fetch_count(self, query):
-        response = await self.web_settings.connections.async_client.count(
+        response = await self.biothings.db.async_client.count(
             index = "outbreak-genomics",
             body = query
         )
