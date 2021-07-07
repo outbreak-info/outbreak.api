@@ -10,18 +10,9 @@ class QueryBuilder(ESQueryBuilder):
     '''
 
     def default_string_query(self, q, options):
-        search = AsyncSearch()
-        
-        """
-        if q == '__all__':
-            search = search.query()
 
-        elif q == '__any__' and self.allow_random_query:
-            search = search.query('function_score', random_score={})
-            
-        else:  # elasticsearch default
-        """
-        query = { "query": {
+        query = {
+            "query": {
                 "query_string": {
                     "query": q,
                     "fields": [
@@ -33,9 +24,8 @@ class QueryBuilder(ESQueryBuilder):
                 }
             }
         }
-
-        search = search.query("query_string", query=str(query))
-        
+        search = AsyncSearch()
+        search = search.update_from_dict(query)
         return search
 
     
@@ -48,5 +38,8 @@ class QueryBuilder(ESQueryBuilder):
 
         return search
 
+
 class ResourceTransform(ESResultTransform):
-    pass
+    """
+    TODO
+    """
