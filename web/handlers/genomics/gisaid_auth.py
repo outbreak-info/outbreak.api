@@ -3,7 +3,6 @@ import urllib.parse
 from typing import Callable, Optional, Awaitable
 
 import aiohttp
-import requests
 from tornado.web import RequestHandler, HTTPError
 
 # move these to config.py
@@ -15,11 +14,11 @@ GPS_AUTHN_URL = 'http://localhost:8080/epi3/gps_authenticate/'  # note the trail
 _gisaid_gps_api_http_client = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(15.0))
 
 
-def gisaid_authorized_blocking(method: Callable[..., Optional[Awaitable[None]]]) ->\
+def gisaid_authorized(method: Callable[..., Optional[Awaitable[None]]]) ->\
         Callable[..., Optional[Awaitable[None]]]:
 
     @functools.wraps(method)
-    def wrapper(self: RequestHandler, *args, **kwargs) -> Optional[Awaitable[None]]:
+    async def wrapper(self: RequestHandler, *args, **kwargs) -> Optional[Awaitable[None]]:
         try:
             authz_header = self.request.headers['Authorization']
         except KeyError:
@@ -37,29 +36,29 @@ def gisaid_authorized_blocking(method: Callable[..., Optional[Awaitable[None]]])
                           "client_id": GPS_CLIENT_ID,
                           "auth_token": parts[1],
                           "cmd": "state/auth/check"}
-        response = requests.post(GPS_API_ENDPOINT, json=request_params)
-        response.raise_for_status()  # raise on non 200 resp.
-        resp_json = response.json()
+        resp = await _gisaid_gps_api_http_client.post(
+            GPS_API_ENDPOINT, json=request_params
+        )
+        resp.raise_for_status()  # raise on non 200 resp.
+        resp_json = await resp.json()
         if resp_json['rc'] == 'ok':
             return method(*args, **kwargs)
         else:
-            raise HTTPError(403)
+            self.set_status(403)
+            self.write({'gisaid_response': resp_json['rc']})
+            return self.finish()
 
     return wrapper
 
 
-def gisaid_authorized_nonblocking(method):
-    raise NotImplementedError
-
-
 class GISAIDTokenHandler(RequestHandler):
-    @gisaid_authorized_nonblocking
-    async def get(self):
+    @gisaid_authorized
+    def get(self):
         """
         Check validity of a token against GISAID API,
         Respond with code 200 if valid, or else respond with 403.
         """
-        raise NotImplementedError
+        return
 
     async def post(self):
         request_params = {
