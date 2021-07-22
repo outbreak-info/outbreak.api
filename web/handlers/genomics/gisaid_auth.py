@@ -1,4 +1,5 @@
 import functools
+import inspect
 import urllib.parse
 from typing import Callable, Optional, Awaitable
 
@@ -43,8 +44,10 @@ def gisaid_authorized(method: Callable[..., Optional[Awaitable[None]]]) ->\
         resp_json = await resp.json()
         if resp_json['rc'] == 'ok':
             result = method(self, *args, **kwargs)
-            if result is not None:
+            if inspect.isawaitable(result):
                 return await result
+            else:
+                return result
         else:
             self.set_status(403)
             self.write({'gisaid_response': resp_json['rc']})
