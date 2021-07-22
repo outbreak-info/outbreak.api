@@ -42,7 +42,9 @@ def gisaid_authorized(method: Callable[..., Optional[Awaitable[None]]]) ->\
         resp.raise_for_status()  # raise on non 200 resp.
         resp_json = await resp.json()
         if resp_json['rc'] == 'ok':
-            return method(*args, **kwargs)
+            result = method(self, *args, **kwargs)
+            if result is not None:
+                return await result
         else:
             self.set_status(403)
             self.write({'gisaid_response': resp_json['rc']})
@@ -72,8 +74,8 @@ class GISAIDTokenHandler(RequestHandler):
         )
         resp.raise_for_status()
         resp_body = await resp.json()
-        token = resp_body['auth_token']
         if resp_body['rc'] == 'ok':
+            token = resp_body['auth_token']
             self.write({
                 'gisaid_authn_token': token,
                 'authn_url': urllib.parse.urljoin(GPS_AUTHN_URL, token)
