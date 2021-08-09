@@ -2,14 +2,12 @@ import functools
 import inspect
 import urllib.parse
 from typing import Callable, Optional, Awaitable
+from .config import GPS_CLIENT_ID, GPS_API_ENDPOINT, GPS_AUTHN_URL, SECRET_KEY
+import jwt
+from datetime import datetime as dt, timedelta, timezone
 
 import aiohttp
 from tornado.web import RequestHandler, HTTPError
-
-# move these to config.py
-GPS_CLIENT_ID = 'FILL_IN_KEEP_SECRET'
-GPS_API_ENDPOINT = 'http://localhost:8080/epi3/gps_api'
-GPS_AUTHN_URL = 'http://localhost:8080/epi3/gps_authenticate/'  # note the trailing slash
 
 # 15 seconds may or may not be a reasonable default
 _gisaid_gps_api_http_client = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(15.0))
@@ -29,30 +27,48 @@ def gisaid_authorized(method: Callable[..., Optional[Awaitable[None]]]) ->\
             return self.finish()
         # now do authn with that token we got
         parts = authz_header.split()
+        print(parts)
         # check for malformed authz header
         if len(parts) != 2 or parts[0] != "Bearer":
             raise HTTPError(400)
         # we are assuming that the token is of type str
-        request_params = {"api": {"version": 1}, "ctx": "cov",
-                          "client_id": GPS_CLIENT_ID,
-                          "auth_token": parts[1],
-                          "cmd": "state/auth/check"}
-        resp = await _gisaid_gps_api_http_client.post(
-            GPS_API_ENDPOINT, json=request_params
-        )
-        resp.raise_for_status()  # raise on non 200 resp.
-        resp_json = await resp.json()
-        if resp_json['rc'] == 'ok':
-            result = method(self, *args, **kwargs)
-            if inspect.isawaitable(result):
-                return await result
+        decoded_token = None
+        try:
+            decoded_token = jwt.decode(parts[1], SECRET_KEY, algorithms=["HS256"])
+            request_params = {
+                "api": {"version": 1},
+                "ctx": "cov",
+                "client_id": GPS_CLIENT_ID,
+                "auth_token": decoded_token["authn_token"],
+                "cmd": "state/auth/check"
+            }
+            resp = await _gisaid_gps_api_http_client.post(
+                GPS_API_ENDPOINT, json=request_params
+            )
+            resp.raise_for_status()  # raise on non 200 resp.
+            resp_json = await resp.json()
+            if resp_json['rc'] == 'ok':
+                result = method(self, *args, **kwargs)
+                if inspect.isawaitable(result):
+                    return await result
+                else:
+                    return result
             else:
-                return result
-        else:
+                self.set_status(403)
+                self.write({'gisaid_response': resp_json['rc']})
+                return self.finish()
+        except jwt.ExpiredSignatureError:
             self.set_status(403)
-            self.write({'gisaid_response': resp_json['rc']})
+            self.add_header('WWW-Authenticate',
+                            'Bearer realm="GISAID Authentication-Token"')
+            self.write({"message": "Token expired. Please re-authenticate!"})
             return self.finish()
-
+        except jwt.DecodeError:
+            self.set_status(403)
+            self.add_header('WWW-Authenticate',
+                            'Bearer realm="GISAID Authentication-Token"')
+            self.write({"message": "Invalid token. Please authenticate!"})
+            return self.finish()
     return wrapper
 
 
@@ -79,8 +95,13 @@ class GISAIDTokenHandler(RequestHandler):
         resp_body = await resp.json()
         if resp_body['rc'] == 'ok':
             token = resp_body['auth_token']
+            # Create JWT token with expiry and authenticated
+            encoded_api_token = jwt.encode({
+                "authn_token": token,
+                "exp": dt.now(timezone.utc) + timedelta(hours = 5)
+            }, SECRET_KEY, algorithm="HS256")
             self.write({
-                'gisaid_authn_token': token,
+                'authn_token': encoded_api_token,
                 'authn_url': urllib.parse.urljoin(GPS_AUTHN_URL, token)
             })
         else:
