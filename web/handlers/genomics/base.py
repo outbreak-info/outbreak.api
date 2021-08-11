@@ -1,5 +1,6 @@
 from biothings.web.handlers import BaseAPIHandler
 
+
 class BaseHandler(BaseAPIHandler):
 
     def set_default_headers(self):
@@ -11,20 +12,19 @@ class BaseHandler(BaseAPIHandler):
     size = 10000
 
     async def asynchronous_fetch(self, query):
-        response = await self.biothings.db.async_client.search(
-            index = "outbreak-genomics",
-            body = query,
-            size = 0
+        response = await self.biothings.elasticsearch.async_client.search(
+            index="outbreak-genomics",
+            body=query,
+            size=0
         )
         return response
 
     async def asynchronous_fetch_count(self, query):
-        response = await self.biothings.db.async_client.count(
-            index = "outbreak-genomics",
-            body = query
+        response = await self.biothings.elasticsearch.async_client.count(
+            index="outbreak-genomics",
+            body=query
         )
         return response
 
     def post(self):
         pass
-
