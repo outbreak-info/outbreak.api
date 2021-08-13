@@ -60,11 +60,12 @@ Endpoint: https://api.outbreak.info/genomics/prevalence-by-location
 Parameters
 
 * `pangolin_lineage` (Required).
-* `location_id` (Required).
+* `location_id` (Optional).
 * `mutations` (Optional). Comma separated list of mutations.
 * `cumulative` (Optional). If `true` returns the cumulative global prevalence since the first day of detection.
 
 Examples,
+
 Global daily prevalence of B.1.1.7 lineage in the United States
 https://api.outbreak.info/genomics/prevalence-by-location?pangolin_lineage=b.1.1.7&location_id=USA
 
