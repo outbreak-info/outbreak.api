@@ -30,7 +30,8 @@ class GlobalPrevalenceByTimeHandler(BaseHandler):
             }
         }
         query_mutations = query_mutations.split(",") if query_mutations is not None else []
-        query_obj = create_nested_mutation_query(lineage = query_pangolin_lineage, mutations = query_mutations)
+        query_pangolin_lineage = query_pangolin_lineage.split(",") if query_pangolin_lineage is not None else []
+        query_obj = create_nested_mutation_query(lineages = query_pangolin_lineage, mutations = query_mutations)
         query["aggs"]["prevalence"]["aggs"]["lineage_count"]["filter"] = query_obj
         resp = yield self.asynchronous_fetch(query)
         path_to_results = ["aggregations", "prevalence", "buckets"]
@@ -43,6 +44,7 @@ class PrevalenceByLocationAndTimeHandler(BaseHandler):
     def get(self):
         query_location = self.get_argument("location_id", None)
         query_pangolin_lineage = self.get_argument("pangolin_lineage", None)
+        query_pangolin_lineage = query_pangolin_lineage.split(",") if query_pangolin_lineage is not None else []
         query_mutations = self.get_argument("mutations", None)
         query_mutations = query_mutations.split(",") if query_mutations is not None else []
         cumulative = self.get_argument("cumulative", None)
@@ -73,7 +75,7 @@ class PrevalenceByLocationAndTimeHandler(BaseHandler):
             }
         }
         parse_location_id_to_query(query_location, query["aggs"]["prevalence"]["filter"])
-        query_obj = create_nested_mutation_query(lineage = query_pangolin_lineage, mutations = query_mutations, location_id = query_location)
+        query_obj = create_nested_mutation_query(lineages = query_pangolin_lineage, mutations = query_mutations, location_id = query_location)
         query["aggs"]["prevalence"]["aggs"]["count"]["aggs"]["lineage_count"]["filter"] = query_obj
         resp = yield self.asynchronous_fetch(query)
         path_to_results = ["aggregations", "prevalence", "count", "buckets"]
@@ -87,6 +89,7 @@ class CumulativePrevalenceByLocationHandler(BaseHandler):
     @gen.coroutine
     def get(self):
         query_pangolin_lineage = self.get_argument("pangolin_lineage", None)
+        query_pangolin_lineage = query_pangolin_lineage.split(",") if query_pangolin_lineage is not None else []
         query_detected = self.get_argument("detected", None)
         query_mutations = self.get_argument("mutations", None)
         query_location = self.get_argument("location_id", None)
@@ -133,7 +136,7 @@ class CumulativePrevalenceByLocationHandler(BaseHandler):
                 {"sub": { "terms": {"field": "division"} }}
             ])
             admin_level = 1
-        query_obj = create_nested_mutation_query(lineage = query_pangolin_lineage, mutations = query_mutations)
+        query_obj = create_nested_mutation_query(lineages = query_pangolin_lineage, mutations = query_mutations)
         query["aggs"]["sub_date_buckets"]["aggregations"]["lineage_count"]["filter"] = query_obj
         resp = yield self.asynchronous_fetch(query)
         ctr = 0

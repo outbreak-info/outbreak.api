@@ -27,7 +27,8 @@ class LineageByCountryHandler(BaseHandler):
             }
         }
         query_mutations = query_mutations.split(",") if query_mutations is not None else []
-        query_obj = create_nested_mutation_query(lineage = query_pangolin_lineage, mutations = query_mutations)
+        query_pangolin_lineage = query_pangolin_lineage.split(",") if query_pangolin_lineage is not None else []
+        query_obj = create_nested_mutation_query(lineages = query_pangolin_lineage, mutations = query_mutations)
         query["aggs"]["prevalence"]["filter"] = query_obj
         resp = yield self.asynchronous_fetch(query)
         self.write(resp)
@@ -55,7 +56,8 @@ class LineageByDivisionHandler(BaseHandler):
                     }
                 }
         query_mutations = query_mutations.split(",") if query_mutations is not None else []
-        query_obj = create_nested_mutation_query(country = query_country, lineage = query_pangolin_lineage, mutations = query_mutations)
+        query_pangolin_lineage = query_pangolin_lineage.split(",") if query_pangolin_lineage is not None else []
+        query_obj = create_nested_mutation_query(country = query_country, lineages = query_pangolin_lineage, mutations = query_mutations)
         query["aggs"]["prevalence"]["filter"] = query_obj
         print(query)
         resp = yield self.asynchronous_fetch(query)
@@ -73,7 +75,8 @@ class LineageAndCountryHandler(BaseHandler):
                 "query": {}
         }
         query_mutations = query_mutations.split(",") if query_mutations is not None else []
-        query_obj = create_nested_mutation_query(country = query_country, lineage = query_pangolin_lineage, mutations = query_mutations)
+        query_pangolin_lineage = query_pangolin_lineage.split(",") if query_pangolin_lineage is not None else []
+        query_obj = create_nested_mutation_query(country = query_country, lineages = query_pangolin_lineage, mutations = query_mutations)
         query["query"] = query_obj
         resp = yield self.asynchronous_fetch(query)
         self.write(resp)
@@ -91,7 +94,8 @@ class LineageAndDivisionHandler(BaseHandler):
                 "query": {}
         }
         query_mutations = query_mutations.split(",") if query_mutations is not None else []
-        query_obj = create_nested_mutation_query(country = query_country, division = query_division, lineage = query_pangolin_lineage, mutations = query_mutations)
+        query_pangolin_lineage = query_pangolin_lineage.split(",") if query_pangolin_lineage is not None else []
+        query_obj = create_nested_mutation_query(country = query_country, division = query_division, lineages = query_pangolin_lineage, mutations = query_mutations)
         query["query"] = query_obj
         resp = yield self.asynchronous_fetch(query)
         self.write(resp)
@@ -176,10 +180,10 @@ class LineageMutationsHandler(BaseHandler):
             }
             query_lineage_split = query_lineage.split(" AND ")
             query_mutations = []
-            query_pangolin_lineage = query_lineage_split[0] # First parameter always lineage
+            query_pangolin_lineage = [query_lineage_split[0]] # First parameter always lineages separated by commas
             if len(query_lineage_split) > 1:
                 query_mutations = query_lineage_split[1:] # First parameter is always lineage
-            query["query"] = create_nested_mutation_query(lineage = query_pangolin_lineage, mutations = query_mutations)
+            query["query"] = create_nested_mutation_query(lineages = query_pangolin_lineage, mutations = query_mutations)
             resp = yield self.asynchronous_fetch(query)
             path_to_results = ["aggregations", "mutations", "mutations", "buckets"]
             buckets = resp
