@@ -1,5 +1,5 @@
 from elasticsearch_dsl import Search
-from biothings.web.query import ESQueryBuilder, ESResultTransform
+from biothings.web.query import ESQueryBuilder
 
 
 class QueryBuilder(ESQueryBuilder):
@@ -35,9 +35,3 @@ class QueryBuilder(ESQueryBuilder):
             search = search.filter('term', **{'@type': options._type})
 
         return search
-
-
-class ResourceTransform(ESResultTransform):
-    """
-    TODO
-    """
