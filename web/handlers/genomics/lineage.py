@@ -157,6 +157,7 @@ class LineageMutationsHandler(BaseHandler):
         frequency = self.get_argument("frequency", None)
         frequency = float(frequency) if frequency != None else 0.8
         dict_response = {}
+        # Query structure: Lineage 1 OR Lineage 2 OR Lineage 3 AND Mutation 1 AND Mutation 2, Lineage 4 AND Mutation 2, Lineage 5 ....
         for query_lineage in pangolin_lineage.split(","):
             query = {
                 "size": 0,
@@ -180,7 +181,7 @@ class LineageMutationsHandler(BaseHandler):
             }
             query_lineage_split = query_lineage.split(" AND ")
             query_mutations = []
-            query_pangolin_lineage = [query_lineage_split[0]] # First parameter always lineages separated by commas
+            query_pangolin_lineage = query_lineage_split[0].split(" OR ") # First parameter always lineages separated by commas
             if len(query_lineage_split) > 1:
                 query_mutations = query_lineage_split[1:] # First parameter is always lineage
             query["query"] = create_nested_mutation_query(lineages = query_pangolin_lineage, mutations = query_mutations)
