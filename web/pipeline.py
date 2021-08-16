@@ -1,6 +1,5 @@
-
 from elasticsearch_dsl import Search
-from biothings.web.query import ESQueryBuilder
+from biothings.web.query import ESQueryBuilder, ESResultTransform
 
 
 class QueryBuilder(ESQueryBuilder):
