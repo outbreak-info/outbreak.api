@@ -60,19 +60,20 @@ Endpoint: https://api.outbreak.info/genomics/prevalence-by-location
 Parameters
 
 * `pangolin_lineage` (Required).
-* `location_id` (Required).
+* `location_id` (Optional).
 * `mutations` (Optional). Comma separated list of mutations.
 * `cumulative` (Optional). If `true` returns the cumulative global prevalence since the first day of detection.
 
 Examples,
-Global daily prevalence of B.1.1.7 lineage
-https://api.outbreak.info/genomics/global-prevalence?pangolin_lineage=b.1.1.7
 
-Global daily prevalence of B.1.1.7 lineage with S:E484K mutation
-https://api.outbreak.info/genomics/global-prevalence?pangolin_lineage=b.1.1.7&mutations=S:E484K
+Global daily prevalence of B.1.1.7 lineage in the United States
+https://api.outbreak.info/genomics/prevalence-by-location?pangolin_lineage=b.1.1.7&location_id=USA
 
-Cumulative global prevalence of B.1.1.7
-https://api.outbreak.info/genomics/global-prevalence?pangolin_lineage=b.1.1.7&cumulative=true
+Global daily prevalence of B.1.1.7 lineage with S:E484K mutation in the United States
+https://api.outbreak.info/genomics/prevalence-by-location?pangolin_lineage=b.1.1.7&mutations=S:E484K&location_id=USA
+
+Cumulative prevalence of B.1.1.7 in the United States
+https://api.outbreak.info/genomics/prevalence-by-location?pangolin_lineage=b.1.1.7&cumulative=true&location_id=USA
 
 
 ## 4. Cumulative prevalence of a PANGO lineage by the immediate admin level of a location
