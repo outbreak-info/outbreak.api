@@ -6,6 +6,7 @@ class BaseHandler(BaseAPIHandler):
         self.set_header("Content-Type", "application/json")
         self.set_header("Access-Control-Allow-Origin", "*")
         self.set_header("Access-Control-Allow-Headers", "content-type")
+        self.add_header("Access-Control-Allow-Headers", "Authorization")
         self.set_header('Access-Control-Allow-Methods', 'POST, GET, OPTIONS, PATCH, PUT')
 
     size = 10000
