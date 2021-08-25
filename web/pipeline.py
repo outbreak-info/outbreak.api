@@ -1,7 +1,5 @@
-import re
-
-from biothings.utils.web.es_dsl import AsyncSearch
-from biothings.web.pipeline import ESQueryBuilder, ESResultTransform
+from elasticsearch_dsl import Search
+from biothings.web.query import ESQueryBuilder
 
 
 class QueryBuilder(ESQueryBuilder):
@@ -24,22 +22,16 @@ class QueryBuilder(ESQueryBuilder):
                 }
             }
         }
-        search = AsyncSearch()
+        search = Search()
         search = search.update_from_dict(query)
+
         return search
 
-    
-    def _apply_extras(self, search, options):
+    def apply_extras(self, search, options):
 
-        search = super()._apply_extras(search, options)
+        search = super().apply_extras(search, options)
 
         if options._type:
-            search = search.filter('term', **{'@type':options._type})
+            search = search.filter('term', **{'@type': options._type})
 
         return search
-
-
-class ResourceTransform(ESResultTransform):
-    """
-    TODO
-    """
