@@ -62,7 +62,7 @@ def transform_prevalence(resp, path_to_results = [], cumulative = False):
     for i in path_to_results:
         buckets = buckets[i]
     if len(buckets) == 0:
-        return {"success": True, "results": []}
+        return {"success": True, "results": {}}
     flattened_response = [{
         "date": i["key"],
         "total_count": i["doc_count"],
@@ -150,6 +150,7 @@ def transform_prevalence_by_location_and_tiime(flattened_response, ndays = None,
     return dict_response
 
 def create_nested_mutation_query(location_id = None, lineages = [], mutations = []):
+    # For multiple lineages and mutations: (Lineage 1 AND mutation 1 AND mutation 2..) OR (Lineage 2 AND mutation 1 AND mutation 2..) ...
     query_obj = {
         "bool": {
             "should": []
