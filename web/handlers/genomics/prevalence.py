@@ -46,41 +46,51 @@ class PrevalenceByLocationAndTimeHandler(BaseHandler):
         query_pangolin_lineage = self.get_argument("pangolin_lineage", None)
         query_pangolin_lineage = query_pangolin_lineage.split(",") if query_pangolin_lineage is not None else []
         query_mutations = self.get_argument("mutations", None)
-        query_mutations = query_mutations.split(",") if query_mutations is not None else []
+        query_mutations = query_mutations.split(" AND ") if query_mutations is not None else []
         cumulative = self.get_argument("cumulative", None)
         cumulative = True if cumulative == "true" else False
-        query = {
-            "size": 0,
-            "aggs": {
-                "prevalence": {
-                    "filter": {
-                        "bool": {
-                            "must": []
-                        }
-                    },
-                    "aggs": {
-                        "count": {
-                            "terms": {
-                                "field": "date_collected",
-                                "size": self.size
-                            },
-                            "aggs": {
-                                "lineage_count": {
-                                    "filter": {}
+        results = {}
+        for i in query_pangolin_lineage:
+            query = {
+                "size": 0,
+                "aggs": {
+                    "prevalence": {
+                        "filter": {
+                            "bool": {
+                                "must": []
+                            }
+                        },
+                        "aggs": {
+                            "count": {
+                                "terms": {
+                                    "field": "date_collected",
+                                    "size": self.size
+                                },
+                                "aggs": {
+                                    "lineage_count": {
+                                        "filter": {}
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
-        }
-        parse_location_id_to_query(query_location, query["aggs"]["prevalence"]["filter"])
-        query_obj = create_nested_mutation_query(lineages = query_pangolin_lineage, mutations = query_mutations, location_id = query_location)
-        query["aggs"]["prevalence"]["aggs"]["count"]["aggs"]["lineage_count"]["filter"] = query_obj
-        resp = yield self.asynchronous_fetch(query)
-        path_to_results = ["aggregations", "prevalence", "count", "buckets"]
-        resp = transform_prevalence(resp, path_to_results, cumulative)
-        self.write(resp)
+            parse_location_id_to_query(query_location, query["aggs"]["prevalence"]["filter"])
+            lineages = i.split(" OR ")
+            query_obj = create_nested_mutation_query(lineages = lineages, mutations = query_mutations, location_id = query_location)
+            query["aggs"]["prevalence"]["aggs"]["count"]["aggs"]["lineage_count"]["filter"] = query_obj
+            resp = yield self.asynchronous_fetch(query)
+            path_to_results = ["aggregations", "prevalence", "count", "buckets"]
+            resp = transform_prevalence(resp, path_to_results, cumulative)
+            res_key = None
+            if len(query_pangolin_lineage) > 0:
+                res_key = " OR ".join(lineages)
+            if len(query_mutations) > 0:
+                res_key = "({}) AND ({})".format(res_key, " AND ".join(query_mutations)) if res_key is not None else " AND ".join(query_mutations)
+            results[res_key] = resp
+            print(resp)
+        self.write(results)
 
 class CumulativePrevalenceByLocationHandler(BaseHandler):
 
