@@ -99,7 +99,7 @@ class CumulativePrevalenceByLocationHandler(BaseHandler):
     @gen.coroutine
     def get(self):
         query_pangolin_lineage = self.get_argument("pangolin_lineage", None)
-        query_pangolin_lineage = query_pangolin_lineage.split(",") if query_pangolin_lineage is not None else []
+        query_pangolin_lineage = query_pangolin_lineage.split(" OR ") if query_pangolin_lineage is not None else []
         query_detected = self.get_argument("detected", None)
         query_mutations = self.get_argument("mutations", None)
         query_location = self.get_argument("location_id", None)
