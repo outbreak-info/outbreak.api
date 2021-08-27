@@ -1,4 +1,4 @@
-from .util import transform_prevalence, transform_prevalence_by_location_and_tiime, compute_rolling_mean, create_nested_mutation_query, get_major_lineage_prevalence, compute_total_count, compute_rolling_mean_all_lineages, expand_dates, parse_location_id_to_query
+from .util import transform_prevalence, transform_prevalence_by_location_and_tiime, compute_rolling_mean, create_nested_mutation_query, get_major_lineage_prevalence, compute_total_count, compute_rolling_mean_all_lineages, expand_dates, parse_location_id_to_query, create_iterator
 from .base import BaseHandler
 from tornado import gen
 import pandas as pd
@@ -50,7 +50,7 @@ class PrevalenceByLocationAndTimeHandler(BaseHandler):
         cumulative = self.get_argument("cumulative", None)
         cumulative = True if cumulative == "true" else False
         results = {}
-        for i in query_pangolin_lineage:
+        for i,j in create_iterator(query_pangolin_lineage, query_mutations):
             query = {
                 "size": 0,
                 "aggs": {
@@ -77,8 +77,9 @@ class PrevalenceByLocationAndTimeHandler(BaseHandler):
                 }
             }
             parse_location_id_to_query(query_location, query["aggs"]["prevalence"]["filter"])
-            lineages = i.split(" OR ")
-            query_obj = create_nested_mutation_query(lineages = lineages, mutations = query_mutations, location_id = query_location)
+            lineages = i.split(" OR ") if i is not None else []
+            query_obj = create_nested_mutation_query(lineages = lineages, mutations = j, location_id = query_location)
+            print(query_obj)
             query["aggs"]["prevalence"]["aggs"]["count"]["aggs"]["lineage_count"]["filter"] = query_obj
             resp = yield self.asynchronous_fetch(query)
             path_to_results = ["aggregations", "prevalence", "count", "buckets"]
@@ -89,7 +90,6 @@ class PrevalenceByLocationAndTimeHandler(BaseHandler):
             if len(query_mutations) > 0:
                 res_key = "({}) AND ({})".format(res_key, " AND ".join(query_mutations)) if res_key is not None else " AND ".join(query_mutations)
             results[res_key] = resp
-            print(resp)
         self.write(results)
 
 class CumulativePrevalenceByLocationHandler(BaseHandler):
@@ -99,89 +99,98 @@ class CumulativePrevalenceByLocationHandler(BaseHandler):
     @gen.coroutine
     def get(self):
         query_pangolin_lineage = self.get_argument("pangolin_lineage", None)
-        query_pangolin_lineage = query_pangolin_lineage.split(" OR ") if query_pangolin_lineage is not None else []
+        query_pangolin_lineage = query_pangolin_lineage.split(",") if query_pangolin_lineage is not None else []
         query_detected = self.get_argument("detected", None)
         query_mutations = self.get_argument("mutations", None)
         query_location = self.get_argument("location_id", None)
-        query_mutations = query_mutations.split(",") if query_mutations is not None else []
+        query_mutations = query_mutations.split(" AND ") if query_mutations is not None else []
         query_detected = True if query_detected == "true" else False
         query_ndays = self.get_argument("ndays", None)
         query_ndays = int(query_ndays) if query_ndays is not None else None
-        query = {
-            "size": 0,
-            "aggs": {
-                "sub_date_buckets": {
-                    "composite": {
-                        "size": 10000,
-                        "sources": [
-                            {"date_collected": { "terms": {"field": "date_collected"}}}
-                        ]
-                    },
-                    "aggregations": {
-                        "lineage_count": {
-                            "filter": {}
+        results = {}
+        for query_lineage, query_mutation in create_iterator(query_pangolin_lineage, query_mutations):
+            query = {
+                "size": 0,
+                "aggs": {
+                    "sub_date_buckets": {
+                        "composite": {
+                            "size": 10000,
+                            "sources": [
+                                {"date_collected": { "terms": {"field": "date_collected"}}}
+                            ]
+                        },
+                        "aggregations": {
+                            "lineage_count": {
+                                "filter": {}
+                            }
                         }
                     }
                 }
             }
-        }
-        if query_location is not None: # Global
-            query["query"] = parse_location_id_to_query(query_location)
-        admin_level = 0
-        if query_location is None:
-            query["aggs"]["sub_date_buckets"]["composite"]["sources"].extend([
-                {"sub": { "terms": {"field": "country"} }},
-                {"sub_id": { "terms": {"field": "country_id"} }}
-            ])
+            if query_location is not None: # Global
+                query["query"] = parse_location_id_to_query(query_location)
             admin_level = 0
-        elif len(query_location.split("_")) == 2:
-            query["aggs"]["sub_date_buckets"]["composite"]["sources"].extend([
-                {"sub_id": { "terms": {"field": "location_id"} }},
-                {"sub": { "terms": {"field": "location"} }}
-            ])
-            admin_level = 2
-        elif len(query_location.split("_")) == 1:
-            query["aggs"]["sub_date_buckets"]["composite"]["sources"].extend([
-                {"sub_id": { "terms": {"field": "division_id"} }},
-                {"sub": { "terms": {"field": "division"} }}
-            ])
-            admin_level = 1
-        query_obj = create_nested_mutation_query(lineages = query_pangolin_lineage, mutations = query_mutations)
-        query["aggs"]["sub_date_buckets"]["aggregations"]["lineage_count"]["filter"] = query_obj
-        resp = yield self.asynchronous_fetch(query)
-        ctr = 0
-        buckets = resp["aggregations"]["sub_date_buckets"]["buckets"]
-        # Get all paginated results
-        while "after_key" in resp["aggregations"]["sub_date_buckets"]:
-            query["aggs"]["sub_date_buckets"]["composite"]["after"] = resp["aggregations"]["sub_date_buckets"]["after_key"]
+            if query_location is None:
+                query["aggs"]["sub_date_buckets"]["composite"]["sources"].extend([
+                    {"sub": { "terms": {"field": "country"} }},
+                    {"sub_id": { "terms": {"field": "country_id"} }}
+                ])
+                admin_level = 0
+            elif len(query_location.split("_")) == 2:
+                query["aggs"]["sub_date_buckets"]["composite"]["sources"].extend([
+                    {"sub_id": { "terms": {"field": "location_id"} }},
+                    {"sub": { "terms": {"field": "location"} }}
+                ])
+                admin_level = 2
+            elif len(query_location.split("_")) == 1:
+                query["aggs"]["sub_date_buckets"]["composite"]["sources"].extend([
+                    {"sub_id": { "terms": {"field": "division_id"} }},
+                    {"sub": { "terms": {"field": "division"} }}
+                ])
+                admin_level = 1
+            query_lineages = query_lineage.split(" OR ") if query_lineage is not None else []
+            query_obj = create_nested_mutation_query(lineages = query_lineages, mutations = query_mutation)
+            query["aggs"]["sub_date_buckets"]["aggregations"]["lineage_count"]["filter"] = query_obj
             resp = yield self.asynchronous_fetch(query)
-            buckets.extend(resp["aggregations"]["sub_date_buckets"]["buckets"])
-        dict_response = {"success": True, "results": []}
-        if len(buckets) > 0:
-            flattened_response = []
-            for i in buckets:
-                if len(i["key"]["date_collected"].split("-")) < 3 or "XX" in i["key"]["date_collected"]:
-                    continue
-                # Check for None and out of state
-                if i["key"]["sub"].lower().replace("-", "").replace(" ", "") == "outofstate":
-                    i["key"]["sub"] = "Out of state"
-                if i["key"]["sub"].lower() in ["none", "unknown"]:
-                    i["key"]["sub"] = "Unknown"
-                rec = {
-                    "date": i["key"]["date_collected"],
-                    "name": i["key"]["sub"],
-                    "id": i["key"]["sub_id"],
-                    "total_count": i["doc_count"],
-                    "lineage_count": i["lineage_count"]["doc_count"]
-                }
-                if admin_level == 1:
-                    rec["id"] = "_".join([query_location, self.country_iso3_to_iso2[query_location]+"-"+i["key"]["sub_id"] if query_location in self.country_iso3_to_iso2 else query_location + "-" + i["key"]["sub_id"]])
-                elif admin_level == 2:
-                    rec["id"] = "_".join([query_location, i["key"]["sub_id"]])
-                flattened_response.append(rec)
-            dict_response = transform_prevalence_by_location_and_tiime(flattened_response, query_ndays, query_detected)
-        resp = {"success": True, "results": dict_response}
-        self.write(resp)
+            ctr = 0
+            buckets = resp["aggregations"]["sub_date_buckets"]["buckets"]
+            # Get all paginated results
+            while "after_key" in resp["aggregations"]["sub_date_buckets"]:
+                query["aggs"]["sub_date_buckets"]["composite"]["after"] = resp["aggregations"]["sub_date_buckets"]["after_key"]
+                resp = yield self.asynchronous_fetch(query)
+                buckets.extend(resp["aggregations"]["sub_date_buckets"]["buckets"])
+            dict_response = {"success": True, "results": []}
+            if len(buckets) > 0:
+                flattened_response = []
+                for i in buckets:
+                    if len(i["key"]["date_collected"].split("-")) < 3 or "XX" in i["key"]["date_collected"]:
+                        continue
+                    # Check for None and out of state
+                    if i["key"]["sub"].lower().replace("-", "").replace(" ", "") == "outofstate":
+                        i["key"]["sub"] = "Out of state"
+                    if i["key"]["sub"].lower() in ["none", "unknown"]:
+                        i["key"]["sub"] = "Unknown"
+                    rec = {
+                        "date": i["key"]["date_collected"],
+                        "name": i["key"]["sub"],
+                        "id": i["key"]["sub_id"],
+                        "total_count": i["doc_count"],
+                        "lineage_count": i["lineage_count"]["doc_count"]
+                    }
+                    if admin_level == 1:
+                        rec["id"] = "_".join([query_location, self.country_iso3_to_iso2[query_location]+"-"+i["key"]["sub_id"] if query_location in self.country_iso3_to_iso2 else query_location + "-" + i["key"]["sub_id"]])
+                    elif admin_level == 2:
+                        rec["id"] = "_".join([query_location, i["key"]["sub_id"]])
+                    flattened_response.append(rec)
+                dict_response = transform_prevalence_by_location_and_tiime(flattened_response, query_ndays, query_detected)
+            resp = {"success": True, "results": dict_response}
+            res_key = None
+            if query_lineage is not None: # create_iterator will never return empty list for lineages
+                res_key = " OR ".join(query_lineages)
+            if len(query_mutations) > 0:
+                res_key = "({}) AND ({})".format(res_key, " AND ".join(query_mutations)) if res_key is not None else " AND ".join(query_mutations)
+            results[res_key] = resp
+        self.write(results)
 
 class PrevalenceAllLineagesByLocationHandler(BaseHandler):
 
