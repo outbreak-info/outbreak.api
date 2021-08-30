@@ -399,9 +399,11 @@ class SubmissionLagHandler(BaseHandler):
         self.write(resp)
 
 class MetadataHandler(BaseHandler):
+
     @gen.coroutine
     def get(self):
-        mapping = self.web_settings.connections.client.indices.get_mapping()['outbreak-genomics']['mappings']
+        mapping = yield self.get_mapping()
+        mapping = mapping["outbreak-genomics"]["mappings"]
         res = None
         if "mutation" in mapping:
             res = mapping['mutation']['_meta']
