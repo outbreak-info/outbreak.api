@@ -25,7 +25,6 @@ APP_LIST += [
 # *****************************************************************************
 # Query Pipeline
 # *****************************************************************************
-ES_RESULT_TRANSFORM = 'web.pipeline.ResourceTransform'
 ES_QUERY_BUILDER = 'web.pipeline.QueryBuilder'
 ALLOW_NESTED_AGGS = True
 

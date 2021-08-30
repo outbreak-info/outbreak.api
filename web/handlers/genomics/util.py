@@ -62,7 +62,7 @@ def transform_prevalence(resp, path_to_results = [], cumulative = False):
     for i in path_to_results:
         buckets = buckets[i]
     if len(buckets) == 0:
-        return {"success": True, "results": []}
+        return {"success": True, "results": {}}
     flattened_response = [{
         "date": i["key"],
         "total_count": i["doc_count"],
@@ -151,15 +151,29 @@ def transform_prevalence_by_location_and_tiime(flattened_response, ndays = None,
         }
     return dict_response
 
-def create_nested_mutation_query(location_id = None, lineage = None, mutations = []):
+def create_nested_mutation_query(location_id = None, lineages = [], mutations = []):
+    # For multiple lineages and mutations: (Lineage 1 AND mutation 1 AND mutation 2..) OR (Lineage 2 AND mutation 1 AND mutation 2..) ...
     query_obj = {
         "bool": {
-            "must": []
+            "should": []
         }
     }
-    bool_must = []
+    bool_should = []
+    for i in lineages:
+        bool_must = {
+            "bool": {
+                "must": []
+            }
+        }
+        bool_must["bool"]["must"].append({
+            "term": {
+                "pangolin_lineage": i
+            }
+        })
+        bool_should.append(bool_must)
+    bool_mutations = []
     for i in mutations:
-        bool_must.append({
+        bool_mutations.append({
             "nested": {
                 "path": "mutations",
                 "query": {
@@ -167,13 +181,19 @@ def create_nested_mutation_query(location_id = None, lineage = None, mutations =
                 }
             }
         })
-    if lineage is not None:
-        bool_must.append({
-            "term": {
-                "pangolin_lineage": lineage
+    if len(bool_mutations) > 0: # If mutations specified
+        if len(bool_should) > 0: # If lineage and mutations specified
+            for i in bool_should:
+                i["bool"]["must"].extend(bool_mutations)
+            query_obj["bool"]["should"] = bool_should
+        else:                   # If only mutations are specified
+            query_obj = {
+                "bool": {
+                    "must": bool_mutations
+                }
             }
-        })
-    query_obj["bool"]["must"] = bool_must
+    else:                       # If only lineage specified
+        query_obj["bool"]["should"] = bool_should
     parse_location_id_to_query(location_id, query_obj)
     return query_obj
 
@@ -212,11 +232,19 @@ def parse_location_id_to_query(query_id, query_obj = None):
     for i in range(min(3, len(location_codes))):
         if i == 1 and len(location_codes[i].split("-")) > 1:              # For division remove iso2 code if present
             location_codes[i] = location_codes[i].split("-")[1]
-        query_obj["bool"]["must"].append({
-            "term": {
-                location_types[i]: location_codes[i]
-            }
-        })
+        if "must" in query_obj["bool"]:
+            query_obj["bool"]["must"].append({
+                "term": {
+                    location_types[i]: location_codes[i]
+                }
+            })
+        elif "should" in query_obj["bool"] and len(query_obj["bool"]["should"]) > 0: # For create_nested_mutation_query IF both lineages and mutations supplied.
+            for bool_must in query_obj["bool"]["should"]:
+                bool_must["bool"]["must"].append({
+                    "term": {
+                        location_types[i]: location_codes[i]
+                    }
+                })
     return query_obj
 
 def create_lineage_concat_query(queries, query_tmpl):
@@ -238,3 +266,12 @@ def create_lineage_concat_query(queries, query_tmpl):
                 ]
             }
         }
+
+def create_iterator(lineages, mutations):
+    print(lineages)
+    print(mutations)
+    if len(lineages) > 0:
+        return zip(lineages, [mutations] * len(lineages))
+    if len(lineages) == 0 and len(mutations) > 0:
+        return zip([None], [mutations])
+    return zip([], [])
