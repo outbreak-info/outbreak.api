@@ -150,6 +150,7 @@ Parameters
 
 * `mutations` (Required). Comma separated list of mutations.
 * `location_id`  (Optional). If not specified, return most recent date globally.
+* `pangolin_lineage` (Optional). If not specfied, returns all Pango lineages containing that mutation.
 
 Examples,
 

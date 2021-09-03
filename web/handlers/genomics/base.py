@@ -26,5 +26,9 @@ class BaseHandler(BaseAPIHandler):
         )
         return response
 
+    async def get_mapping(self):
+        response = await self.biothings.elasticsearch.async_client.indices.get_mapping("outbreak-genomics")
+        return response
+
     def post(self):
         pass
