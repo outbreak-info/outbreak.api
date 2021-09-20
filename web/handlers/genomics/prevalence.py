@@ -36,7 +36,10 @@ class GlobalPrevalenceByTimeHandler(BaseHandler):
         resp = yield self.asynchronous_fetch(query)
         path_to_results = ["aggregations", "prevalence", "buckets"]
         resp = transform_prevalence(resp, path_to_results, cumulative)
-        self.write(resp)
+        self.write({
+            "success": True,
+            "results": resp
+        })
 
 class PrevalenceByLocationAndTimeHandler(BaseHandler):
 
@@ -90,7 +93,10 @@ class PrevalenceByLocationAndTimeHandler(BaseHandler):
             if len(query_mutations) > 0:
                 res_key = "({}) AND ({})".format(res_key, " AND ".join(query_mutations)) if res_key is not None else " AND ".join(query_mutations)
             results[res_key] = resp
-        self.write(results)
+        self.write({
+            "success": True,
+            "results": results
+        })
 
 class CumulativePrevalenceByLocationHandler(BaseHandler):
 
