@@ -13,7 +13,7 @@ Parameters
 
 * `location_id` (Optional). If not specified, the global total counts are returned.
 * `cumulative` (Optional). If `true` returns the cumulative number of sequences till date.
-* subadmin (Optional). If `true` and `cumulative`=`true`,  returns the cumulative number of sequences for the next admin level.
+* subadmin (Optional). If `true` and `cumulative`=`true`,  returns the cumulative number of sequences for the immedaite lower admin level.
 
 Examples,
 Number of sequences per day globally.
@@ -59,9 +59,9 @@ Endpoint: https://api.outbreak.info/genomics/prevalence-by-location
 
 Parameters
 
-* `pangolin_lineage` (Required).
+* `pangolin_lineage` (Required). List of lineages separated by `,`
 * `location_id` (Optional).
-* `mutations` (Optional). Comma separated list of mutations.
+* `mutations` (Optional). List of mutations separated by `AND`
 * `cumulative` (Optional). If `true` returns the cumulative global prevalence since the first day of detection.
 
 Examples,
@@ -82,10 +82,11 @@ Endpoint: https://api.outbreak.info/genomics/lineage-by-sub-admin-most-recent
 
 Parameters:
 
-* `pangolin_lineage` (Required).
-* `mutations` (Optional). Comma separated list of mutations.
-* `location_id`  (Optional). If not specified, return cumulative prevalence at the country level globally.
+* `pangolin_lineage` (Required). List of lineages separated by `,`
+* `mutations` (Optional). List of mutations separated by `AND`.
+* `location_id`  (Optional). If not specified, returns cumulative prevalence at the country level globally.
 * `ndays` (Optional). Specify number of days from current date to calculative cumuative counts. If not specified, there is no limit on the window.
+* `detected` (Optional). If `true` returns ony if at least
 
 
 ## 5. Most recent collection date by location
@@ -148,8 +149,10 @@ Endpoint: https://api.outbreak.info/genomics/mutations-by-lineage
 
 Parameters
 
-* `mutations` (Required). Comma separated list of mutations.
+* `mutations` (Optional). List of mutations separated by `AND`.
 * `location_id`  (Optional). If not specified, return most recent date globally.
+* `pangolin_lineage` (Optional). If not specfied, returns all Pango lineages containing that mutation.
+* `frequency` (Optional) Minimimum frequency threshold for the prevalence of a mutation in a lineage.
 
 Examples,
 
@@ -162,7 +165,7 @@ Endpoint: https://api.outbreak.info/genomics/lineage-mutations
 
 Parameters
 
-* `pangolin_lineage` (Required).
+* `pangolin_lineage` (Required). List of lineages separated by `OR`. List of mutations can be added as, `Lineage 1 OR Lineage 2 OR Lineage 3 AND Mutation 1 AND Mutation 2`. Mutiple queries can be separated by `,`.
 * `frequency` (Optional, default: 0.8). A number between 0 and 1 specifying the threshold above which to return mutations.
 
 Examples,

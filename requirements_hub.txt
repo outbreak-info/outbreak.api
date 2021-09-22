@@ -1,0 +1,1 @@
+-e git+https://github.com/biothings/biothings.api.git@master#egg=biothings[hub]

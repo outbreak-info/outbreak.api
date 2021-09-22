@@ -4,7 +4,7 @@
 import os
 import logging
 
-from biothings import ConfigurationError
+from biothings.utils.configuration import ConfigurationError
 
 DATA_HUB_DB_DATABASE = "biothings_hubdb"   # db containing the following (internal use)
 DATA_SRC_MASTER_COLLECTION = 'src_master'  # for metadata of each src collections
@@ -71,7 +71,7 @@ INDEX_CONFIG = {
     #"build_config_key" : None, # used to select proper idxr/syncer
     "indexer_select": {
         # default
-        #None : "path.to.special.Indexer",
+        None : "path.to.special.Indexer",
     },
     "env" : {
         "test": {
