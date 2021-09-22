@@ -2,7 +2,7 @@ import functools
 import inspect
 import urllib.parse
 from typing import Callable, Optional, Awaitable
-from .config import GPS_CLIENT_ID, GPS_API_ENDPOINT, GPS_AUTHN_URL, SECRET_KEY, CACHE_TIME
+from .config import GPS_CLIENT_ID, GPS_API_ENDPOINT, GPS_AUTHN_URL, SECRET_KEY, CACHE_TIME, WHITELIST_KEYS
 import jwt
 from datetime import datetime as dt, timedelta, timezone
 
@@ -31,6 +31,12 @@ def gisaid_authorized(method: Callable[..., Optional[Awaitable[None]]]) ->\
         if len(parts) != 2 or parts[0] != "Bearer":
             raise HTTPError(400)
         # we are assuming that the token is of type str
+        if parts[1] in WHITELIST_KEYS:
+            result = method(self, *args, **kwargs)
+            if inspect.isawaitable(result):
+                return await result
+            else:
+                return result
         decoded_token = None
         try:
             decoded_token = jwt.decode(parts[1], SECRET_KEY, algorithms=["HS256"])
