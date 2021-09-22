@@ -8,7 +8,7 @@ import re
 class LineageByCountryHandler(BaseHandler):
 
     @gen.coroutine
-    def get(self):
+    def _get(self):
         query_pangolin_lineage = self.get_argument("pangolin_lineage", None)
         query_mutations = self.get_argument("mutations", None)
         query = {
@@ -31,12 +31,12 @@ class LineageByCountryHandler(BaseHandler):
         query_obj = create_nested_mutation_query(lineages = query_pangolin_lineage, mutations = query_mutations)
         query["aggs"]["prevalence"]["filter"] = query_obj
         resp = yield self.asynchronous_fetch(query)
-        self.write(resp)
+        return resp
 
 class LineageByDivisionHandler(BaseHandler):
 
     @gen.coroutine
-    def get(self):
+    def _get(self):
         query_pangolin_lineage = self.get_argument("pangolin_lineage", None)
         query_country = self.get_argument("country", None)
         query_mutations = self.get_argument("mutations", None)
@@ -61,13 +61,13 @@ class LineageByDivisionHandler(BaseHandler):
         query["aggs"]["prevalence"]["filter"] = query_obj
         print(query)
         resp = yield self.asynchronous_fetch(query)
-        self.write(resp)
+        return resp
 
 # Calculate total number of sequences with a particular lineage in a country
 class LineageAndCountryHandler(BaseHandler):
 
     @gen.coroutine
-    def get(self):
+    def _get(self):
         query_country = self.get_argument("country", None)
         query_pangolin_lineage = self.get_argument("pangolin_lineage", None)
         query_mutations = self.get_argument("mutations", None)
@@ -79,13 +79,13 @@ class LineageAndCountryHandler(BaseHandler):
         query_obj = create_nested_mutation_query(country = query_country, lineages = query_pangolin_lineage, mutations = query_mutations)
         query["query"] = query_obj
         resp = yield self.asynchronous_fetch(query)
-        self.write(resp)
+        return resp
 
 # Calculate total number of sequences with a particular lineage in a division
 class LineageAndDivisionHandler(BaseHandler):
 
     @gen.coroutine
-    def get(self):
+    def _get(self):
         query_country = self.get_argument("country", None)
         query_division = self.get_argument("division", None)
         query_pangolin_lineage = self.get_argument("pangolin_lineage", None)
@@ -98,11 +98,11 @@ class LineageAndDivisionHandler(BaseHandler):
         query_obj = create_nested_mutation_query(country = query_country, division = query_division, lineages = query_pangolin_lineage, mutations = query_mutations)
         query["query"] = query_obj
         resp = yield self.asynchronous_fetch(query)
-        self.write(resp)
+        return resp
 
 class LineageHandler(BaseHandler):
     @gen.coroutine
-    def get(self):
+    def _get(self):
         query_str = self.get_argument("name", None)
         query = {
                 "size": 0,
@@ -132,7 +132,7 @@ class LineageHandler(BaseHandler):
             "total_count": i["doc_count"]
             } for i in buckets]
         resp = {"success": True, "results": flattened_response}
-        self.write(resp)
+        return resp
 
 class LineageMutationsHandler(BaseHandler):
 
@@ -152,7 +152,7 @@ class LineageMutationsHandler(BaseHandler):
     }
 
     @gen.coroutine
-    def get(self):
+    def _get(self):
         pangolin_lineage = self.get_argument("pangolin_lineage", None)
         frequency = self.get_argument("frequency", None)
         frequency = float(frequency) if frequency != None else 0.8
@@ -214,11 +214,11 @@ class LineageMutationsHandler(BaseHandler):
                 df_response = df_response[df_response["prevalence"] >= frequency].fillna("None")
                 dict_response[query_lineage] = df_response.to_dict(orient="records")
         resp = {"success": True, "results": dict_response}
-        self.write(resp)
+        return resp
 
 class MutationDetailsHandler(BaseHandler):
     @gen.coroutine
-    def get(self):
+    def _get(self):
         mutations = self.get_argument("mutations", None)
         mutations = mutations.split(",") if mutations is not None else []
         query = {
@@ -267,11 +267,11 @@ class MutationDetailsHandler(BaseHandler):
                         tmp[k] = int(float(tmp[k]))
                 flattened_response.append(tmp)
         resp = {"success": True, "results": flattened_response}
-        self.write(resp)
+        return resp
 
 class MutationsByLineage(BaseHandler):
     @gen.coroutine
-    def get(self):
+    def _get(self):
         query_location = self.get_argument("location_id", None)
         query_mutations = self.get_argument("mutations", None)
         query_pangolin_lineage = self.get_argument("pangolin_lineage", None)
@@ -332,4 +332,4 @@ class MutationsByLineage(BaseHandler):
             df_response = df_response[df_response["proportion"] >= query_frequency_threshold]
             results[",".join(muts)] = df_response.to_dict(orient="records")
         resp = {"success": True, "results": results}
-        self.write(resp)
+        return resp
