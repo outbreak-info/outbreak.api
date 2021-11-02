@@ -173,6 +173,11 @@ class LineageMutationsHandler(BaseHandler):
                                 "terms": {
                                     "field": "mutations.mutation",
                                     "size": 10000
+                                },
+                                "aggs": {
+                                    "genomes": {
+                                        "reverse_nested": {}
+                                    }
                                 }
                             }
                         }
@@ -185,6 +190,7 @@ class LineageMutationsHandler(BaseHandler):
             if len(query_lineage_split) > 1:
                 query_mutations = query_lineage_split[1:] # First parameter is always lineage
             query["query"] = create_nested_mutation_query(lineages = query_pangolin_lineage, mutations = query_mutations)
+            print(query)
             resp = yield self.asynchronous_fetch(query)
             path_to_results = ["aggregations", "mutations", "mutations", "buckets"]
             buckets = resp
@@ -192,7 +198,7 @@ class LineageMutationsHandler(BaseHandler):
                 buckets = buckets[i]
             flattened_response = [{
                 "mutation": i["key"],
-                "mutation_count": i["doc_count"],
+                "mutation_count": i["genomes"]["doc_count"],
                 "lineage_count": resp["hits"]["total"]["value"] if isinstance(resp["hits"]["total"], dict) else resp["hits"]["total"], # To account for difference in ES versions 7.12.0 vs 6.8.13
                 "lineage": query_lineage
             } for i in buckets]
