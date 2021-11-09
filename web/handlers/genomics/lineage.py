@@ -269,7 +269,7 @@ class MutationDetailsHandler(BaseHandler):
             for j in i["by_nested"]["hits"]["hits"]:
                 tmp = j["_source"]
                 for k in ["change_length_nt", "codon_num", "pos"]:
-                    if tmp[k] != "None":
+                    if k in tmp and tmp[k] != "None":
                         tmp[k] = int(float(tmp[k]))
                 flattened_response.append(tmp)
         resp = {"success": True, "results": flattened_response}
