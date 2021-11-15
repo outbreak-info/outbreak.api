@@ -36,7 +36,10 @@ class GlobalPrevalenceByTimeHandler(BaseHandler):
         resp = yield self.asynchronous_fetch(query)
         path_to_results = ["aggregations", "prevalence", "buckets"]
         resp = transform_prevalence(resp, path_to_results, cumulative)
-        self.write(resp)
+        self.write({
+            "success": True,
+            "results": resp
+        })
 
 class PrevalenceByLocationAndTimeHandler(BaseHandler):
 
@@ -90,7 +93,10 @@ class PrevalenceByLocationAndTimeHandler(BaseHandler):
             if len(query_mutations) > 0:
                 res_key = "({}) AND ({})".format(res_key, " AND ".join(query_mutations)) if res_key is not None else " AND ".join(query_mutations)
             results[res_key] = resp
-        self.write(results)
+        self.write({
+            "success": True,
+            "results": results
+        })
 
 class CumulativePrevalenceByLocationHandler(BaseHandler):
 
@@ -159,7 +165,7 @@ class CumulativePrevalenceByLocationHandler(BaseHandler):
                 query["aggs"]["sub_date_buckets"]["composite"]["after"] = resp["aggregations"]["sub_date_buckets"]["after_key"]
                 resp = yield self.asynchronous_fetch(query)
                 buckets.extend(resp["aggregations"]["sub_date_buckets"]["buckets"])
-            dict_response = {"success": True, "results": []}
+            dict_response = {}
             if len(buckets) > 0:
                 flattened_response = []
                 for i in buckets:
@@ -183,14 +189,16 @@ class CumulativePrevalenceByLocationHandler(BaseHandler):
                         rec["id"] = "_".join([query_location, i["key"]["sub_id"]])
                     flattened_response.append(rec)
                 dict_response = transform_prevalence_by_location_and_tiime(flattened_response, query_ndays, query_detected)
-            resp = {"success": True, "results": dict_response}
             res_key = None
             if query_lineage is not None: # create_iterator will never return empty list for lineages
                 res_key = " OR ".join(query_lineages)
             if len(query_mutations) > 0:
                 res_key = "({}) AND ({})".format(res_key, " AND ".join(query_mutations)) if res_key is not None else " AND ".join(query_mutations)
-            results[res_key] = resp
-        self.write(results)
+            results[res_key] = dict_response
+        self.write({
+            "success": True,
+            "results": results
+        })
 
 class PrevalenceAllLineagesByLocationHandler(BaseHandler):
 

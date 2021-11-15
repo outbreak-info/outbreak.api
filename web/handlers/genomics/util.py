@@ -107,7 +107,7 @@ def transform_prevalence(resp, path_to_results = [], cumulative = False):
                 "first_detected": df_date_sorted["date"].iloc[0].strftime("%Y-%m-%d"),
                 "last_detected": df_date_sorted["date"].iloc[-1].strftime("%Y-%m-%d")
             }
-    return {"success": True, "results": dict_response}
+    return dict_response
 
 def compute_cumulative(grp, cols):
     grp = grp.sort_values("date")
