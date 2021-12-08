@@ -1,7 +1,11 @@
+import abc
 from biothings.web.handlers import BaseAPIHandler
+from .gisaid_auth import gisaid_authorized
+from tornado import gen
 
 
 class BaseHandler(BaseAPIHandler):
+    __metaclass__ = abc.ABCMeta
 
     def set_default_headers(self):
         self.set_header("Content-Type", "application/json")
@@ -32,3 +36,11 @@ class BaseHandler(BaseAPIHandler):
 
     def post(self):
         pass
+
+    @gisaid_authorized
+    async def get(self):
+        resp = await self._get()
+        self.write(resp)
+
+    def _get(self):
+        raise NotImplementedError()

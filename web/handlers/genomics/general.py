@@ -8,7 +8,7 @@ class SequenceCountHandler(BaseHandler):
     country_iso3_to_iso2 = {"BGD": "BD", "BEL": "BE", "BFA": "BF", "BGR": "BG", "BIH": "BA", "BRB": "BB", "WLF": "WF", "BLM": "BL", "BMU": "BM", "BRN": "BN", "BOL": "BO", "BHR": "BH", "BDI": "BI", "BEN": "BJ", "BTN": "BT", "JAM": "JM", "BVT": "BV", "BWA": "BW", "WSM": "WS", "BES": "BQ", "BRA": "BR", "BHS": "BS", "JEY": "JE", "BLR": "BY", "BLZ": "BZ", "RUS": "RU", "RWA": "RW", "SRB": "RS", "TLS": "TL", "REU": "RE", "TKM": "TM", "TJK": "TJ", "ROU": "RO", "TKL": "TK", "GNB": "GW", "GUM": "GU", "GTM": "GT", "SGS": "GS", "GRC": "GR", "GNQ": "GQ", "GLP": "GP", "JPN": "JP", "GUY": "GY", "GGY": "GG", "GUF": "GF", "GEO": "GE", "GRD": "GD", "GBR": "GB", "GAB": "GA", "SLV": "SV", "GIN": "GN", "GMB": "GM", "GRL": "GL", "GIB": "GI", "GHA": "GH", "OMN": "OM", "TUN": "TN", "JOR": "JO", "HRV": "HR", "HTI": "HT", "HUN": "HU", "HKG": "HK", "HND": "HN", "HMD": "HM", "VEN": "VE", "PRI": "PR", "PSE": "PS", "PLW": "PW", "PRT": "PT", "SJM": "SJ", "PRY": "PY", "IRQ": "IQ", "PAN": "PA", "PYF": "PF", "PNG": "PG", "PER": "PE", "PAK": "PK", "PHL": "PH", "PCN": "PN", "POL": "PL", "SPM": "PM", "ZMB": "ZM", "ESH": "EH", "EST": "EE", "EGY": "EG", "ZAF": "ZA", "ECU": "EC", "ITA": "IT", "VNM": "VN", "SLB": "SB", "ETH": "ET", "SOM": "SO", "ZWE": "ZW", "SAU": "SA", "ESP": "ES", "ERI": "ER", "MNE": "ME", "MDA": "MD", "MDG": "MG", "MAF": "MF", "MAR": "MA", "MCO": "MC", "UZB": "UZ", "MMR": "MM", "MLI": "ML", "MAC": "MO", "MNG": "MN", "MHL": "MH", "MKD": "MK", "MUS": "MU", "MLT": "MT", "MWI": "MW", "MDV": "MV", "MTQ": "MQ", "MNP": "MP", "MSR": "MS", "MRT": "MR", "IMN": "IM", "UGA": "UG", "TZA": "TZ", "MYS": "MY", "MEX": "MX", "ISR": "IL", "FRA": "FR", "IOT": "IO", "SHN": "SH", "FIN": "FI", "FJI": "FJ", "FLK": "FK", "FSM": "FM", "FRO": "FO", "NIC": "NI", "NLD": "NL", "NOR": "NO", "NAM": "NA", "VUT": "VU", "NCL": "NC", "NER": "NE", "NFK": "NF", "NGA": "NG", "NZL": "NZ", "NPL": "NP", "NRU": "NR", "NIU": "NU", "COK": "CK", "XKX": "XK", "CIV": "CI", "CHE": "CH", "COL": "CO", "CHN": "CN", "CMR": "CM", "CHL": "CL", "CCK": "CC", "CAN": "CA", "COG": "CG", "CAF": "CF", "COD": "CD", "CZE": "CZ", "CYP": "CY", "CXR": "CX", "CRI": "CR", "CUW": "CW", "CPV": "CV", "CUB": "CU", "SWZ": "SZ", "SYR": "SY", "SXM": "SX", "KGZ": "KG", "KEN": "KE", "SSD": "SS", "SUR": "SR", "KIR": "KI", "KHM": "KH", "KNA": "KN", "COM": "KM", "STP": "ST", "SVK": "SK", "KOR": "KR", "SVN": "SI", "PRK": "KP", "KWT": "KW", "SEN": "SN", "SMR": "SM", "SLE": "SL", "SYC": "SC", "KAZ": "KZ", "CYM": "KY", "SGP": "SG", "SWE": "SE", "SDN": "SD", "DOM": "DO", "DMA": "DM", "DJI": "DJ", "DNK": "DK", "VGB": "VG", "DEU": "DE", "YEM": "YE", "DZA": "DZ", "USA": "US", "URY": "UY", "MYT": "YT", "UMI": "UM", "LBN": "LB", "LCA": "LC", "LAO": "LA", "TUV": "TV", "TWN": "TW", "TTO": "TT", "TUR": "TR", "LKA": "LK", "LIE": "LI", "LVA": "LV", "TON": "TO", "LTU": "LT", "LUX": "LU", "LBR": "LR", "LSO": "LS", "THA": "TH", "ATF": "TF", "TGO": "TG", "TCD": "TD", "TCA": "TC", "LBY": "LY", "VAT": "VA", "VCT": "VC", "ARE": "AE", "AND": "AD", "ATG": "AG", "AFG": "AF", "AIA": "AI", "VIR": "VI", "ISL": "IS", "IRN": "IR", "ARM": "AM", "ALB": "AL", "AGO": "AO", "ATA": "AQ", "ASM": "AS", "ARG": "AR", "AUS": "AU", "AUT": "AT", "ABW": "AW", "IND": "IN", "ALA": "AX", "AZE": "AZ", "IRL": "IE", "IDN": "ID", "UKR": "UA", "QAT": "QA", "MOZ": "MZ"} # TODO: Move to separate class.
 
     @gen.coroutine
-    def get(self):
+    def _get(self):
         query_location = self.get_argument("location_id", None)
         query_cumulative = self.get_argument("cumulative", None)
         query_subadmin = self.get_argument("subadmin", None)
@@ -71,12 +71,12 @@ class SequenceCountHandler(BaseHandler):
                     "total_count": resp["hits"]["total"]
                 }
         resp = {"success": True, "results": flattened_response}
-        self.write(resp)
+        return resp
 
 class GisaidIDHandler(BaseHandler):
 
     @gen.coroutine
-    def get(self):
+    def _get(self):
         query_id = self.get_argument("id")
         exists = False
         query = {
@@ -90,13 +90,13 @@ class GisaidIDHandler(BaseHandler):
         if resp["count"] > 0:
             exists = True
         resp = {"success": True, "exists": exists}
-        self.write(resp)
+        return resp
 
 class MostRecentDateHandler(BaseHandler):
     field = "date_collected"
 
     @gen.coroutine
-    def get(self):
+    def _get(self):
         query_pangolin_lineage = self.get_argument("pangolin_lineage", None)
         query_location = self.get_argument("location_id", None)
         query_mutations = self.get_argument("mutations", None)
@@ -145,7 +145,7 @@ class MostRecentDateHandler(BaseHandler):
         df_response.loc["date_count"] = int(df_response["date_count"])
         dict_response = df_response.to_dict()
         resp = {"success": True, "results": dict_response}
-        self.write(resp)
+        return resp
 
 class MostRecentCollectionDateHandler(MostRecentDateHandler):
     field = "date_collected"
@@ -156,7 +156,7 @@ class MostRecentSubmissionDateHandler(MostRecentDateHandler):
 class LocationDetailsHandler(BaseHandler):
 
     @gen.coroutine
-    def get(self):
+    def _get(self):
         query_str = self.get_argument("id", None)
         query_ids = query_str.split("_")
         query = {
@@ -221,7 +221,7 @@ class LocationDetailsHandler(BaseHandler):
             flattened_response = flattened_response[0] # ID should match only 1 region
         flattened_response["query_id"] = query_str
         resp = {"success": True, "results": flattened_response}
-        self.write(resp)
+        return resp
 
 class LocationHandler(BaseHandler):
 
@@ -231,7 +231,7 @@ class LocationHandler(BaseHandler):
     location_types = ["country", "division", "location"]
 
     @gen.coroutine
-    def get(self):
+    def _get(self):
         query_str = self.get_argument("name", None)
         flattened_response = []
         for loc in self.location_types:
@@ -313,12 +313,12 @@ class LocationHandler(BaseHandler):
                     })
         flattened_response = sorted(flattened_response, key = lambda x: -x["total_count"])
         resp = {"success": True, "results": flattened_response}
-        self.write(resp)
+        return resp
 
 class MutationHandler(BaseHandler):
 
     @gen.coroutine
-    def get(self):
+    def _get(self):
         query_str = self.get_argument("name", None)
         query = {
             "size": 0,
@@ -359,12 +359,12 @@ class MutationHandler(BaseHandler):
             "total_count": i["doc_count"]
         } for i in buckets]
         resp = {"success": True, "results": flattened_response}
-        self.write(resp)
+        return resp
 
 class SubmissionLagHandler(BaseHandler):
 
     @gen.coroutine
-    def get(self):
+    def _get(self):
         query_location = self.get_argument("location_id", None)
         query = {
             "aggs": {
@@ -396,12 +396,12 @@ class SubmissionLagHandler(BaseHandler):
             "total_count": i["doc_count"]
         } for i in buckets]
         resp = {"success": True, "results": flattened_response}
-        self.write(resp)
+        return resp
 
 class MetadataHandler(BaseHandler):
 
     @gen.coroutine
-    def get(self):
+    def _get(self):
         mapping = yield self.get_mapping()
         mapping = mapping["outbreak-genomics"]["mappings"]
         res = None
@@ -409,4 +409,4 @@ class MetadataHandler(BaseHandler):
             res = mapping['mutation']['_meta']
         else:
             res = mapping["_meta"]
-        self.write(res)
+        return res
