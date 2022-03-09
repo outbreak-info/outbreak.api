@@ -16,6 +16,7 @@ class BaseHandler(BaseAPIHandler):
     size = 10000
 
     async def asynchronous_fetch(self, query):
+        query["track_total_hits"] = True
         response = await self.biothings.elasticsearch.async_client.search(
             index="outbreak-genomics",
             body=query,
@@ -24,6 +25,7 @@ class BaseHandler(BaseAPIHandler):
         return response
 
     async def asynchronous_fetch_count(self, query):
+        query["track_total_hits"] = True
         response = await self.biothings.elasticsearch.async_client.count(
             index="outbreak-genomics",
             body=query
