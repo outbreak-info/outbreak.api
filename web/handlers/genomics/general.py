@@ -1,7 +1,7 @@
 import pandas as pd
 from .base import BaseHandler
 from tornado import gen
-from .util import create_nested_mutation_query, parse_location_id_to_query
+from .util import create_nested_mutation_query, parse_location_id_to_query, get_total_hits
 
 class SequenceCountHandler(BaseHandler):
 
@@ -68,7 +68,7 @@ class SequenceCountHandler(BaseHandler):
             else:
                 resp = yield self.asynchronous_fetch(query)
                 flattened_response = {
-                    "total_count": resp["hits"]["total"]
+                    "total_count": get_total_hits(resp)
                 }
         resp = {"success": True, "results": flattened_response}
         return resp

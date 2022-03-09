@@ -275,3 +275,6 @@ def create_iterator(lineages, mutations):
     if len(lineages) == 0 and len(mutations) > 0:
         return zip([None], [mutations])
     return zip([], [])
+
+def get_total_hits(d): # To account for difference in ES versions 7.12.0 vs 6.8.13
+    return d["hits"]["total"]["value"] if isinstance(d["hits"]["total"], dict) else d["hits"]["total"]

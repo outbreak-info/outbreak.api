@@ -1,7 +1,7 @@
 from .base import BaseHandler
 from tornado import gen
 import pandas as pd
-from .util import create_nested_mutation_query, calculate_proportion, parse_location_id_to_query, create_lineage_concat_query
+from .util import create_nested_mutation_query, calculate_proportion, parse_location_id_to_query, get_total_hits
 
 import re
 
@@ -199,7 +199,7 @@ class LineageMutationsHandler(BaseHandler):
             flattened_response = [{
                 "mutation": i["key"],
                 "mutation_count": i["genomes"]["doc_count"],
-                "lineage_count": resp["hits"]["total"]["value"] if isinstance(resp["hits"]["total"], dict) else resp["hits"]["total"], # To account for difference in ES versions 7.12.0 vs 6.8.13
+                "lineage_count": get_total_hits(resp),
                 "lineage": query_lineage
             } for i in buckets]
             if len(flattened_response) > 0:
