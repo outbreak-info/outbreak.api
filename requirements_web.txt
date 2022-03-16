@@ -1,4 +1,4 @@
-git+git://github.com/biothings/biothings.api@0.10.x#egg=biothings[web_extra]
+-e git+https://github.com/biothings/biothings.api.git@0.10.x#egg=biothings[web_extra]
 
 aiohttp==3.6.2
 appdirs==1.4.3
