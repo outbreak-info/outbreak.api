@@ -1,6 +1,6 @@
 -e git+https://github.com/biothings/biothings.api.git@0.10.x#egg=biothings[web_extra]
 
-aiohttp==3.6.2
+aiohttp==3.7.4
 appdirs==1.4.3
 async-timeout==3.0.1
 attrs==20.3.0
