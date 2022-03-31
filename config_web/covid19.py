@@ -19,6 +19,5 @@ API_VERSION = ''
 
 STATUS_CHECK = {
     'id': 'USA_California_SanDiego2021-12-30',
-    'index': 'outbreak-covid19',
-    'doc_type': 'outbreak_info'
+    'index': 'outbreak-covid19'
 }
