@@ -3,5 +3,5 @@ pandas==1.1.5
 pyjwt[crypto]==2.1.0
 numpy==1.19.1
 scipy==1.5.4
-Jinja2==2.11.2
+Jinja2==2.11.3
 MarkupSafe==1.1.1
