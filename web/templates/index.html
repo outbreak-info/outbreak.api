@@ -54,7 +54,7 @@
 					<h1 id="TryIt">Outbreak APIs</h1>
 					<small>(<span v-text="pending.length"></span>) APIs</small>
 				</div>
-				<div class="mb-5 container d-flex justify-content-center">
+				<div class="mb-5 container d-flex justify-content-center flex-wrap">
 					<template v-for="(api,index) in pending">
 						<api-box :api="api" :desc="api.description" :key="index"></api-box>
 					</template>
@@ -180,7 +180,7 @@
 		}
 
   },
-  template: `<div class="border rounded m-1 p-3">
+  template: `<div class="border rounded m-1 p-3" style="width:30%;">
 							<h2 class="text-center">
 								<template v-if='api && api["status"]'>
 									<i class="fas " :title='api["status"]' v-bind:class="[api['status'] === 'running' ? 'text-success fa-check-circle' : 'text-danger fa-exclamation-circle' ]"></i>
@@ -215,7 +215,10 @@
 									</template>
 								</template>
 							</div>
-							<div class="text-center p-2">
+							<div v-if="api['link']" class="text-center p-2">
+								<a class="btn btn-outline-dark" :href="api['link']">Try It <i class="fas fa-chevron-right"></i></a>
+							</div>
+							<div v-else class="text-center p-2">
 								<a class="btn btn-outline-dark" :href="'./try/'+api['_id']">Try It <i class="fas fa-chevron-right"></i></a>
 							</div>
 						</div>`
