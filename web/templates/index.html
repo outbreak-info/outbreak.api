@@ -180,7 +180,7 @@
 		}
 
   },
-  template: `<div class="border rounded m-1 p-3" style="width:30%;">
+  template: `<div class="border rounded m-1 p-3">
 							<h2 class="text-center">
 								<template v-if='api && api["status"]'>
 									<i class="fas " :title='api["status"]' v-bind:class="[api['status'] === 'running' ? 'text-success fa-check-circle' : 'text-danger fa-exclamation-circle' ]"></i>
