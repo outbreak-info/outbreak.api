@@ -1,7 +1,7 @@
 -e git+https://github.com/biothings/biothings.api.git@0.10.x#egg=biothings[web_extra]
 pandas==1.1.5
 pyjwt[crypto]==2.1.0
-numpy==1.19.1
+numpy==1.22.0
 scipy==1.5.4
 Jinja2==2.11.2
 MarkupSafe==1.1.1
