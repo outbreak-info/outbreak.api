@@ -17,7 +17,8 @@ def get_api_list():
                 "doc_type": "outbreak_info"
             },
             "description": "COVID19 live outbreak data",
-            "status": "running"
+            "status": "running",
+            "link": False
         },
         {
             "_id": "resources",
@@ -25,7 +26,17 @@ def get_api_list():
                 "doc_type": "resource"
             },
             "description": "COVID19 collection of datasets, publications ,clinical trials, protocols, and more.",
-            "status": "running"
+            "status": "running",
+            "link": False
+        },
+        {
+            "_id": "genomics",
+            "config": {
+                "doc_type": "mutation"
+            },
+            "description": "Provides access to the underlying genomic and epidemiology data on outbreak.info.",
+            "status": "running",
+            "link": "https://outbreak-info.github.io/R-outbreak-info/"
         },
     ]
     return res
