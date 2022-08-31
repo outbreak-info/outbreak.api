@@ -2,7 +2,7 @@ import functools
 import inspect
 import urllib.parse
 from typing import Callable, Optional, Awaitable
-from .config import GPS_CLIENT_ID, GPS_API_ENDPOINT, GPS_AUTHN_URL, SECRET_KEY, CACHE_TIME, WHITELIST_KEYS
+from config_web import GPS_CLIENT_ID, GPS_API_ENDPOINT, GPS_AUTHN_URL, SECRET_KEY, CACHE_TIME, WHITELIST_KEYS
 import jwt
 from datetime import datetime as dt, timedelta, timezone
 
