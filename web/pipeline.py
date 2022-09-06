@@ -18,7 +18,8 @@ class QueryBuilder(ESQueryBuilder):
                         "interventions.name^3",
                         "description",
                         "all"
-                    ]
+                    ],
+                    "default_operator": "AND"
                 }
             }
         }
