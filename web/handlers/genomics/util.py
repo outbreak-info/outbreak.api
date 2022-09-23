@@ -2,6 +2,30 @@ from datetime import timedelta, datetime as dt
 from scipy.stats import beta
 import pandas as pd
 
+
+
+def calculate_confidence_intervals(x):
+    """helper function for calculating confidence intervals from rolling count data"""
+    _x = x['lineage_count_rolling'].round()
+    n = x['total_count_rolling'].round()
+    ci_lower, ci_upper =  beta.interval(1 - 0.05, _x + 0.5, n - _x + 0.5)
+    return ci_lower, ci_upper
+
+
+
+def calculate_proportion2(_x):
+    """helper function for calculating relative prevalence (proportion) from rolling count data"""
+    x = _x['lineage_count_rolling'].round()
+    n = _x['total_count_rolling'].round()
+    ci_low, ci_upp = beta.interval(1 - 0.05, x + 0.5, n - x + 0.5) # Jeffreys Interval
+    d = {}
+    d['proportion'] = _x['lineage_count_rolling']/_x['total_count_rolling']
+    d['proportion_ci_lower'] = beta.interval(1 - 0.05, x + 0.5, n - x + 0.5)[0]
+    d['proportion_ci_upper'] = beta.interval(1 - 0.05, x + 0.5, n - x + 0.5)[1]
+    return pd.Series(d, index=['proportion', 'proportion_ci_lower', 'proportion_ci_upper'])
+
+
+
 def calculate_proportion(_x, _n):
     x = _x.round()
     n = _n.round()
@@ -9,9 +33,13 @@ def calculate_proportion(_x, _n):
     est_proportion = _x/_n
     return est_proportion, ci_low, ci_upp
 
+
+
 def compute_total_count(df, col, new_col):
     df.loc[:,new_col] = df[col].sum()
     return df
+
+
 
 def expand_dates(df, date_min, date_max, index_col, grp_col):
     idx = pd.date_range(date_min, date_max)
@@ -28,6 +56,8 @@ def expand_dates(df, date_min, date_max, index_col, grp_col):
         )
     )
     return df
+
+
 
 def compute_rolling_mean_all_lineages(df, index_col, col, new_col, grp_col):
     idx = pd.date_range(df[index_col].min(), df[index_col].max())
@@ -48,6 +78,8 @@ def compute_rolling_mean_all_lineages(df, index_col, col, new_col, grp_col):
     )
     return df
 
+
+
 def compute_rolling_mean(df, index_col, col, new_col):
     df = (
         df
@@ -56,6 +88,8 @@ def compute_rolling_mean(df, index_col, col, new_col):
         .reset_index()
     )
     return df
+
+
 
 def transform_prevalence(resp, path_to_results = [], cumulative = False):
     buckets = resp
@@ -109,6 +143,8 @@ def transform_prevalence(resp, path_to_results = [], cumulative = False):
             }
     return dict_response
 
+
+
 def compute_cumulative(grp, cols):
     grp = grp.sort_values("date")
     if grp.shape[0] != 0:
@@ -123,6 +159,8 @@ def compute_cumulative(grp, cols):
             else:
                 grp.loc[:, "cum_{}".format(i)] = 0
         return grp.tail(1)
+
+
 
 def transform_prevalence_by_location_and_tiime(flattened_response, ndays = None, query_detected = False):
     df_response = (
@@ -150,6 +188,8 @@ def transform_prevalence_by_location_and_tiime(flattened_response, ndays = None,
             "names": df_response[df_response["lineage_count"] > 0]["name"].unique().tolist()
         }
     return dict_response
+
+
 
 def create_nested_mutation_query(location_id = None, lineages = [], mutations = []):
     # For multiple lineages and mutations: (Lineage 1 AND mutation 1 AND mutation 2..) OR (Lineage 2 AND mutation 1 AND mutation 2..) ...
@@ -197,6 +237,8 @@ def create_nested_mutation_query(location_id = None, lineages = [], mutations = 
     parse_location_id_to_query(location_id, query_obj)
     return query_obj
 
+
+
 def classify_other_category(grp, keep_lineages):
     grp.loc[(~grp["lineage"].isin(keep_lineages)) | (grp["lineage"] == "none"), "lineage"] = "other" # Temporarily remove none. TODO: Proper fix
     grp = grp.groupby("lineage").agg({
@@ -204,6 +246,8 @@ def classify_other_category(grp, keep_lineages):
         "lineage_count": "sum"
     })
     return grp
+
+
 
 def get_major_lineage_prevalence(df, index_col, keep_lineages = [], prevalence_threshold = 0.05, nday_threshold = 10, ndays = 180):
     date_limit = dt.today() - timedelta(days = ndays)
@@ -217,6 +261,8 @@ def get_major_lineage_prevalence(df, index_col, keep_lineages = [], prevalence_t
     df = df.reset_index()
     df.loc[:,"prevalence"] = df["lineage_count"]/df["total_count"]
     return df
+
+
 
 def parse_location_id_to_query(query_id, query_obj = None):
     if query_id == None:
@@ -247,6 +293,8 @@ def parse_location_id_to_query(query_id, query_obj = None):
                 })
     return query_obj
 
+
+
 def create_lineage_concat_query(queries, query_tmpl):
     queries = queries.split(",")
     if len(queries) == 1:
@@ -267,6 +315,8 @@ def create_lineage_concat_query(queries, query_tmpl):
             }
         }
 
+
+
 def create_iterator(lineages, mutations):
     print(lineages)
     print(mutations)
@@ -275,6 +325,8 @@ def create_iterator(lineages, mutations):
     if len(lineages) == 0 and len(mutations) > 0:
         return zip([None], [mutations])
     return zip([], [])
+
+
 
 def get_total_hits(d): # To account for difference in ES versions 7.12.0 vs 6.8.13
     return d["hits"]["total"]["value"] if isinstance(d["hits"]["total"], dict) else d["hits"]["total"]
