@@ -1,8 +1,24 @@
-from .util import transform_prevalence, transform_prevalence_by_location_and_tiime, compute_rolling_mean, create_nested_mutation_query, get_major_lineage_prevalence, compute_total_count, compute_rolling_mean_all_lineages, expand_dates, parse_location_id_to_query, create_iterator
+from .util import (
+    calculate_confidence_intervals, 
+    calculate_proportion2, 
+    transform_prevalence, 
+    transform_prevalence_by_location_and_tiime, 
+    compute_rolling_mean, 
+    create_nested_mutation_query, 
+    get_major_lineage_prevalence, 
+    compute_total_count, 
+    compute_rolling_mean_all_lineages, 
+    expand_dates, 
+    parse_location_id_to_query, 
+    create_iterator
+)
 from .base import BaseHandler
+from collections import defaultdict
 from tornado import gen
 import pandas as pd
 from datetime import timedelta, datetime as dt
+
+
 
 # Get global prevalence of lineage by date
 class GlobalPrevalenceByTimeHandler(BaseHandler):
@@ -40,6 +56,146 @@ class GlobalPrevalenceByTimeHandler(BaseHandler):
             "success": True,
             "results": resp
         }
+
+class PrevalenceByLocationAndTimeHandler2(BaseHandler):
+
+    @gen.coroutine
+    def _get(self):
+        # collect parameters
+        query_location = self.get_argument("location_id", None)
+        query_pangolin_lineage = self.get_argument("pangolin_lineage", None)
+        query_pangolin_lineage = query_pangolin_lineage.split(",") if query_pangolin_lineage is not None else []
+        query_mutations = self.get_argument("mutations", None)
+        query_mutations = query_mutations.split(" AND ") if query_mutations is not None else []
+        cumulative = self.get_argument("cumulative", None)
+        cumulative = True if cumulative == "true" else False
+        results = {}
+        # initialize ES queries - one for the chosen lineages/mutations, another for total count
+        total_query = {
+                "size": 0,
+                "aggs": {
+                    "prevalence": {
+                        "filter": {
+                            "bool": {
+                                "must": []
+                            }
+                        },
+                        "aggs": {
+                            "count": {
+                                "terms": {
+                                    "field": "date_collected",
+                                    "size": self.size
+                                },
+                            }
+                        }
+                    }
+                }
+            }
+        lineage_query = {
+            "size": 0,
+            "aggs": {
+                "prevalence": {
+                    "filter": {
+                        "bool": {
+                            "should": [{"term": {"pangolin_lineage": i}} for i in query_pangolin_lineage],
+                            "must": [{"term": {"mutations.mutation": i}} for i in query_mutations]
+                        },
+                    },
+                    "aggs": {
+                            "count": {
+                                "terms": {
+                                    "field": "date_collected",
+                                    "size": len(query_pangolin_lineage)
+                                },
+                                "aggs": {
+                                    "lineage_count":{"terms": {
+                                        "field": "pangolin_lineage",
+                                        "size": self.size
+                                    }}
+                                }
+                            }
+                        }
+                }
+            }
+        }
+        # add location information to each query
+        parse_location_id_to_query(query_location, total_query["aggs"]["prevalence"]["filter"])
+        parse_location_id_to_query(query_location, lineage_query["aggs"]["prevalence"]["filter"])
+        # run total count query
+        total_resp = yield self.asynchronous_fetch(total_query)
+        # process total count data into dataframe
+        total_resp_dict = defaultdict(list)
+        for bkt in total_resp['aggregations']['prevalence']['count']['buckets']:
+            total_resp_dict['date'].append(bkt['key'])
+            total_resp_dict['total_count'].append(bkt['doc_count'])
+        total_resp_df = pd.DataFrame().from_dict(total_resp_dict)
+        total_resp_df['date'] = pd.to_datetime(total_resp_df['date'])
+        total_resp_df.sort_values(by='date', ascending=True, inplace=True)
+        total_resp_df = (
+        total_resp_df
+        .set_index('date')
+        .assign(**{'total_count_rolling': lambda x: x['total_count'].rolling("7d").mean()})
+        .reset_index()
+        )
+        # run lineage/mutation count query
+        resp = yield self.asynchronous_fetch(lineage_query)
+        # process lineage/mutation count data into dataframe
+        resp_dict = defaultdict(list)
+        for bkt in resp['aggregations']['prevalence']['count']['buckets']:
+            for lin in bkt['lineage_count']['buckets']:
+                resp_dict['date'].append(bkt['key'])
+                resp_dict['pangolin_lineage'].append(lin['key'])
+                resp_dict['lineage_count'].append(lin['doc_count'])
+        resp_df = pd.DataFrame().from_dict(resp_dict)
+        resp_df['pangolin_lineage'] = resp_df['pangolin_lineage'].str.upper()
+        resp_df['date'] = pd.to_datetime(resp_df['date'])
+        resp_df.sort_values(by='date', ascending=True, inplace=True)
+        # compute 7-day rolling count for each lineage
+        lin_count_rolling = (resp_df.set_index('date')
+        .groupby('pangolin_lineage')['lineage_count']
+        .apply(lambda x: x.asfreq('1d').rolling('7d').mean())
+        .reset_index()
+        .rename(columns={'lineage_count': 'lineage_count_rolling'})
+        )
+        lin_count_rolling['lineage_count_rolling'] = lin_count_rolling['lineage_count_rolling'].fillna(0)
+        resp_df = pd.merge(lin_count_rolling, resp_df, on=['date', 'pangolin_lineage'], how='left')
+        resp_df['lineage_count'] = resp_df['lineage_count'].fillna(0)
+        # fuse dataframes and compute proportion results
+        mrg_resp_df = pd.merge(resp_df, total_resp_df, on='date', how='inner')
+        first_dates = (resp_df[resp_df['lineage_count']>0]
+               .groupby('pangolin_lineage')
+               .agg(first_date=('date', 'min'))
+               .reset_index())
+        mrg_resp_df = pd.merge(mrg_resp_df, first_dates, on='pangolin_lineage')
+        mrg_resp_df = mrg_resp_df.loc[mrg_resp_df['date'] >= (mrg_resp_df['first_date'] - pd.to_timedelta(6, unit='d'))]
+        mrg_resp_df['proportion'] = mrg_resp_df['lineage_count_rolling'] / mrg_resp_df['total_count_rolling']
+        mrg_resp_df[['proportion_ci_lower', 
+                    'proportion_ci_upper']] = (mrg_resp_df[['lineage_count_rolling', 'total_count_rolling']]
+                                                .apply(calculate_confidence_intervals, axis=1, result_type='expand'))
+        mrg_resp_df.loc[:,"date"] = mrg_resp_df["date"].apply(lambda x: x.strftime("%Y-%m-%d"))
+        mrg_resp_df['proportion'] = mrg_resp_df['proportion'].fillna(0).astype(float)
+        mrg_resp_df['proportion_ci_lower'] = mrg_resp_df['proportion_ci_lower'].fillna(0).astype(float)
+        mrg_resp_df['proportion_ci_upper'] = mrg_resp_df['proportion_ci_upper'].fillna(0).astype(float)
+        target_cols = ['date', 'total_count', 'lineage_count', 'total_count_rolling', 'lineage_count_rolling',
+                    'proportion', 'proportion_ci_lower', 'proportion_ci_upper']
+        # convert into nested dictionary object 
+        final_result = (mrg_resp_df
+                        .sort_values(by='date')
+                        .groupby('pangolin_lineage')
+                        .apply(lambda x: x[target_cols].to_dict(orient='records'))
+                        .to_dict())
+        res_key = None
+        if len(query_pangolin_lineage) > 0:
+            res_key = " OR ".join(query_pangolin_lineage)
+        if len(query_mutations) > 0:
+            res_key = "({}) AND ({})".format(res_key, " AND ".join(query_mutations)) if res_key is not None else " AND ".join(query_mutations)
+        results[res_key] = final_result
+        return {
+            "success": True,
+            "results": final_result,
+        }
+
+
 
 class PrevalenceByLocationAndTimeHandler(BaseHandler):
 
@@ -95,8 +251,10 @@ class PrevalenceByLocationAndTimeHandler(BaseHandler):
             results[res_key] = resp
         return {
             "success": True,
-            "results": results
+            "results": results,
         }
+
+
 
 class CumulativePrevalenceByLocationHandler(BaseHandler):
 
@@ -200,6 +358,8 @@ class CumulativePrevalenceByLocationHandler(BaseHandler):
             "results": results
         }
 
+
+
 class PrevalenceAllLineagesByLocationHandler(BaseHandler):
 
     @gen.coroutine
@@ -280,6 +440,8 @@ class PrevalenceAllLineagesByLocationHandler(BaseHandler):
             df_response.loc[:,"prevalence"] = df_response["lineage_count"]/df_response["total_count"]
         resp = {"success": True, "results": df_response.to_dict(orient="records")}
         return resp
+
+
 
 class PrevalenceByAAPositionHandler(BaseHandler):
 
@@ -411,5 +573,3 @@ class PrevalenceByAAPositionHandler(BaseHandler):
             dict_response = df_response.to_dict(orient="records")
         resp = {"success": True, "results": dict_response}
         return resp
-
-
