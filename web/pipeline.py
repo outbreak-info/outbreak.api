@@ -1,4 +1,4 @@
-from elasticsearch_dsl import Search
+from elasticsearch_dsl import Search, Q
 from biothings.web.query import ESQueryBuilder
 
 
