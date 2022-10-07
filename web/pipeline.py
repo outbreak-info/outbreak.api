@@ -32,13 +32,15 @@ class QueryBuilder(ESQueryBuilder):
 
         search = super().apply_extras(search, options)
 
-        immport          =  Q('term', **{ "curatedBy.name": "ImmPort" })
-        health_condition =  Q('term', **{ "healthCondition.name": "covid-19" })
-        dockstore        =  Q('terms', **{ 'curatedBy.name': [ 'Dockstore', 'biotools', 'Zenodo' ]})
-        topic_cat        =  Q('term', **{ 'topicCategory.name': 'COVID-19' })
+        immport          =  Q('term',  **{ "curatedBy.name": "ImmPort" })
+        health_condition =  Q('term',  **{ "healthCondition.name": "covid-19" })
+        dockstore        =  Q('terms', **{ 'curatedBy.name': [ 'Dockstore', 'biotools' ]})
+        topic_cat        =  Q('term',  **{ 'topicCategory.name': 'COVID-19' })
         other            = ~Q('terms', **{ 'curatedBy.name': ['ImmPort', 'Dockstore', 'biotools', 'Zenodo'] })
+        zenodo           =  Q('term',  **{ 'curatedBy.name': 'Zenodo'})
+        keyword          =  Q('term',  **{ 'keywords': 'COVID-19'})
 
-        search = search.query('bool', filter=[(immport & health_condition) | (dockstore & topic_cat) | other])
+        search = search.query('bool', filter=[(immport & health_condition) | (dockstore & topic_cat) | (zenodo & keyword) | other])
 
         if options._type:
             search = search.filter('term', **{'@type': options._type})
