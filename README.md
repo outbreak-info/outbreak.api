@@ -5,7 +5,8 @@ The data API server for outbreak.info
 
   (recommend to setup a fresh Python venv first)
 
-    pip install -r requirements.txt
+    pip install -r requirements_web.txt
+    pip install -r requirements_hub.txt
 
 ## To start the dev server
 
