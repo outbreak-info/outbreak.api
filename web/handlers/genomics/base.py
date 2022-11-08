@@ -20,7 +20,8 @@ class BaseHandler(BaseAPIHandler):
         response = await self.biothings.elasticsearch.async_client.search(
             index="outbreak-genomics",
             body=query,
-            size=0
+            size=0,
+            request_timeout=600
         )
         return response
 
