@@ -403,7 +403,9 @@ class MetadataHandler(BaseHandler):
     @gen.coroutine
     def _get(self):
         mapping = yield self.get_mapping()
-        mapping = mapping["outbreak-genomics"]["mappings"]
+        
+        # mapping dict key is name of index, unknown here.
+        mapping = [val for val in mapping.values()][0]['mappings']
         res = None
         if "mutation" in mapping:
             res = mapping['mutation']['_meta']
