@@ -190,7 +190,7 @@ class LineageMutationsHandler(BaseHandler):
             if len(query_lineage_split) > 1:
                 query_mutations = query_lineage_split[1:] # First parameter is always lineage
             query["query"] = create_nested_mutation_query(lineages = query_pangolin_lineage, mutations = query_mutations)
-            print(query)
+            #print(query)
             resp = yield self.asynchronous_fetch(query)
             path_to_results = ["aggregations", "mutations", "mutations", "buckets"]
             buckets = resp

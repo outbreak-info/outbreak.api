@@ -117,7 +117,7 @@ class MostRecentDateHandler(BaseHandler):
         query_obj = create_nested_mutation_query(lineages = query_pangolin_lineage, mutations = query_mutations, location_id = query_location)
         query["query"] = query_obj
         resp = yield self.asynchronous_fetch(query)
-        print(resp)
+        #print(resp)
         path_to_results = ["aggregations", "date_collected", "buckets"]
         buckets = resp
         for i in path_to_results:

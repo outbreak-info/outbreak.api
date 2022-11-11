@@ -53,7 +53,7 @@ def gisaid_authorized(method: Callable[..., Optional[Awaitable[None]]]) ->\
             self.write({"message": "Invalid token. Please authenticate!"})
             return self.finish()
         token_diff_time = (dt.now(timezone.utc) - dt.utcfromtimestamp(decoded_token["last_checked"]).replace(tzinfo=timezone.utc)).seconds
-        print(token_diff_time)
+        #print(token_diff_time)
         reset_last_checked = False                # False only if cache expired and token is unauthenticated
         if token_diff_time <= CACHE_TIME: # Cached token
             if decoded_token["is_authenticated"]: # Authenticated
