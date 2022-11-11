@@ -268,8 +268,8 @@ def create_lineage_concat_query(queries, query_tmpl):
         }
 
 def create_iterator(lineages, mutations):
-    print(lineages)
-    print(mutations)
+    #print(lineages)
+    #print(mutations)
     if len(lineages) > 0:
         return zip(lineages, [mutations] * len(lineages))
     if len(lineages) == 0 and len(mutations) > 0:
