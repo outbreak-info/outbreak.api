@@ -21,7 +21,7 @@ class BaseHandler(BaseAPIHandler):
             index="outbreak-genomics",
             body=query,
             size=0,
-            request_timeout=600
+            request_timeout=90
         )
         return response
 
