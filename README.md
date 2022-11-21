@@ -1,6 +1,8 @@
 # outbreak.api
 The data API server for outbreak.info
 
+[![DOI](https://zenodo.org/badge/248579616.svg)](https://zenodo.org/badge/latestdoi/248579616)
+
 ##  To install dependecies
 
   (recommend to setup a fresh Python venv first)
