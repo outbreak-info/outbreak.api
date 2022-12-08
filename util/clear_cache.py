@@ -3,20 +3,21 @@
 import sys
 import requests
 import logging
+import os
 logging.basicConfig(filename='/var/log/nginx/cache_clear.log', encoding='utf-8', level=logging.DEBUG)
 
-sys.path.append('home/ubuntu/outbreak.api')
+sys.path.append('/home/ubuntu/outbreak.api')
 import config
 
-from os.path    import exists
 from shutil     import rmtree
 from subprocess import run
+from time       import sleep
 
 CURRENT_INDEX_FILE = '/home/ubuntu/.current_index_name.txt'
 CACHE_DIRECTORY    = '/var/lib/nginx/cache/'
 
 def did_genomics_update(live_index):
-    if exists(CURRENT_INDEX_FILE):
+    if os.path.exists(CURRENT_INDEX_FILE):
         with open(CURRENT_INDEX_FILE) as index_file:
             index_name = index_file.read().strip()
 
@@ -29,8 +30,13 @@ def did_genomics_update(live_index):
     return live_index == index_name
 
 def clear_nginx_cache():
-    rmtree(CACHE_DIRECTORY)
-    run(['systemctl', 'restart', 'nginx'])
+    DELAY = 120
+    
+    subdirs = os.listdir(CACHE_DIRECTORY)
+    for subdir in subdirs:
+        cache_directory = os.path.join(CACHE_DIRECTORY, subdir)
+        rmtree(cache_directory)
+        sleep(DELAY)
 
 def main():
     es_host = config.ES_HOST
