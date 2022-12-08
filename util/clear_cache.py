@@ -4,10 +4,10 @@ import sys
 import requests
 import logging
 import os
-logging.basicConfig(filename='/var/log/nginx/cache_clear.log', encoding='utf-8', level=logging.DEBUG)
+logging.basicConfig(filename='/var/log/nginx/cache_clear.log', level=logging.DEBUG)
 
 sys.path.append('/home/ubuntu/outbreak.api')
-import config
+from config_web_local import ES_HOST
 
 from shutil     import rmtree
 from subprocess import run
@@ -27,10 +27,11 @@ def did_genomics_update(live_index):
             index_file.write(live_index)
         return False
 
-    return live_index == index_name
+    # indices are different: genomics changed
+    return live_index != index_name
 
 def clear_nginx_cache():
-    DELAY = 120
+    DELAY = 300
     
     subdirs = os.listdir(CACHE_DIRECTORY)
     for subdir in subdirs:
@@ -39,10 +40,11 @@ def clear_nginx_cache():
         sleep(DELAY)
 
 def main():
-    es_host = config.ES_HOST
-    live_index = requests.get(f'http://{es_host}/_cat/indices/genomics*?h=idx').text.strip()
+    # use aliases because there can be two genomics indices on the server
+    # but the aliased index is currently live
+    live_index = requests.get(f'http://{ES_HOST}/_cat/aliases/*genomics*?h=idx').text.strip()
 
-    if did_genomics_update():
+    if did_genomics_update(live_index):
         logging.info('genomics updated, clearing cache')
         clear_nginx_cache()
 
