@@ -134,3 +134,7 @@ plugins/
 
 # Biothings
 config.py
+config_web_local.py
+
+# Pycharm
+.idea
