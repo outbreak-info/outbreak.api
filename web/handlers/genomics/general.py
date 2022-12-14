@@ -233,6 +233,7 @@ class LocationHandler(BaseHandler):
     @gen.coroutine
     def _get(self):
         query_str = self.get_argument("name", None)
+        size = self.get_argument("size", None)
         flattened_response = []
         for loc in self.location_types:
             query = {
@@ -312,6 +313,12 @@ class LocationHandler(BaseHandler):
                         "total_count": rec["doc_count"]
                     })
         flattened_response = sorted(flattened_response, key = lambda x: -x["total_count"])
+        if size:
+            try:
+                size = int(size)
+            except Exception:
+                return {"success": False, "results": [], "errors": "Invalide size value"}
+            flattened_response = flattened_response[:size]
         resp = {"success": True, "results": flattened_response}
         return resp
 
