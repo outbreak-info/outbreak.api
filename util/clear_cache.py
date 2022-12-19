@@ -31,7 +31,7 @@ def did_genomics_update(live_index):
     return live_index != index_name
 
 def clear_nginx_cache():
-    DELAY = 300
+    DELAY = 3
     
     subdirs = os.listdir(CACHE_DIRECTORY)
     for subdir in subdirs:
@@ -45,12 +45,13 @@ def main():
     live_index = requests.get(f'http://{ES_HOST}/_cat/aliases/*genomics*?h=idx').text.strip()
 
     if did_genomics_update(live_index):
-        logging.info('genomics updated, clearing cache')
-        clear_nginx_cache()
 
         with open(CURRENT_INDEX_FILE, 'w') as index_file:
             logging.info(f'updating file {live_index}')
             index_file.write(live_index)
+
+        logging.info('genomics updated, clearing cache')
+        clear_nginx_cache()
 
 if __name__ == '__main__':
     try:
