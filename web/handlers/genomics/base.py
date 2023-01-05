@@ -1,11 +1,13 @@
 import abc
 from biothings.web.handlers import BaseAPIHandler
+
 from .gisaid_auth import gisaid_authorized
-from tornado import gen
 
 
 class BaseHandler(BaseAPIHandler):
     __metaclass__ = abc.ABCMeta
+
+    kwargs = dict(BaseAPIHandler.kwargs)
 
     def set_default_headers(self):
         self.set_header("Content-Type", "application/json")
@@ -18,7 +20,7 @@ class BaseHandler(BaseAPIHandler):
     async def asynchronous_fetch(self, query):
         query["track_total_hits"] = True
         response = await self.biothings.elasticsearch.async_client.search(
-            index="outbreak-genomics",
+            index=self.biothings.config.genomics.OUTBREAK_GENOMICS_INDEX,
             body=query,
             size=0,
             request_timeout=90
@@ -28,7 +30,7 @@ class BaseHandler(BaseAPIHandler):
     async def asynchronous_fetch_count(self, query):
         query["track_total_hits"] = True
         response = await self.biothings.elasticsearch.async_client.count(
-            index="outbreak-genomics",
+            index=self.biothings.config.genomics.OUTBREAK_GENOMICS_INDEX,
             body=query
         )
         return response
@@ -40,8 +42,15 @@ class BaseHandler(BaseAPIHandler):
     def post(self):
         pass
 
-    @gisaid_authorized
     async def get(self):
+        if not self.biothings.config.DISABLE_GENOMICS_ENDPOINT:
+            self._get_with_gisauth()
+        else:
+            resp = await self._get()
+            self.write(resp)
+
+    @gisaid_authorized
+    async def _get_with_gisauth(self):
         resp = await self._get()
         self.write(resp)
 
