@@ -34,7 +34,7 @@ class BaseHandler(BaseAPIHandler):
 
     async def get_mapping(self):
         response = await self.biothings.elasticsearch.async_client.indices.get_mapping(
-            "outbreak-genomics"
+            index=self.biothings.config.genomics.ES_INDEX
         )
         return response
 

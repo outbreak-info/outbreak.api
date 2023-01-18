@@ -2,6 +2,16 @@ from biothings.web.settings.default import APP_LIST
 
 API_PREFIX = "genomics"
 ES_INDEX = "outbreak-genomics"
+API_VERSION = "v2"
+
+APP_LIST_V2 = [
+    (
+        r"/{pre}/{ver}/lineage-mutations",
+        "web.handlers.v2.genomics.lineage_mutations.LineageMutationsHandler",
+    ),
+    (r"/{pre}/{ver}/lineage", "web.handlers.v2.genomics.lineage.LineageHandler"),
+    (r"/{pre}/{ver}/location", "web.handlers.v2.genomics.location.LocationHandler"),
+]
 
 APP_LIST = [
     (r"/{pre}/lineage-by-country", "web.handlers.genomics.lineage.LineageByCountryHandler"),
@@ -39,5 +49,6 @@ APP_LIST = [
     (r"/{pre}/metadata", "web.handlers.genomics.MetadataHandler"),
     (r"/{pre}/gisaid-id-lookup", "web.handlers.genomics.GisaidIDHandler"),
     (r"/{pre}/get-auth-token", "web.handlers.genomics.GISAIDTokenHandler"),
+    *APP_LIST_V2,
     *APP_LIST,
 ]
