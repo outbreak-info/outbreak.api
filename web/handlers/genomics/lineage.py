@@ -104,6 +104,7 @@ class LineageHandler(BaseHandler):
     @gen.coroutine
     def _get(self):
         query_str = self.get_argument("name", None)
+        size = self.get_argument("size", None)
         query = {
                 "size": 0,
                 "query": {
@@ -131,6 +132,13 @@ class LineageHandler(BaseHandler):
             "name": i["key"],
             "total_count": i["doc_count"]
             } for i in buckets]
+        if size:
+            try:
+                size = int(size)
+            except Exception:
+                return {"success": False, "results": [], "errors": "Invalide size value"}
+            flattened_response = sorted(flattened_response, key=lambda x: -x["total_count"])
+            flattened_response = flattened_response[:size]
         resp = {"success": True, "results": flattened_response}
         return resp
 
