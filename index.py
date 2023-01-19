@@ -7,10 +7,12 @@ if __name__ == "__main__":
     main(
         [
             (r"/", MainHandler),
-            (r"/static/(.*)", StaticFileHandler, {"path": "./static"}),
             (r"/v1/(.*)", RedirectHandler, {"url": "/covid19/{0}"}),
             (r"/try-by-doctype/resources/?", SpecialHandler),
             (r"/try/.+", ApiViewHandler),
             (r"/try/.+/.+", ApiViewHandler),
-        ]
+        ],
+        {
+            "static_path": "static"
+        }
     )  # additionals
