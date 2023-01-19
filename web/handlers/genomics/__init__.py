@@ -1,5 +1,5 @@
 from .lineage import LineageByCountryHandler, LineageByDivisionHandler, LineageAndCountryHandler, LineageAndDivisionHandler, LineageHandler, LineageMutationsHandler, MutationDetailsHandler, MutationsByLineage
-from .prevalence import GlobalPrevalenceByTimeHandler, PrevalenceByLocationAndTimeHandler, CumulativePrevalenceByLocationHandler, PrevalenceAllLineagesByLocationHandler, PrevalenceByAAPositionHandler
+from .prevalence import GlobalPrevalenceByTimeHandler, PrevalenceByLocationAndTimeHandler, PrevalenceByLocationAndTimeHandler2, CumulativePrevalenceByLocationHandler, PrevalenceAllLineagesByLocationHandler, PrevalenceByAAPositionHandler
 from .general import LocationHandler, LocationDetailsHandler, MetadataHandler, MutationHandler, SubmissionLagHandler, SequenceCountHandler, MostRecentSubmissionDateHandler, MostRecentCollectionDateHandler, GisaidIDHandler
 from .gisaid_auth import GISAIDTokenHandler
 
@@ -11,6 +11,7 @@ routes = [
     (r"/genomics/sequence-count", SequenceCountHandler),
     (r"/genomics/global-prevalence", GlobalPrevalenceByTimeHandler),
     (r"/genomics/prevalence-by-location", PrevalenceByLocationAndTimeHandler),
+    (r"/genomics/prevalence-by-location2", PrevalenceByLocationAndTimeHandler2),
     (r"/genomics/prevalence-by-location-all-lineages", PrevalenceAllLineagesByLocationHandler),
     (r"/genomics/prevalence-by-position", PrevalenceByAAPositionHandler),
     (r"/genomics/lineage-by-sub-admin-most-recent", CumulativePrevalenceByLocationHandler),
