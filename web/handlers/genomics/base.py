@@ -1,4 +1,5 @@
 import abc
+
 from biothings.web.handlers import BaseAPIHandler
 
 from .gisaid_auth import gisaid_authorized
@@ -13,30 +14,28 @@ class BaseHandler(BaseAPIHandler):
         self.set_header("Content-Type", "application/json")
         self.set_header("Access-Control-Allow-Origin", "*")
         self.set_header("Access-Control-Allow-Headers", "content-type,Authorization")
-        self.set_header('Access-Control-Allow-Methods', 'POST, GET, OPTIONS, PATCH, PUT')
+        self.set_header("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PATCH, PUT")
 
     size = 10000
 
     async def asynchronous_fetch(self, query):
         query["track_total_hits"] = True
         response = await self.biothings.elasticsearch.async_client.search(
-            index=self.biothings.config.genomics.OUTBREAK_GENOMICS_INDEX,
-            body=query,
-            size=0,
-            request_timeout=90
+            index=self.biothings.config.genomics.ES_INDEX, body=query, size=0, request_timeout=90
         )
         return response
 
     async def asynchronous_fetch_count(self, query):
         query["track_total_hits"] = True
         response = await self.biothings.elasticsearch.async_client.count(
-            index=self.biothings.config.genomics.OUTBREAK_GENOMICS_INDEX,
-            body=query
+            index=self.biothings.config.genomics.ES_INDEX, body=query
         )
         return response
 
     async def get_mapping(self):
-        response = await self.biothings.elasticsearch.async_client.indices.get_mapping("outbreak-genomics")
+        response = await self.biothings.elasticsearch.async_client.indices.get_mapping(
+            index=self.biothings.config.genomics.ES_INDEX
+        )
         return response
 
     def post(self):
