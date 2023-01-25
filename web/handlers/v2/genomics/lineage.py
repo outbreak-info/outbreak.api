@@ -2,6 +2,13 @@ from web.handlers.genomics.base import BaseHandler
 
 
 class LineageHandler(BaseHandler):
+
+    kwargs = dict(BaseHandler.kwargs)
+    kwargs["GET"] = {
+        "name": {"type": str, "default": None},
+        "size": {"type": int, "default": None},
+    }
+
     async def _get(self):
         query_str = self.get_argument("name", None)
         size = self.get_argument("size", None)

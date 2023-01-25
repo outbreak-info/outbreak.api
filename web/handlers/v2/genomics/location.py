@@ -258,10 +258,15 @@ class LocationHandler(BaseHandler):
     }
 
     location_types = ["country", "division", "location"]
+    kwargs = dict(BaseHandler.kwargs)
+    kwargs["GET"] = {
+        "name": {"type": str, "default": None},
+        "size": {"type": int, "default": None},
+    }
 
     async def _get(self):
-        query_str = self.get_argument("name", None)
-        size = self.get_argument("size", None)
+        query_str = self.args.name
+        size = self.args.size
         flattened_response = []
         for loc in self.location_types:
             query = {

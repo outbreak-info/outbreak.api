@@ -25,9 +25,9 @@ class LineageMutationsHandler(BaseHandler):
     name = "lineagemutations"
     kwargs = dict(BaseHandler.kwargs)
     kwargs["GET"] = {
-        "pangolin_lineage": {"type": str, "default": ""},
+        "pangolin_lineage": {"type": str, "default": None},
         "frequency": {"type": float, "default": None},
-        "gene": {"type": str, "default": ""},
+        "gene": {"type": str, "default": None},
     }
 
     async def _get(self):
