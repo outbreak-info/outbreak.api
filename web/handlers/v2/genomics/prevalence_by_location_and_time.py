@@ -45,7 +45,7 @@ class PrevalenceByLocationAndTimeHandler(BaseHandler):
         results = {}
         for i, j in create_iterator(query_pangolin_lineage, query_mutations):
             query = {
-                "size": 10,
+                "size": 0,
                 "aggs": {
                     "prevalence": {
                         "filter": {"bool": {"must": []}},

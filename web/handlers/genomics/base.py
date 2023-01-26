@@ -42,8 +42,8 @@ class BaseHandler(BaseAPIHandler):
         pass
 
     async def get(self):
-        if not self.biothings.config.DISABLE_GENOMICS_ENDPOINT:
-            self._get_with_gisauth()
+        if not getattr(self.biothings.config, "DISABLE_GENOMICS_ENDPOINT", False):
+            await self._get_with_gisauth()
         else:
             resp = await self._get()
             self.write(resp)
