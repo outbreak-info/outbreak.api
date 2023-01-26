@@ -278,3 +278,11 @@ def create_iterator(lineages, mutations):
 
 def get_total_hits(d): # To account for difference in ES versions 7.12.0 vs 6.8.13
     return d["hits"]["total"]["value"] if isinstance(d["hits"]["total"], dict) else d["hits"]["total"]
+
+
+def validate_iso_date(date_str):
+    try:
+        dt.strptime(date_str, '%Y-%m-%d')
+        return True
+    except ValueError:
+        return False
