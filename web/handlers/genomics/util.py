@@ -247,6 +247,25 @@ def parse_location_id_to_query(query_id, query_obj = None):
                 })
     return query_obj
 
+
+def parse_time_window_to_query(date_range_filter=None, query_obj=None):
+    if date_range_filter is None:
+        return query_obj
+    if query_obj is None:
+        query_obj = {
+            "bool": {
+                "must": []
+            }
+        }
+
+    if "must" in query_obj["bool"]:
+        query_obj["bool"]["must"].append(date_range_filter)
+    elif "should" in query_obj["bool"] and len(query_obj["bool"]["should"]) > 0:
+        for bool_must in query_obj["bool"]["should"]:
+            bool_must["bool"]["must"].append(date_range_filter)
+    return query_obj
+
+
 def create_lineage_concat_query(queries, query_tmpl):
     queries = queries.split(",")
     if len(queries) == 1:
@@ -286,3 +305,14 @@ def validate_iso_date(date_str):
         return True
     except ValueError:
         return False
+
+
+def create_date_range_filter(field_name, min_date=None, max_date=None):
+    date_range_filter = {"range": {field_name: {}}}
+    if not max_date and not min_date:
+        return None
+    if max_date:
+        date_range_filter["range"][field_name]["lte"] = max_date
+    if min_date:
+        date_range_filter["range"][field_name]["gte"] = min_date
+    return date_range_filter

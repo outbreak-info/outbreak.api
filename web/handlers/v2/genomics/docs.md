@@ -229,9 +229,9 @@ Examples,
 Get all mutations that start with S:E484
 https://api.outbreak.info/genomics/mutations?name=S:E484*
 
-## 15. Get prevalence of all lineages over time for a location
+## 15. Get prevalence of all lineages over time for a location (version 2)
 
-Endpoint: https://api.outbreak.info/genomics/prevalence-by-location-all-lineages
+Endpoint: https://api.outbreak.info/genomics/v2/prevalence-by-location-all-lineages
 
 Paramters:
 * `location_id` (Required)
@@ -240,8 +240,11 @@ Paramters:
 * `ndays` (Default: `180`) The number of days before the current date to be used as a window to accumulate linegaes under "Other".
 * `other_exclude` Comma separated lineages that are NOT to be included under "Other" even if the conditions specified by the three thresholds above are met.
 * `cumulative` (Default: `false`) If `true` return the cumulative prevalence.
+* `window` (Default: `none`) If `true` return the cumulative prevalence.
+* `max_date` (Default: `none`) Newest date collected filter, should be in ISO 8601 YYYY-MM-DD format, the filtering should be inclusive (as in <= (less than or equal to) and >= (greater than or equal to) of the min_date and max_date.
+* `min_date` (Default: `none`) Oldest date collected filter, should be in ISO 8601 YYYY-MM-DD format, the filtering should be inclusive (as in <= (less than or equal to) and >= (greater than or equal to) of the min_date and max_date.
 
 Examples,
 
 Give me the prevalence of all lineages in the U.S., classify lineages that are below 0.03 prevalence for atleast 5 days over the last 60 days as "Other", and exclude p.1 from "Other" even if conditions for "Other" are satisfied.
-https://api.outbreak.info/genomics/prevalence-by-location-all-lineages?location_id=USA&other_threshold=0.03&nday_threshold=5&ndays=60&other_exclude=p.1
+https://api.outbreak.info/genomics/v2/prevalence-by-location-all-lineages?location_id=USA&other_threshold=0.03&nday_threshold=5&ndays=60&other_exclude=p.1&max_date=2023-01-01&min_date=2022-12-01

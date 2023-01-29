@@ -1,36 +1,58 @@
 from datetime import datetime as dt, timedelta
 
 import pandas as pd
-from tornado import gen
+from tornado.web import HTTPError
 
 from web.handlers.genomics.base import BaseHandler
 from web.handlers.genomics.util import (
     compute_rolling_mean_all_lineages,
     compute_total_count,
+    create_date_range_filter,
     expand_dates,
     get_major_lineage_prevalence,
     parse_location_id_to_query,
+    parse_time_window_to_query,
+    validate_iso_date,
 )
 
 
 class PrevalenceAllLineagesByLocationHandler(BaseHandler):
-    @gen.coroutine
-    def _get(self):
-        query_location = self.get_argument("location_id", None)
-        query_window = self.get_argument("window", None)
+    name = "prevalence-by-location-all-lineages"
+    kwargs = dict(BaseHandler.kwargs)
+    kwargs["GET"] = {
+        "location_id": {"type": str, "default": None},
+        "window": {"type": str, "default": None},
+        "other_threshold": {"type": float, "default": 0.05},
+        "nday_threshold": {"type": float, "default": 10},
+        "ndays": {"type": float, "default": 180},
+        "other_exclude": {"type": str, "default": None},
+        "cumulative": {"type": str, "default": None},
+        "min_date": {"type": str, "default": None},
+        "max_date": {"type": str, "default": None},
+    }
+
+    async def _get(self):
+        query_location = self.args.location_id
+        query_window = self.args.window
         query_window = int(query_window) if query_window is not None else None
-        query_other_threshold = self.get_argument("other_threshold", 0.05)
+        query_other_threshold = self.args.other_threshold
         query_other_threshold = float(query_other_threshold)
-        query_nday_threshold = self.get_argument("nday_threshold", 10)
+        query_nday_threshold = self.args.nday_threshold
         query_nday_threshold = float(query_nday_threshold)
-        query_ndays = self.get_argument("ndays", 180)
+        query_ndays = self.args.ndays
         query_ndays = int(query_ndays)
-        query_other_exclude = self.get_argument("other_exclude", None)
+        query_other_exclude = self.args.other_exclude
         query_other_exclude = (
             query_other_exclude.split(",") if query_other_exclude is not None else []
         )
-        query_cumulative = self.get_argument("cumulative", None)
+        query_cumulative = self.args.cumulative
         query_cumulative = True if query_cumulative == "true" else False
+        if self.args.max_date:
+            if not validate_iso_date(self.args.max_date):
+                raise HTTPError(400, reason="Invalid max_date format")
+        if self.args.min_date:
+            if not validate_iso_date(self.args.min_date):
+                raise HTTPError(400, reason="Invalid min_date format")
         query = {
             "size": 0,
             "query": {},
@@ -43,8 +65,14 @@ class PrevalenceAllLineagesByLocationHandler(BaseHandler):
                 }
             },
         }
-        query["query"] = parse_location_id_to_query(query_location)
-        resp = yield self.asynchronous_fetch(query)
+        query_obj = parse_location_id_to_query(query_location)
+        date_range_filter = create_date_range_filter(
+            "date_collected", self.args.min_date, self.args.max_date
+        )
+        query["query"] = parse_time_window_to_query(date_range_filter, query_obj=query_obj)
+        # import json
+        # print(json.dumps(query))
+        resp = await self.asynchronous_fetch(query)
         buckets = resp
         path_to_results = ["aggregations", "count", "buckets"]
         for i in path_to_results:
@@ -62,6 +90,8 @@ class PrevalenceAllLineagesByLocationHandler(BaseHandler):
                         "lineage": j["key"],
                     }
                 )
+        if not flattened_response:
+            return {"success": True, "results": []}
         df_response = (
             pd.DataFrame(flattened_response)
             .assign(
@@ -70,7 +100,9 @@ class PrevalenceAllLineagesByLocationHandler(BaseHandler):
             )
             .sort_values("date")
         )
-        if query_window is not None:
+        if (
+            query_window is not None and not date_range_filter
+        ):  # discard query_window if either max_date or min_date exists
             df_response = df_response[
                 df_response["date"] >= (dt.now() - timedelta(days=query_window))
             ]
@@ -84,7 +116,7 @@ class PrevalenceAllLineagesByLocationHandler(BaseHandler):
         )
         if not query_cumulative:
             df_response = (
-                df_response.groupby("lineage")
+                df_response.groupby("lineage", group_keys=True)
                 .apply(
                     compute_rolling_mean_all_lineages,
                     "date",
