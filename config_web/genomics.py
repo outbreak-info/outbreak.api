@@ -15,6 +15,10 @@ APP_LIST_V2 = [
         r"/{pre}/{ver}/prevalence-by-location",
         "web.handlers.v2.genomics.PrevalenceByLocationAndTimeHandler",
     ),
+    (
+        r"/{pre}/{ver}/prevalence-by-location-all-lineages",
+        "web.handlers.v2.genomics.PrevalenceAllLineagesByLocationHandler",
+    ),
 ]
 
 APP_LIST = [
