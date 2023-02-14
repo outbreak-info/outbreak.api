@@ -13,7 +13,7 @@ Parameters
 
 * `location_id` (Optional). If not specified, the global total counts are returned.
 * `cumulative` (Optional). If `true` returns the cumulative number of sequences till date.
-* subadmin (Optional). If `true` and `cumulative`=`true`,  returns the cumulative number of sequences for the immedaite lower admin level.
+* `subadmin` (Optional). If `true` and `cumulative`=`true`,  returns the cumulative number of sequences for the immedaite lower admin level.
 
 Examples,
 Number of sequences per day globally.
