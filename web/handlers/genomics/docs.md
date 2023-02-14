@@ -254,4 +254,4 @@ Parameters:
 * `location_id` (optional)
 * `pangolin_lineage` (optional)
 
-Example: https://dev.outbreak.info/genomics/prevalence-by-position?name=S:484&pangolin_lineage=B.1.526&location_id=USA_US-NY
+Example: https://api.outbreak.info/genomics/prevalence-by-position?name=S:484&pangolin_lineage=B.1.526&location_id=USA_US-NY
