@@ -246,7 +246,7 @@ Examples,
 Give me the prevalence of all lineages in the U.S., classify lineages that are below 0.03 prevalence for atleast 5 days over the last 60 days as "Other", and exclude p.1 from "Other" even if conditions for "Other" are satisfied.
 https://api.outbreak.info/genomics/prevalence-by-location-all-lineages?location_id=USA&other_threshold=0.03&nday_threshold=5&ndays=60&other_exclude=p.1
 
-16. Get prevalence of each amino acid by codon number
+## 16. Get prevalence of each amino acid by codon number
 Endpoint: https://api.outbreak.info/genomics/prevalence-by-position
 
 Parameters:
