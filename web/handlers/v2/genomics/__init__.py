@@ -2,5 +2,6 @@
 from .lineage import LineageHandler
 from .lineage_mutations import LineageMutationsHandler
 from .location import LocationHandler
-from .prevalence_by_location_and_time import PrevalenceByLocationAndTimeHandler
+from .mutation_details import MutationDetailsHandler
 from .prevalence_all_lineages_by_location import PrevalenceAllLineagesByLocationHandler
+from .prevalence_by_location_and_time import PrevalenceByLocationAndTimeHandler

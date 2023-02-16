@@ -1,41 +1,40 @@
+from web.handlers.genomics.base import BaseHandler
+
+
 class MutationDetailsHandler(BaseHandler):
-    @gen.coroutine
-    def _get(self):
-        mutations = self.get_argument("mutations", None)
+    name = "mutation-details"
+    kwargs = dict(BaseHandler.kwargs)
+    kwargs["GET"] = {"mutations": {"type": str, "default": None}}
+
+    async def _get(self):
+        mutations = self.args.mutations
         mutations = mutations.split(",") if mutations is not None else []
         query = {
             "size": 0,
             "aggs": {
                 "by_mutations": {
-                    "nested": {
-                        "path": "mutations"
-                    },
-		    "aggs": {
-			"inner": {
+                    "nested": {"path": "mutations"},
+                    "aggs": {
+                        "inner": {
                             "filter": {
                                 "bool": {
                                     "should": [
-                                        {"match": {"mutations.mutation": i}}
-                                for i in mutations
+                                        {"match": {"mutations.mutation": i}} for i in mutations
                                     ]
                                 }
                             },
-			    "aggs": {
-				"by_name": {
-				    "terms": {"field": "mutations.mutation"},
-				    "aggs": {
-				        "by_nested": {
-				            "top_hits": {"size": 1}
-				        }
-				    }
-				}
-			    }
-			}
-		    }
-		}
-	    }
+                            "aggs": {
+                                "by_name": {
+                                    "terms": {"field": "mutations.mutation"},
+                                    "aggs": {"by_nested": {"top_hits": {"size": 1}}},
+                                }
+                            },
+                        }
+                    },
+                }
+            },
         }
-        resp = yield self.asynchronous_fetch(query)
+        resp = await self.asynchronous_fetch(query)
         path_to_results = ["aggregations", "by_mutations", "inner", "by_name", "buckets"]
         buckets = resp
         for i in path_to_results:
