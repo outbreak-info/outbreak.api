@@ -40,17 +40,22 @@ APP_LIST_SWITCHED_TO_V2 = [
         r"/{pre}/prevalence-by-location-all-lineages",
         "web.handlers.v2.genomics.PrevalenceAllLineagesByLocationHandler",
     ),
+    (r"/{pre}/prevalence-by-position", "web.handlers.genomics.PrevalenceByAAPositionHandler"),
 ]
 
 APP_LIST_v1 = [
     (r"/{pre}/v1/lineage-mutations", "web.handlers.genomics.LineageMutationsHandler"),
     (r"/{pre}/v1/lineage", "web.handlers.genomics.LineageHandler"),
     (r"/{pre}/v1/location", "web.handlers.genomics.LocationHandler"),
-    (r"/{pre}/v1/prevalence-by-location", "web.handlers.genomics.PrevalenceByLocationAndTimeHandler"),
+    (
+        r"/{pre}/v1/prevalence-by-location",
+        "web.handlers.genomics.PrevalenceByLocationAndTimeHandler",
+    ),
     (
         r"/{pre}/v1/prevalence-by-location-all-lineages",
         "web.handlers.genomics.PrevalenceAllLineagesByLocationHandler",
     ),
+    (r"/{pre}/v1/prevalence-by-position", "web.handlers.genomics.PrevalenceByAAPositionHandler"),
 ]
 
 APP_LIST_ORIGIN = [
@@ -60,8 +65,6 @@ APP_LIST_ORIGIN = [
     (r"/{pre}/lineage-and-division", "web.handlers.genomics.LineageAndDivisionHandler"),
     (r"/{pre}/sequence-count", "web.handlers.genomics.SequenceCountHandler"),
     (r"/{pre}/global-prevalence", "web.handlers.genomics.GlobalPrevalenceByTimeHandler"),
-
-    (r"/{pre}/prevalence-by-position", "web.handlers.genomics.PrevalenceByAAPositionHandler"),
     (
         r"/{pre}/lineage-by-sub-admin-most-recent",
         "web.handlers.genomics.CumulativePrevalenceByLocationHandler",
@@ -77,7 +80,6 @@ APP_LIST_ORIGIN = [
     (r"/{pre}/mutation-details", "web.handlers.genomics.MutationDetailsHandler"),
     (r"/{pre}/mutations-by-lineage", "web.handlers.genomics.MutationsByLineage"),
     (r"/{pre}/collection-submission", "web.handlers.genomics.SubmissionLagHandler"),
-
     (r"/{pre}/location-lookup", "web.handlers.genomics.LocationDetailsHandler"),
     (r"/{pre}/mutations", "web.handlers.genomics.MutationHandler"),
     (r"/{pre}/metadata", "web.handlers.genomics.MetadataHandler"),
