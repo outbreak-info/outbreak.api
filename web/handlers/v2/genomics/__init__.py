@@ -2,6 +2,7 @@
 from .lineage import LineageHandler
 from .lineage_mutations import LineageMutationsHandler
 from .location import LocationHandler
+from .mutation_details import MutationDetailsHandler
 from .mutations import MutationHandler
 from .prevalence_all_lineages_by_location import PrevalenceAllLineagesByLocationHandler
 from .prevalence_by_aa_position import PrevalenceByAAPositionHandler
