@@ -45,6 +45,7 @@ APP_LIST_SWITCHED_TO_V2 = [
         "web.handlers.v2.genomics.PrevalenceAllLineagesByLocationHandler",
     ),
     (r"/{pre}/mutations", "web.handlers.genomics.MutationHandler"),
+    (r"/{pre}/prevalence-by-position", "web.handlers.genomics.PrevalenceByAAPositionHandler"),
 ]
 
 APP_LIST_v1 = [
@@ -60,6 +61,7 @@ APP_LIST_v1 = [
         "web.handlers.genomics.PrevalenceAllLineagesByLocationHandler",
     ),
     (r"/{pre}/v1/mutations", "web.handlers.genomics.MutationHandler"),
+    (r"/{pre}/v1/prevalence-by-position", "web.handlers.genomics.PrevalenceByAAPositionHandler"),
 ]
 
 APP_LIST_ORIGIN = [
