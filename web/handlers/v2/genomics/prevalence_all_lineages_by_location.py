@@ -1,7 +1,6 @@
 from datetime import datetime as dt, timedelta
 
 import pandas as pd
-from tornado.web import HTTPError
 
 from web.handlers.genomics.base import BaseHandler
 from web.handlers.genomics.util import (
@@ -12,50 +11,38 @@ from web.handlers.genomics.util import (
     get_major_lineage_prevalence,
     parse_location_id_to_query,
     parse_time_window_to_query,
-    validate_iso_date,
 )
 
 
 class PrevalenceAllLineagesByLocationHandler(BaseHandler):
+    # size = 100  # If size=1000 it will raise too_many_buckets_exception in case missing location_id in query.
     name = "prevalence-by-location-all-lineages"
     kwargs = dict(BaseHandler.kwargs)
     kwargs["GET"] = {
         "location_id": {"type": str, "default": None},
-        "window": {"type": str, "default": None},
-        "other_threshold": {"type": float, "default": 0.05},
-        "nday_threshold": {"type": float, "default": 10},
-        "ndays": {"type": float, "default": 180},
+        "window": {"type": int, "default": None, "min": 1},
+        "other_threshold": {"type": float, "default": 0.05, "min": 0, "max": 1},
+        "nday_threshold": {"type": int, "default": 10, "min": 1},
+        "ndays": {"type": int, "default": 180, "min": 1},
         "other_exclude": {"type": str, "default": None},
-        "cumulative": {"type": str, "default": None},
-        "min_date": {"type": str, "default": None},
-        "max_date": {"type": str, "default": None},
+        "cumulative": {"type": bool, "default": False},
+        "min_date": {"type": str, "default": None, "date_format": "%Y-%m-%d"},
+        "max_date": {"type": str, "default": None, "date_format": "%Y-%m-%d"},
     }
 
     async def _get(self):
         query_location = self.args.location_id
         query_window = self.args.window
-        query_window = int(query_window) if query_window is not None else None
         query_other_threshold = self.args.other_threshold
-        query_other_threshold = float(query_other_threshold)
         query_nday_threshold = self.args.nday_threshold
-        query_nday_threshold = float(query_nday_threshold)
         query_ndays = self.args.ndays
-        query_ndays = int(query_ndays)
         query_other_exclude = self.args.other_exclude
         query_other_exclude = (
             query_other_exclude.split(",") if query_other_exclude is not None else []
         )
         query_cumulative = self.args.cumulative
-        query_cumulative = True if query_cumulative == "true" else False
-        if self.args.max_date:
-            if not validate_iso_date(self.args.max_date):
-                raise HTTPError(400, reason="Invalid max_date format")
-        if self.args.min_date:
-            if not validate_iso_date(self.args.min_date):
-                raise HTTPError(400, reason="Invalid min_date format")
         query = {
             "size": 0,
-            "query": {},
             "aggs": {
                 "count": {
                     "terms": {"field": "date_collected", "size": self.size},
@@ -69,7 +56,9 @@ class PrevalenceAllLineagesByLocationHandler(BaseHandler):
         date_range_filter = create_date_range_filter(
             "date_collected", self.args.min_date, self.args.max_date
         )
-        query["query"] = parse_time_window_to_query(date_range_filter, query_obj=query_obj)
+        query_obj = parse_time_window_to_query(date_range_filter, query_obj=query_obj)
+        if query_obj:
+            query["query"] = query_obj
         # import json
         # print(json.dumps(query))
         resp = await self.asynchronous_fetch(query)
