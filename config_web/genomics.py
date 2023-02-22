@@ -43,6 +43,14 @@ APP_LIST_V2 = [
         r"/{pre}/{ver}/location-lookup",
         "web.handlers.v2.genomics.LocationDetailsHandler",
     ),
+    (
+        r"/{pre}/{ver}/most-recent-collection-date-by-location",
+        "web.handlers.v2.genomics.MostRecentCollectionDateHandler",
+    ),
+    (
+        r"/{pre}/{ver}/most-recent-submission-date-by-location",
+        "web.handlers.v2.genomics.MostRecentSubmissionDateHandler",
+    ),
 ]
 
 APP_LIST_SWITCHED_TO_V2 = [
