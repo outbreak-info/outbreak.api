@@ -35,6 +35,10 @@ APP_LIST_V2 = [
         r"/{pre}/{ver}/mutations",
         "web.handlers.v2.genomics.MutationHandler",
     ),
+    (
+        r"/{pre}/{ver}/mutations-by-lineage",
+        "web.handlers.v2.genomics.MutationsByLineage",
+    ),
 ]
 
 APP_LIST_SWITCHED_TO_V2 = [
