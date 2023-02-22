@@ -1,4 +1,5 @@
 # flake8: noqa
+from .cumulative_prevalence_by_location import CumulativePrevalenceByLocationHandler
 from .lineage import LineageHandler
 from .lineage_mutations import LineageMutationsHandler
 from .location import LocationHandler

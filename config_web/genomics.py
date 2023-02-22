@@ -55,6 +55,10 @@ APP_LIST_V2 = [
         r"/{pre}/{ver}/sequence-count",
         "web.handlers.v2.genomics.SequenceCountHandler",
     ),
+    (
+        r"/{pre}/{ver}/lineage-by-sub-admin-most-recent",
+        "web.handlers.v2.genomics.CumulativePrevalenceByLocationHandler",
+    ),
 ]
 
 APP_LIST_SWITCHED_TO_V2 = [
