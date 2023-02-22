@@ -6,3 +6,4 @@ from .mutations import MutationHandler
 from .prevalence_all_lineages_by_location import PrevalenceAllLineagesByLocationHandler
 from .prevalence_by_aa_position import PrevalenceByAAPositionHandler
 from .prevalence_by_location_and_time import PrevalenceByLocationAndTimeHandler
+from .submission_lag import SubmissionLagHandler
