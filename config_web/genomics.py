@@ -39,6 +39,10 @@ APP_LIST_V2 = [
         r"/{pre}/{ver}/mutations-by-lineage",
         "web.handlers.v2.genomics.MutationsByLineage",
     ),
+    (
+        r"/{pre}/{ver}/location-lookup",
+        "web.handlers.v2.genomics.LocationDetailsHandler",
+    ),
 ]
 
 APP_LIST_SWITCHED_TO_V2 = [
