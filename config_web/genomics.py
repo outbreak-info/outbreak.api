@@ -21,7 +21,7 @@ APP_LIST_V2 = [
     ),
     (
         r"/{pre}/{ver}/prevalence-by-position",
-        "web.handlers.v2.genomics.PrevalenceByAAPositionHandler"
+        "web.handlers.v2.genomics.PrevalenceByAAPositionHandler",
     ),
     (
         r"/{pre}/{ver}/mutation-details",
@@ -76,8 +76,6 @@ APP_LIST_SWITCHED_TO_V2 = [
         r"/{pre}/prevalence-by-location-all-lineages",
         "web.handlers.v2.genomics.PrevalenceAllLineagesByLocationHandler",
     ),
-    (r"/{pre}/mutations", "web.handlers.genomics.MutationHandler"),
-    (r"/{pre}/prevalence-by-position", "web.handlers.genomics.PrevalenceByAAPositionHandler"),
 ]
 
 APP_LIST_v1 = [
@@ -92,8 +90,6 @@ APP_LIST_v1 = [
         r"/{pre}/v1/prevalence-by-location-all-lineages",
         "web.handlers.genomics.PrevalenceAllLineagesByLocationHandler",
     ),
-    (r"/{pre}/v1/mutations", "web.handlers.genomics.MutationHandler"),
-    (r"/{pre}/v1/prevalence-by-position", "web.handlers.genomics.PrevalenceByAAPositionHandler"),
 ]
 
 APP_LIST_ORIGIN = [
@@ -120,6 +116,7 @@ APP_LIST_ORIGIN = [
     (r"/{pre}/mutations-by-lineage", "web.handlers.genomics.MutationsByLineage"),
     (r"/{pre}/collection-submission", "web.handlers.genomics.SubmissionLagHandler"),
     (r"/{pre}/location-lookup", "web.handlers.genomics.LocationDetailsHandler"),
+    (r"/{pre}/mutations", "web.handlers.genomics.MutationHandler"),
     (r"/{pre}/metadata", "web.handlers.genomics.MetadataHandler"),
     (r"/{pre}/gisaid-id-lookup", "web.handlers.genomics.GisaidIDHandler"),
     (r"/{pre}/get-auth-token", "web.handlers.genomics.GISAIDTokenHandler"),
