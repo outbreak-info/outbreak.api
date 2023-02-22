@@ -51,6 +51,10 @@ APP_LIST_V2 = [
         r"/{pre}/{ver}/most-recent-submission-date-by-location",
         "web.handlers.v2.genomics.MostRecentSubmissionDateHandler",
     ),
+    (
+        r"/{pre}/{ver}/sequence-count",
+        "web.handlers.v2.genomics.SequenceCountHandler",
+    ),
 ]
 
 APP_LIST_SWITCHED_TO_V2 = [

@@ -12,4 +12,5 @@ from .prevalence_all_lineages_by_location import PrevalenceAllLineagesByLocation
 from .prevalence_by_aa_position import PrevalenceByAAPositionHandler
 from .mutations_by_lineage import MutationsByLineage
 from .prevalence_by_location_and_time import PrevalenceByLocationAndTimeHandler
+from .sequence_count import SequenceCountHandler
 from .submission_lag import SubmissionLagHandler
