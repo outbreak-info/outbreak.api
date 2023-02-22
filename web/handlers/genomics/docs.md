@@ -13,7 +13,7 @@ Parameters
 
 * `location_id` (Optional). If not specified, the global total counts are returned.
 * `cumulative` (Optional). If `true` returns the cumulative number of sequences till date.
-* subadmin (Optional). If `true` and `cumulative`=`true`,  returns the cumulative number of sequences for the immedaite lower admin level.
+* `subadmin` (Optional). If `true` and `cumulative`=`true`,  returns the cumulative number of sequences for the immedaite lower admin level.
 
 Examples,
 Number of sequences per day globally.
@@ -233,7 +233,7 @@ https://api.outbreak.info/genomics/mutations?name=S:E484*
 
 Endpoint: https://api.outbreak.info/genomics/prevalence-by-location-all-lineages
 
-Paramters:
+Parameters:
 * `location_id` (Required)
 * `other_threshold` (Default: `0.05`) Minimum prevalence threshold below which lineages must be accumulated under "Other".
 * `nday_threshold` (Default: `10`) Minimum number of days in which the prevalence of a lineage must be below `other_threshold` to be accumulated under "Other".
@@ -245,3 +245,13 @@ Examples,
 
 Give me the prevalence of all lineages in the U.S., classify lineages that are below 0.03 prevalence for atleast 5 days over the last 60 days as "Other", and exclude p.1 from "Other" even if conditions for "Other" are satisfied.
 https://api.outbreak.info/genomics/prevalence-by-location-all-lineages?location_id=USA&other_threshold=0.03&nday_threshold=5&ndays=60&other_exclude=p.1
+
+## 16. Get prevalence of each amino acid by codon number
+Endpoint: https://api.outbreak.info/genomics/prevalence-by-position
+
+Parameters:
+* `name`: (required) Name of a gene:codon number, such as `S:484`
+* `location_id` (optional)
+* `pangolin_lineage` (optional)
+
+Example: https://api.outbreak.info/genomics/prevalence-by-position?name=S:484&pangolin_lineage=B.1.526&location_id=USA_US-NY
