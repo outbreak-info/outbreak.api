@@ -299,14 +299,6 @@ def get_total_hits(d): # To account for difference in ES versions 7.12.0 vs 6.8.
     return d["hits"]["total"]["value"] if isinstance(d["hits"]["total"], dict) else d["hits"]["total"]
 
 
-def validate_iso_date(date_str):
-    try:
-        dt.strptime(date_str, '%Y-%m-%d')
-        return True
-    except ValueError:
-        return False
-
-
 def create_date_range_filter(field_name, min_date=None, max_date=None):
     date_range_filter = {"range": {field_name: {}}}
     if not max_date and not min_date:

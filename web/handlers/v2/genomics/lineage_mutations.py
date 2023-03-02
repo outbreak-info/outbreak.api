@@ -22,18 +22,17 @@ class LineageMutationsHandler(BaseHandler):
         "orf10": "ORF10",
     }
 
-    name = "lineagemutations"
+    name = "lineage-mutations"
     kwargs = dict(BaseHandler.kwargs)
     kwargs["GET"] = {
-        "pangolin_lineage": {"type": str, "default": None},
-        "frequency": {"type": float, "default": None},
+        "pangolin_lineage": {"type": str, "required": True},
+        "frequency": {"type": float, "default": 0.8, "min": 0, "max": 1},
         "gene": {"type": str, "default": None},
     }
 
     async def _get(self):
         pangolin_lineage = self.args.pangolin_lineage
         frequency = self.args.frequency
-        frequency = float(frequency) if frequency != None else 0.8
         gene = self.args.gene
         if gene:
             genes = gene.lower().split(",")

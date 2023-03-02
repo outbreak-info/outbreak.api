@@ -1,12 +1,9 @@
-from tornado.web import HTTPError
-
 from web.handlers.genomics.base import BaseHandler
 from web.handlers.genomics.util import (
     create_iterator,
     create_nested_mutation_query,
     parse_location_id_to_query,
     transform_prevalence,
-    validate_iso_date,
 )
 
 
@@ -14,12 +11,12 @@ class PrevalenceByLocationAndTimeHandler(BaseHandler):
     name = "prevalence-by-location"
     kwargs = dict(BaseHandler.kwargs)
     kwargs["GET"] = {
-        "pangolin_lineage": {"type": str, "default": None},
+        "pangolin_lineage": {"type": str, "required": True},
         "mutations": {"type": str, "default": None},
         "location_id": {"type": str, "default": None},
-        "cumulative": {"type": str, "default": None},
-        "min_date": {"type": str, "default": None},
-        "max_date": {"type": str, "default": None},
+        "cumulative": {"type": bool, "default": False},
+        "min_date": {"type": str, "default": None, "date_format": "%Y-%m-%d"},
+        "max_date": {"type": str, "default": None, "date_format": "%Y-%m-%d"},
     }
 
     async def _get(self):
@@ -31,15 +28,10 @@ class PrevalenceByLocationAndTimeHandler(BaseHandler):
         query_mutations = self.args.mutations
         query_mutations = query_mutations.split(" AND ") if query_mutations is not None else []
         cumulative = self.args.cumulative
-        cumulative = True if cumulative == "true" else False
         date_range_filter = {"query": {"range": {"date_collected": {}}}}
         if self.args.max_date:
-            if not validate_iso_date(self.args.max_date):
-                raise HTTPError(400, reason="Invalid max_date format")
             date_range_filter["query"]["range"]["date_collected"]["lte"] = self.args.max_date
         if self.args.min_date:
-            if not validate_iso_date(self.args.min_date):
-                raise HTTPError(400, reason="Invalid min_date format")
             date_range_filter["query"]["range"]["date_collected"]["gte"] = self.args.min_date
 
         results = {}
@@ -65,7 +57,9 @@ class PrevalenceByLocationAndTimeHandler(BaseHandler):
             query_obj = create_nested_mutation_query(
                 lineages=lineages, mutations=j, location_id=query_location
             )
-            query["aggs"]["prevalence"]["aggs"]["count"]["aggs"]["lineage_count"]["filter"] = query_obj
+            query["aggs"]["prevalence"]["aggs"]["count"]["aggs"]["lineage_count"][
+                "filter"
+            ] = query_obj
             # import json
             # print(json.dumps(query))
             resp = await self.asynchronous_fetch(query)
