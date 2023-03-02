@@ -1,3 +1,5 @@
+from tornado.web import HTTPError
+
 from web.handlers.genomics.base import BaseHandler
 from web.handlers.genomics.util import (
     create_iterator,
@@ -269,6 +271,8 @@ class CumulativePrevalenceByLocationHandler(BaseHandler):
         "mutations": {"type": str, "default": None},
         "location_id": {"type": str, "default": None},
         "ndays": {"type": int, "default": None, "min": 1},
+        "min_date": {"type": str, "default": None, "date_format": "%Y-%m-%d"},
+        "max_date": {"type": str, "default": None, "date_format": "%Y-%m-%d"},
     }
 
     async def _get(self):
@@ -281,6 +285,10 @@ class CumulativePrevalenceByLocationHandler(BaseHandler):
         query_location = self.args.location_id
         query_mutations = query_mutations.split(" AND ") if query_mutations is not None else []
         query_ndays = self.args.ndays
+        min_date = self.args.min_date
+        max_date = self.args.max_date
+        if max_date and min_date and max_date < min_date:
+            raise HTTPError(400, reason="The max_date must greate or equal than the min_date")
         results = {}
         for query_lineage, query_mutation in create_iterator(
             query_pangolin_lineage, query_mutations
@@ -372,7 +380,11 @@ class CumulativePrevalenceByLocationHandler(BaseHandler):
                         rec["id"] = "_".join([query_location, i["key"]["sub_id"]])
                     flattened_response.append(rec)
                 dict_response = transform_prevalence_by_location_and_tiime(
-                    flattened_response, query_ndays, query_detected
+                    flattened_response,
+                    query_ndays,
+                    query_detected,
+                    min_date=min_date,
+                    max_date=max_date,
                 )
             res_key = None
             if (
