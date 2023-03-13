@@ -25,7 +25,8 @@ https://api.outbreak.info/genomics/sequence-count?location_id=USA&cumulative=tru
 Daily number of sequences for California
 https://api.outbreak.info/genomics/sequence-count?location_id=USA_US-CA
 
-## 2. Global daily prevalence of a PANGO lineage
+## 2. Global daily prevalence of a PANGO lineage [DEPRECATED]
+**Deprecated: changed `location_id` to be an optional field in #3**
 
 ```
 Returns the global daily prevalence of a PANGO lineage
