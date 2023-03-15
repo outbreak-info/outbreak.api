@@ -11,7 +11,7 @@ class PrevalenceByLocationAndTimeHandler(BaseHandler):
     name = "prevalence-by-location"
     kwargs = dict(BaseHandler.kwargs)
     kwargs["GET"] = {
-        "pangolin_lineage": {"type": str, "required": True},
+        "pangolin_lineage": {"type": str},
         "mutations": {"type": str, "default": None},
         "location_id": {"type": str, "default": None},
         "cumulative": {"type": bool, "default": False},
