@@ -19,7 +19,6 @@ def expand_dates(df, date_min, date_max, index_col, grp_col):
         df
         .set_index(index_col)
         .reindex(idx, fill_value = 0)
-        .drop(grp_col, axis = 1)
         .reset_index()
         .rename(
             columns = {
