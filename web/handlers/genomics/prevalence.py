@@ -274,7 +274,7 @@ class PrevalenceAllLineagesByLocationHandler(BaseHandler):
             df_response = df_response.fillna("None")
             df_response = df_response[["date", "total_count", "lineage_count", "lineage", "prevalence", "prevalence_rolling"]]
         else:
-            df_response = df_response.groupby("lineage").apply(expand_dates, df_response["date"].min(), df_response["date"].max(), "date", "lineage").reset_index()
+            df_response = df_response.groupby("lineage", group_keys=False).apply(expand_dates, df_response["date"].min(), df_response["date"].max(), "date", "lineage").reset_index()
             df_response = df_response.groupby("date").apply(compute_total_count, "lineage_count", "total_count").reset_index()
             df_response = df_response.groupby("lineage").agg({"total_count": "sum", "lineage_count": "sum"}).reset_index()
             df_response.loc[:,"prevalence"] = df_response["lineage_count"]/df_response["total_count"]
