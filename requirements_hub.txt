@@ -1,0 +1,9 @@
+-e git+https://github.com/biothings/biothings.api.git@0.11.x#egg=biothings[hub]
+
+# outbreak_parser_tools is used in multiple data plugin parsers
+-e git+https://github.com/outbreak-info/outbreak_parser_tools.git@main#egg=outbreak_parser_tools
+
+# Pending to remove the following dependencies
+attrs==21.2
+requests-cache==0.7.4
+fsspec==2021.11.1
