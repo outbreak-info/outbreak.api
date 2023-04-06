@@ -2,8 +2,7 @@ from biothings.web.settings.default import APP_LIST
 # *****************************************************************************
 # Elasticsearch variables
 # *****************************************************************************
-ES_HOST = 'su11:9200'
-ES_INDEX = 'significance_202303311627_cmcubndw'
+ES_INDEX = 'outbreak-significance'
 API_PREFIX = 'significance'
 API_VERSION = ''
 
