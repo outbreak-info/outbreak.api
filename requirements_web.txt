@@ -1,6 +1,0 @@
--e git+https://github.com/biothings/biothings.api.git@0.12.x#egg=biothings[web_extra]
-pandas==1.4.3
-pyjwt[crypto]==2.4.0
-scipy==1.9.0
-Jinja2==3.1.2
-MarkupSafe==2.1.1
