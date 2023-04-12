@@ -4,6 +4,7 @@ from biothings.web.settings.default import APP_LIST
 # *****************************************************************************
 ES_INDEX = 'outbreak-significance'
 API_PREFIX = 'significance'
+ES_DOC_TYPE = 'significance'
 API_VERSION = ''
 
 APP_LIST = [
