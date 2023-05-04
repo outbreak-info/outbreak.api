@@ -1,8 +1,7 @@
 # *****************************************************************************
 # Elasticsearch variables
 # *****************************************************************************
-ES_INDEX = "growth_rate_202305041351_75aydvqo"
-# ES_INDEX = "outbreak-growth_rate"
+ES_INDEX = "outbreak-growth_rate"
 API_PREFIX = "growth_rate"
 ES_DOC_TYPE = "growth_rate"
 API_VERSION = ""
