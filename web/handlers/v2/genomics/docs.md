@@ -215,7 +215,7 @@ Parameters:
 Examples,
 
 Get location details using id: `USA_US-CA`
-https://dev.outbreak.info/genomics/location-lookup?id=USA_US-CA
+https://api.outbreak.info/genomics/location-lookup?id=USA_US-CA
 
 ## 14. Match mutations using wildcards.
 
