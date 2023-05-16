@@ -88,7 +88,7 @@ Parameters:
 * `mutations` (Optional). List of mutations separated by `AND`.
 * `location_id`  (Optional). If not specified, returns cumulative prevalence at the country level globally.
 * `ndays` (Optional). Specify number of days from current date to calculative cumuative counts. If not specified, there is no limit on the window.
-* `detected` (Optional). If `true` returns ony if at least
+* `detected` (Optional). If `true` returns only the name of the location if at least one sequence of the variant has been detected in the given time window.
 
 
 ## 5. Most recent collection date by location
