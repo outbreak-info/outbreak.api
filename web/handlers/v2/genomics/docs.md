@@ -37,7 +37,7 @@ Endpoint: https://api.outbreak.info/genomics/global-prevalence
 
 Parameters
 
-* `pangolin_lineage` (Required).
+* `pangolin_lineage` (Optional). Returns global value if not specified.
 * `mutations` (Optional). Comma separated list of mutations.
 * `cumulative` (Optional). If `true` returns the cumulative global prevalence since the first day of detection.
 
