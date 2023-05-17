@@ -66,11 +66,11 @@ class MutationsByLineage(BaseHandler):
             query_obj = parse_time_window_to_query(date_range_filter)
             if query_obj:
                 query["query"] = query_obj
-            import json
+            # import json
 
-            print(json.dumps(query))
+            # print(json.dumps(query))
             resp = await self.asynchronous_fetch(query)
-            print(json.dumps(resp))
+            # print(json.dumps(resp))
 
             path_to_results = ["aggregations", "lineage", "buckets"]
             buckets = resp
