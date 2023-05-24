@@ -38,7 +38,7 @@ READONLY_HUB_API_PORT = 19181
 
 # Hub name/icon url/version, for display purpose
 HUB_NAME = "OutBreak API (backend)"
-HUB_ICON = "https://outbreak.info/img/icon-01.19a59535.svg"
+HUB_ICON = "https://outbreak.info/assets/icon-01-d7c2932d.svg"
 HUB_VERSION = "master"
 
 USE_RELOADER = False
