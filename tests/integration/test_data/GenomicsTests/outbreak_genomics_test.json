@@ -1,0 +1,168 @@
+{
+    "aliases": {
+        "outbreak-genomics": {}
+    },
+    "mappings": {
+        "dynamic": "false",
+        "_meta": {
+            "build_date": "2023-05-26T11:00:00.547431-07:00",
+            "biothing_type": "mutation",
+            "src": {
+                "genomics_api": {
+                    "code": {
+                        "repo": "https://github.com/juliamullen/genomics_api.git",
+                        "commit": "570d3f4",
+                        "branch": "main",
+                        "url": "https://github.com/juliamullen/genomics_api/tree/570d3f46404d569af08bcc242d27fced2ce26ec4/"
+                    },
+                    "stats": {
+                        "genomics_api": 14686789
+                    },
+                    "download_date": "2023-05-26T15:09:49.151000",
+                    "version": "2023-05-25",
+                    "upload_date": "2023-05-26T15:09:50.137000"
+                }
+            },
+            "stats": {
+                "total": 14686789
+            },
+            "build_version": "202305261100"
+        },
+        "properties": {
+            "accession_id": {
+                "type": "keyword"
+            },
+            "all": {
+                "type": "text"
+            },
+            "authors": {
+                "type": "keyword"
+            },
+            "clade": {
+                "type": "keyword"
+            },
+            "country": {
+                "type": "keyword"
+            },
+            "country_id": {
+                "type": "keyword"
+            },
+            "country_lower": {
+                "type": "keyword",
+                "normalizer": "keyword_lowercase_normalizer"
+            },
+            "country_normed": {
+                "type": "keyword"
+            },
+            "date_collected": {
+                "type": "keyword"
+            },
+            "date_modified": {
+                "type": "keyword"
+            },
+            "date_submitted": {
+                "type": "keyword"
+            },
+            "division": {
+                "type": "keyword"
+            },
+            "division_id": {
+                "type": "keyword"
+            },
+            "division_lower": {
+                "type": "keyword",
+                "normalizer": "keyword_lowercase_normalizer"
+            },
+            "location": {
+                "type": "keyword"
+            },
+            "location_id": {
+                "type": "keyword"
+            },
+            "location_lower": {
+                "type": "keyword",
+                "normalizer": "keyword_lowercase_normalizer"
+            },
+            "mutations": {
+                "type": "nested",
+                "properties": {
+                    "aa_map_coords": {
+                        "type": "keyword"
+                    },
+                    "absolute_coords": {
+                        "type": "keyword"
+                    },
+                    "alt_aa": {
+                        "type": "keyword"
+                    },
+                    "alt_codon": {
+                        "type": "keyword"
+                    },
+                    "change_length_nt": {
+                        "type": "keyword"
+                    },
+                    "codon_num": {
+                        "type": "keyword"
+                    },
+                    "gene": {
+                        "type": "keyword"
+                    },
+                    "is_synonymous": {
+                        "type": "keyword"
+                    },
+                    "mutation": {
+                        "type": "keyword",
+                        "normalizer": "keyword_lowercase_normalizer"
+                    },
+                    "nt_map_coords": {
+                        "type": "keyword"
+                    },
+                    "pos": {
+                        "type": "keyword"
+                    },
+                    "ref_aa": {
+                        "type": "keyword"
+                    },
+                    "ref_codon": {
+                        "type": "keyword"
+                    },
+                    "type": {
+                        "type": "keyword"
+                    }
+                }
+            },
+            "pango_version": {
+                "type": "keyword"
+            },
+            "pangolin_lineage": {
+                "type": "keyword",
+                "normalizer": "keyword_lowercase_normalizer"
+            }
+        }
+    },
+    "settings": {
+        "index": {
+            "analysis": {
+                "normalizer": {
+                    "keyword_lowercase_normalizer": {
+                        "filter": [
+                            "lowercase"
+                        ],
+                        "type": "custom",
+                        "char_filter": []
+                    }
+                },
+                "analyzer": {
+                    "string_lowercase": {
+                        "filter": "lowercase",
+                        "tokenizer": "keyword"
+                    },
+                    "whitespace_lowercase": {
+                        "filter": "lowercase",
+                        "tokenizer": "whitespace"
+                    }
+                }
+            }
+        }
+    }
+}
