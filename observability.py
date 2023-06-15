@@ -5,7 +5,7 @@ import uuid
 from datetime import datetime
 
 
-class Observability(logging.Logger):
+class Observability():
 
     def __init__(self):
         self.first_start_time = datetime.now()
@@ -25,7 +25,7 @@ class Observability(logging.Logger):
         self.obj["total_time_elapsed_sec"] = "{:.6f}".format((end_time - self.first_start_time).total_seconds())
         if (args):
             self.obj["args"] = args
-        print(self.obj)
+        logging.info(self.obj)
         if self.is_start_time_locked == False:
             self.start_time = end_time
         self.obj = {}
