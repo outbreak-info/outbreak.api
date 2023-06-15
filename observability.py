@@ -24,6 +24,7 @@ class Observability():
         self.obj["end"] = str(datetime.strptime(str(end_time), "%Y-%m-%d %H:%M:%S.%f"))
         self.obj["time_elapsed_sec"] = "{:.6f}".format((end_time - self.start_time).total_seconds())
         self.obj["total_time_elapsed_sec"] = "{:.6f}".format((end_time - self.first_start_time).total_seconds())
+        self.obj["is_start_time_locked"] = self.is_start_time_locked
         if (args):
             self.obj["args"] = args
         logging.info(json.dumps(self.obj))
