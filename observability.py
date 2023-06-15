@@ -1,4 +1,5 @@
 import inspect
+import json
 import logging
 import uuid
 
@@ -25,7 +26,7 @@ class Observability():
         self.obj["total_time_elapsed_sec"] = "{:.6f}".format((end_time - self.first_start_time).total_seconds())
         if (args):
             self.obj["args"] = args
-        logging.info(self.obj)
+        logging.info(json.dumps(self.obj))
         if self.is_start_time_locked == False:
             self.start_time = end_time
         self.obj = {}
