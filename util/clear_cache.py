@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import diskcache
 import sys
 import requests
 import logging
@@ -39,6 +40,10 @@ def clear_nginx_cache():
         rmtree(cache_directory)
         sleep(DELAY)
 
+def clear_diskcache():
+    cache = diskcache.Cache("cache/genomics/")
+    cache.clear()
+
 def main():
     # use aliases because there can be two genomics indices on the server
     # but the aliased index is currently live
@@ -51,6 +56,7 @@ def main():
             index_file.write(live_index)
 
         logging.info('genomics updated, clearing cache')
+        clear_diskcache()
         clear_nginx_cache()
 
 if __name__ == '__main__':
