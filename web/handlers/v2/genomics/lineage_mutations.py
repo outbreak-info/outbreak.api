@@ -1,5 +1,5 @@
 import re
-
+import observability
 import pandas as pd
 
 from web.handlers.genomics.base import BaseHandler
@@ -31,6 +31,9 @@ class LineageMutationsHandler(BaseHandler):
     }
 
     async def _get(self):
+        o = observability.Observability()
+        o.log("function_get", self.args)
+        o.lock_time()
         pangolin_lineage = self.args.pangolin_lineage
         frequency = self.args.frequency
         gene = self.args.gene
@@ -66,8 +69,14 @@ class LineageMutationsHandler(BaseHandler):
             query["query"] = create_nested_mutation_query(
                 lineages=query_pangolin_lineage, mutations=query_mutations
             )
+
+            o.log("es_query_before", query)
+
             # print(query)
             resp = await self.asynchronous_fetch(query)
+
+            o.log("es_query_after", query)
+
             path_to_results = ["aggregations", "mutations", "mutations", "buckets"]
             buckets = resp
             for i in path_to_results:
@@ -125,5 +134,13 @@ class LineageMutationsHandler(BaseHandler):
                 if genes:
                     df_response = df_response[df_response["gene"].str.lower().isin(genes)]
                 dict_response[query_lineage] = df_response.to_dict(orient="records")
+
+        o.log("transformations")
+
+        o.release_time()
+
         resp = {"success": True, "results": dict_response}
+
+        o.log("before_return")
+
         return resp
