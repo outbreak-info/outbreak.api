@@ -1,12 +1,14 @@
-import re
-
+import asyncio
+import observability
 import pandas as pd
+import re
 
 from web.handlers.genomics.base import BaseHandler
 from web.handlers.genomics.util import create_nested_mutation_query, get_total_hits
 
 
 class LineageMutationsHandler(BaseHandler):
+
     gene_mapping = {
         "orf1a": "ORF1a",
         "orf1b": "ORF1b",
@@ -30,7 +32,11 @@ class LineageMutationsHandler(BaseHandler):
         "gene": {"type": str, "default": None},
     }
 
+
     async def _get(self):
+        o = observability.Observability()
+        o.log("function_get", self.args)
+        o.lock_time()
         pangolin_lineage = self.args.pangolin_lineage
         frequency = self.args.frequency
         gene = self.args.gene
@@ -39,8 +45,8 @@ class LineageMutationsHandler(BaseHandler):
         else:
             genes = []
         dict_response = {}
-        # Query structure: Lineage 1 OR Lineage 2 OR Lineage 3 AND Mutation 1 AND Mutation 2, Lineage 4 AND Mutation 2, Lineage 5 ....
-        for query_lineage in pangolin_lineage.split(","):
+
+        async def process_query(query_lineage):
             query = {
                 "size": 0,
                 "query": {},
@@ -66,8 +72,14 @@ class LineageMutationsHandler(BaseHandler):
             query["query"] = create_nested_mutation_query(
                 lineages=query_pangolin_lineage, mutations=query_mutations
             )
+
+            o.log("es_query_before", query)
+
             # print(query)
             resp = await self.asynchronous_fetch(query)
+
+            o.log("es_query_after", query)
+
             path_to_results = ["aggregations", "mutations", "mutations", "buckets"]
             buckets = resp
             for i in path_to_results:
@@ -125,5 +137,16 @@ class LineageMutationsHandler(BaseHandler):
                 if genes:
                     df_response = df_response[df_response["gene"].str.lower().isin(genes)]
                 dict_response[query_lineage] = df_response.to_dict(orient="records")
+
+            o.log("transformations")
+
+        o.release_time()
+
+        tasks = [process_query(query_lineage) for query_lineage in pangolin_lineage.split(",")]
+        await asyncio.gather(*tasks)
+
         resp = {"success": True, "results": dict_response}
+
+        o.log("before_return")
+
         return resp
