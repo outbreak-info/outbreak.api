@@ -1,5 +1,4 @@
 import re
-import observability
 import pandas as pd
 
 from web.handlers.genomics.base import BaseHandler
@@ -31,9 +30,12 @@ class LineageMutationsHandler(BaseHandler):
     }
 
     async def _get(self):
-        o = observability.Observability()
-        o.log("function_get", self.args)
-        o.lock_time()
+        # o = observability.Observability()
+        # o.log("function_get", self.args)
+        # o.lock_time()
+        self.observability.log("function_get", self.args)
+        self.observability.lock_time()
+
         pangolin_lineage = self.args.pangolin_lineage
         frequency = self.args.frequency
         gene = self.args.gene
@@ -70,16 +72,17 @@ class LineageMutationsHandler(BaseHandler):
                 lineages=query_pangolin_lineage, mutations=query_mutations
             )
 
-            o.log("es_query_before", query)
+            self.observability.log("es_query_before", query)
 
-            # print(query)
             resp = await self.asynchronous_fetch(query)
 
-            o.log("es_query_after", query)
+            self.observability.log("es_query_after", query)
 
             path_to_results = ["aggregations", "mutations", "mutations", "buckets"]
             buckets = resp
             for i in path_to_results:
+                print("@@@")
+                print(i)
                 buckets = buckets[i]
             flattened_response = [
                 {
@@ -135,12 +138,12 @@ class LineageMutationsHandler(BaseHandler):
                     df_response = df_response[df_response["gene"].str.lower().isin(genes)]
                 dict_response[query_lineage] = df_response.to_dict(orient="records")
 
-        o.log("transformations")
+            self.observability.log("transformations")
 
-        o.release_time()
+        self.observability.release_time()
 
         resp = {"success": True, "results": dict_response}
 
-        o.log("before_return")
+        self.observability.log("before_return")
 
         return resp

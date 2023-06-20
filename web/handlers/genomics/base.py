@@ -1,4 +1,5 @@
 import abc
+import observability
 
 from biothings.web.handlers import BaseAPIHandler
 
@@ -9,6 +10,10 @@ class BaseHandler(BaseAPIHandler):
     __metaclass__ = abc.ABCMeta
 
     kwargs = dict(BaseAPIHandler.kwargs)
+
+    def initialize(self):
+        super().initialize(self)
+        self.observability = observability.Observability()
 
     def set_default_headers(self):
         self.set_header("Content-Type", "application/json")
