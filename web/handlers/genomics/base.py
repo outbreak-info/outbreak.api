@@ -1,5 +1,6 @@
 import abc
 import diskcache
+import observability
 import json
 
 from biothings.web.handlers import BaseAPIHandler
@@ -11,12 +12,16 @@ class BaseHandler(BaseAPIHandler):
 
     kwargs = dict(BaseAPIHandler.kwargs)
 
-    # prepare is called at the beginning of request handling
+    def initialize(self):
+        super().initialize(self)
+        self.observability = observability.Observability()
+
     def prepare(self):
         super().prepare()
-        # Create cache and expires it in 7 days
+        # Create cache and expires it in 10 days
+        # TODO: Move it to application start context instead. Here it's going to be created on every request.
         self.cache = diskcache.Cache("cache/genomics/",
-                                    expire=604800,
+                                    expire=864000,
                                     size_limit=1000000000,  # 1 GB disk limit
                                     eviction_policy="least-recently-used",  # Least Recently Used eviction policy
                                     compress_level=6

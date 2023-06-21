@@ -195,6 +195,8 @@ def create_nested_mutation_query(location_id = None, lineages = [], mutations = 
     else:                       # If only lineage specified
         query_obj["bool"]["should"] = bool_should
     parse_location_id_to_query(location_id, query_obj)
+    print("@@@@@@@")
+    print(query_obj)
     return query_obj
 
 def classify_other_category(grp, keep_lineages):
@@ -308,3 +310,52 @@ def create_date_range_filter(field_name, min_date=None, max_date=None):
     if min_date:
         date_range_filter["range"][field_name]["gte"] = min_date
     return date_range_filter
+
+def lineage_mutation_individual(pangolin_lineage):
+    return {"pangolin_lineage_individual": {
+        "filter": {
+          "terms": {
+            # Ex: "pangolin_lineage": ["B.1.617.2", "AY.1"]
+            "pangolin_lineage": pangolin_lineage
+          }
+        },
+        # TODO: Review "size" attribute value
+        "aggs": { "pangolin_lineage": { "terms": { "field": "pangolin_lineage", "size": 10000 }, "aggs": { "mutations": { "nested": { "path": "mutations" }, "aggs": { "mutations": { "terms": { "field": "mutations.mutation", "size": 10000 }, "aggs": { "genomes": { "reverse_nested": {} } } } } } } } } }}
+
+def lineage_mutation_or_operator(pangolin_lineage):
+    return {pangolin_lineage: {
+                "filter":
+                    {"terms": {
+                        # Ex: "pangolin_lineage": ["B.1.617.2", "AY.1"]
+                        # "pangolin_lineage": [','.join(['"{}"'.format(item) for item in pangolin_lineage.split(" OR ")])]
+                        "pangolin_lineage": pangolin_lineage.split(" OR ")
+                    }},
+                    "aggs": { "mutations": { "nested": { "path": "mutations" },
+                                            # TODO: Review "size" attribute value
+                                            "aggs": { "mutations": { "terms": { "field": "mutations.mutation", "size": 10000 }, 
+                                                                    "aggs": { "genomes": { "reverse_nested": {} } } } } } } }
+            }
+
+def lineage_mutation_and_operator(pangolin_lineage):
+    return {pangolin_lineage: {
+            "filter": {
+                "bool": {
+                    "must": [
+                    # Ex: {"term": {"pangolin_lineage": "BA.1.1"}},
+                    *[{"term": {"pangolin_lineage": lineage}} for lineage in pangolin_lineage.split(" AND ")],
+                    { "nested": { "path": "mutations", "query": { "term": { "mutations.mutation": "ORF1a:A735A" } } } }
+                    ]}}}}
+
+def lineage_mutation_aggregations(pangolin_lineages):
+    aggregations = {}
+    pangolin_lineages_splited = pangolin_lineages.split(",")
+    pangolin_lineages_with_operator_and = [string for string in pangolin_lineages_splited if " AND " in string]
+    pangolin_lineages_with_operator_or = [string for string in pangolin_lineages_splited if " OR " in string]
+    pangolin_lineages_individual = [string for string in pangolin_lineages_splited if all(substring not in string for substring in [" AND ", " OR "])]
+    for pangolin_lineage in pangolin_lineages_with_operator_and:
+        aggregations.update(lineage_mutation_and_operator(pangolin_lineage))
+    for pangolin_lineage in pangolin_lineages_with_operator_or:
+        aggregations.update(lineage_mutation_or_operator(pangolin_lineage))
+    if len(pangolin_lineages_individual) > 0:
+        aggregations.update(lineage_mutation_individual(pangolin_lineages_individual))
+    return aggregations
