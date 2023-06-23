@@ -1,12 +1,13 @@
-import re
-
+import asyncio
 import pandas as pd
+import re
 
 from web.handlers.genomics.base import BaseHandler
 from web.handlers.genomics.util import create_nested_mutation_query, get_total_hits
 
 
 class LineageMutationsHandler(BaseHandler):
+
     gene_mapping = {
         "orf1a": "ORF1a",
         "orf1b": "ORF1b",
@@ -30,7 +31,10 @@ class LineageMutationsHandler(BaseHandler):
         "gene": {"type": str, "default": None},
     }
 
+
     async def _get(self):
+        self.observability.log("function_get", self.args)
+        self.observability.lock_time()
         pangolin_lineage = self.args.pangolin_lineage
         frequency = self.args.frequency
         gene = self.args.gene
@@ -39,20 +43,17 @@ class LineageMutationsHandler(BaseHandler):
         else:
             genes = []
         dict_response = {}
-        # Query structure: Lineage 1 OR Lineage 2 OR Lineage 3 AND Mutation 1 AND Mutation 2, Lineage 4 AND Mutation 2, Lineage 5 ....
-        for query_lineage in pangolin_lineage.split(","):
+
+        async def process_query(query_lineage):
             query = {
                 "size": 0,
                 "query": {},
                 "aggs": {
                     "mutations": {
-                        "nested": {"path": "mutations"},
-                        "aggs": {
-                            "mutations": {
-                                "terms": {"field": "mutations.mutation", "size": 10000},
-                                "aggs": {"genomes": {"reverse_nested": {}}},
-                            }
-                        },
+                        "terms": {
+                            "field": "mutations.keyword",
+                            "size": 1000
+                        }
                     }
                 },
             }
@@ -66,17 +67,25 @@ class LineageMutationsHandler(BaseHandler):
             query["query"] = create_nested_mutation_query(
                 lineages=query_pangolin_lineage, mutations=query_mutations
             )
+
+            self.observability.log("es_query_before", query)
+
             # print(query)
             resp = await self.asynchronous_fetch(query)
-            path_to_results = ["aggregations", "mutations", "mutations", "buckets"]
+
+            self.observability.log("es_query_after", query)
+
+            path_to_results = ["aggregations", "mutations", "buckets"]
             buckets = resp
             for i in path_to_results:
                 buckets = buckets[i]
             flattened_response = [
                 {
                     "mutation": i["key"],
-                    "mutation_count": i["genomes"]["doc_count"],
-                    "lineage_count": get_total_hits(resp),
+                    # "mutation_count": i["genomes"]["doc_count"],
+                    "mutation_count": i["doc_count"],
+                    # "lineage_count": get_total_hits(resp),
+                    "lineage_count": resp["hits"]["total"]["value"],
                     "lineage": query_lineage,
                 }
                 for i in buckets
@@ -125,5 +134,16 @@ class LineageMutationsHandler(BaseHandler):
                 if genes:
                     df_response = df_response[df_response["gene"].str.lower().isin(genes)]
                 dict_response[query_lineage] = df_response.to_dict(orient="records")
+
+            # o.log("transformations")
+
+        self.observability.release_time()
+
+        tasks = [process_query(query_lineage) for query_lineage in pangolin_lineage.split(",")]
+        await asyncio.gather(*tasks)
+
         resp = {"success": True, "results": dict_response}
+
+        self.observability.log("before_return")
+
         return resp
