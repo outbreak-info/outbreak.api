@@ -57,7 +57,7 @@ def main():
 
         logging.info('genomics updated, clearing cache')
         clear_nginx_cache()
-        clear_nginx_cache()
+        clear_diskcache()
 
 if __name__ == '__main__':
     try:
