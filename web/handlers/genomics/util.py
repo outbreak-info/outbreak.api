@@ -308,3 +308,83 @@ def create_date_range_filter(field_name, min_date=None, max_date=None):
     if min_date:
         date_range_filter["range"][field_name]["gte"] = min_date
     return date_range_filter
+
+def lineage_mutation_individual(pangolin_lineage):
+    return {"pangolin_lineage_individual": {
+                "filter": {
+                    "terms": {
+                            "pangolin_lineage.keyword": pangolin_lineage
+                    }
+                },
+                "aggs": {
+                    "pangolin_lineage": {
+                        "terms": {
+                        "field": "pangolin_lineage.keyword",
+                        "size": 10000
+                        },
+                        "aggs": {
+                            "mutations": {
+                                "terms": {
+                                    "field": "mutations.keyword",
+                                    "size": 10000
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            }
+
+def lineage_mutation_or_operator(pangolin_lineage):
+    return {pangolin_lineage: {
+                "filter":
+                    {"terms": {
+                        # Ex: "pangolin_lineage": ["B.1.617.2", "AY.1"]
+                        # "pangolin_lineage": [','.join(['"{}"'.format(item) for item in pangolin_lineage.split(" OR ")])]
+                        "pangolin_lineage.keyword": pangolin_lineage.split(" OR ")
+                    }},
+                    "aggs": {
+                        "mutations": {
+                            "terms": {
+                                "field": "mutations.keyword",
+                                "size": 10000
+                            }
+                        }
+                    }
+                }
+            }
+
+def lineage_mutation_and_operator(pangolin_lineage):
+    return {pangolin_lineage: {
+                "filter": 
+                    {"bool": 
+                        {"must": [
+                            {"term": {"pangolin_lineage.keyword": pangolin_lineage.split(" AND ")[0]}},
+                            # *[{"mutations.keyword": lineage} for lineage in pangolin_lineage[1:].split(" AND ")],
+                            *[{"term": {"mutations.keyword": lineage}} for lineage in pangolin_lineage.split(" AND ")[1:]]
+                        ]}
+                    },
+                    "aggs": {
+                        "mutations": {
+                            "terms": {
+                                "field": "mutations.keyword",
+                                "size": 10000
+                            }
+                        }
+                    }
+                }
+            }
+
+def lineage_mutation_aggregations(pangolin_lineages):
+    aggregations = {}
+    pangolin_lineages_splited = pangolin_lineages.split(",")
+    pangolin_lineages_with_operator_and = [string for string in pangolin_lineages_splited if " AND " in string]
+    pangolin_lineages_with_operator_or = [string for string in pangolin_lineages_splited if " OR " in string]
+    pangolin_lineages_individual = [string for string in pangolin_lineages_splited if all(substring not in string for substring in [" AND ", " OR "])]
+    for pangolin_lineage in pangolin_lineages_with_operator_and:
+        aggregations.update(lineage_mutation_and_operator(pangolin_lineage))
+    for pangolin_lineage in pangolin_lineages_with_operator_or:
+        aggregations.update(lineage_mutation_or_operator(pangolin_lineage))
+    if len(pangolin_lineages_individual) > 0:
+        aggregations.update(lineage_mutation_individual(pangolin_lineages_individual))
+    return aggregations
