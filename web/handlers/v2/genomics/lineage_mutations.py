@@ -39,7 +39,28 @@ class LineageMutationsHandler(BaseHandler):
             genes = []
         dict_response = {}
 
-        query_lineages = " OR ".join(pangolin_lineage.split(","))
+        query_lineages = ""
+        for lineage_param in re.split(r',| OR ', pangolin_lineage):
+            lineage_ands = lineage_param.split(" AND ")
+            lineage_ors = lineage_param.split(" OR ")
+            if len(lineage_ands) > 1:
+                if query_lineages != "":
+                    query_lineages = query_lineages + " OR "
+                query_lineages = query_lineages + "(pangolin_lineage.keyword: " + lineage_ands[0] + " AND mutations.keyword: "
+                modified_mutations = ["\\:".join(mutation.split(":")) if ":" in mutation else mutation for mutation in lineage_ands[1:]]
+                query_mutations = " AND mutations.keyword: ".join(modified_mutations)
+                query_lineages = query_lineages + query_mutations
+                query_lineages = query_lineages + ")"
+            elif len(lineage_ors) > 1:
+                if query_lineages != "":
+                    query_lineages = query_lineages + " OR "
+                query_lineages = "pangolin_lineage.keyword: " + lineage_ors[0] + " OR mutations: "
+                query_mutations = " OR pangolin_lineage.keyword: ".join(lineage_ors[1:])
+                query_lineages = query_lineages + query_mutations
+            else:
+                if query_lineages != "":
+                    query_lineages = query_lineages + " OR "
+                query_lineages = query_lineages + "(pangolin_lineage.keyword: " + lineage_param + ")"
 
         query = {"size": 0,
                     "track_total_hits": True,
@@ -48,8 +69,7 @@ class LineageMutationsHandler(BaseHandler):
                             "filter": [
                                 {
                                     "query_string": {
-                                        "default_field": "pangolin_lineage.keyword",
-                                        # Ex: "query": "BA.1.* OR BA.2"
+                                        # Ex: "query": "(pangolin_lineage.keyword: BA.1 OR pangolin_lineage.keyword: BA.1.1) OR (pangolin_lineage.keyword: BA.2 AND mutations: 'S\\:D614G')"
                                         "query": query_lineages
                                     }
                                 }
@@ -65,7 +85,7 @@ class LineageMutationsHandler(BaseHandler):
                                 "mutations": {
                                     "terms": {
                                         "field": "mutations.keyword",
-                                        "size": 10000
+                                        "size": 2
                                     }
                                 }
                             }
@@ -80,6 +100,7 @@ class LineageMutationsHandler(BaseHandler):
         self.observability.log("es_query_after", query)
 
         for lineage in resp["aggregations"]["lineages"]["buckets"]:
+
             path_to_results = ["mutations", "buckets"]
 
             buckets = lineage
