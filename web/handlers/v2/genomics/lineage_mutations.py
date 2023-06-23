@@ -3,7 +3,6 @@ import re
 import pandas as pd
 
 from web.handlers.genomics.base import BaseHandler
-from web.handlers.genomics.util import create_nested_mutation_query, get_total_hits
 
 
 class LineageMutationsHandler(BaseHandler):
@@ -39,48 +38,63 @@ class LineageMutationsHandler(BaseHandler):
         else:
             genes = []
         dict_response = {}
-        # Query structure: Lineage 1 OR Lineage 2 OR Lineage 3 AND Mutation 1 AND Mutation 2, Lineage 4 AND Mutation 2, Lineage 5 ....
-        for query_lineage in pangolin_lineage.split(","):
-            query = {
-                "size": 0,
-                "query": {},
-                "aggs": {
-                    "mutations": {
-                        "nested": {"path": "mutations"},
-                        "aggs": {
-                            "mutations": {
-                                "terms": {"field": "mutations.mutation", "size": 10000},
-                                "aggs": {"genomes": {"reverse_nested": {}}},
+
+        query_lineages = " OR ".join(pangolin_lineage.split(","))
+
+        query = {"size": 0,
+                    "track_total_hits": True,
+                    "query": {
+                        "bool": {
+                            "filter": [
+                                {
+                                    "query_string": {
+                                        "default_field": "pangolin_lineage.keyword",
+                                        # Ex: "query": "BA.1.* OR BA.2"
+                                        "query": query_lineages
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "aggs": {
+                        "lineages": {
+                            "terms": {
+                                "field": "pangolin_lineage.keyword"
+                            },
+                            "aggs": {
+                                "mutations": {
+                                    "terms": {
+                                        "field": "mutations.keyword",
+                                        "size": 10000
+                                    }
+                                }
                             }
-                        },
+                        }
                     }
-                },
-            }
-            query_lineage_split = query_lineage.split(" AND ")
-            query_mutations = []
-            query_pangolin_lineage = query_lineage_split[0].split(
-                " OR "
-            )  # First parameter always lineages separated by commas
-            if len(query_lineage_split) > 1:
-                query_mutations = query_lineage_split[1:]  # First parameter is always lineage
-            query["query"] = create_nested_mutation_query(
-                lineages=query_pangolin_lineage, mutations=query_mutations
-            )
-            # print(query)
-            resp = await self.asynchronous_fetch(query)
-            path_to_results = ["aggregations", "mutations", "mutations", "buckets"]
-            buckets = resp
+                }
+
+        self.observability.log("es_query_before", query)
+
+        resp = await self.asynchronous_fetch(query)
+
+        self.observability.log("es_query_after", query)
+
+        for lineage in resp["aggregations"]["lineages"]["buckets"]:
+            path_to_results = ["mutations", "buckets"]
+
+            buckets = lineage
             for i in path_to_results:
                 buckets = buckets[i]
             flattened_response = [
                 {
                     "mutation": i["key"],
-                    "mutation_count": i["genomes"]["doc_count"],
-                    "lineage_count": get_total_hits(resp),
-                    "lineage": query_lineage,
+                    "mutation_count": i["doc_count"],
+                    "lineage_count": lineage["doc_count"],
+                    "lineage": lineage["key"],
                 }
                 for i in buckets
             ]
+
             if len(flattened_response) > 0:
                 df_response = pd.DataFrame(flattened_response).assign(
                     gene=lambda x: x["mutation"].apply(
@@ -124,6 +138,9 @@ class LineageMutationsHandler(BaseHandler):
                 df_response = df_response[df_response["prevalence"] >= frequency].fillna("None")
                 if genes:
                     df_response = df_response[df_response["gene"].str.lower().isin(genes)]
-                dict_response[query_lineage] = df_response.to_dict(orient="records")
-        resp = {"success": True, "results": dict_response}
-        return resp
+                dict_response[lineage["key"]] = df_response.to_dict(orient="records")
+
+        self.observability.log("transformations_after")
+
+        result = {"success": True, "results": dict_response}
+        return result
