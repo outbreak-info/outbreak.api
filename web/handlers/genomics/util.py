@@ -167,7 +167,7 @@ def create_nested_mutation_query(location_id = None, lineages = [], mutations = 
         }
         bool_must["bool"]["must"].append({
             "term": {
-                "pangolin_lineage": i
+                "pangolin_lineage.keyword": i
             }
         })
         bool_should.append(bool_must)

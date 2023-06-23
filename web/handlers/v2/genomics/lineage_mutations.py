@@ -31,6 +31,7 @@ class LineageMutationsHandler(BaseHandler):
     }
 
     async def _get(self):
+        self.observability.log("function_get", self.args)
         pangolin_lineage = self.args.pangolin_lineage
         frequency = self.args.frequency
         gene = self.args.gene
@@ -44,17 +45,14 @@ class LineageMutationsHandler(BaseHandler):
             query = {
                 "size": 0,
                 "query": {},
-                "aggs": {
-                    "mutations": {
-                        "nested": {"path": "mutations"},
-                        "aggs": {
-                            "mutations": {
-                                "terms": {"field": "mutations.mutation", "size": 10000},
-                                "aggs": {"genomes": {"reverse_nested": {}}},
+                    "aggs": {
+                        "mutations": {
+                                "terms": {
+                                    "field": "mutations.keyword",
+                                    "size": 10000
+                                }
                             }
-                        },
-                    }
-                },
+                    },
             }
             query_lineage_split = query_lineage.split(" AND ")
             query_mutations = []
@@ -66,16 +64,21 @@ class LineageMutationsHandler(BaseHandler):
             query["query"] = create_nested_mutation_query(
                 lineages=query_pangolin_lineage, mutations=query_mutations
             )
-            # print(query)
+
+            self.observability.log("es_query_before", query)
+
             resp = await self.asynchronous_fetch(query)
-            path_to_results = ["aggregations", "mutations", "mutations", "buckets"]
+
+            self.observability.log("es_query_after", query)
+
+            path_to_results = ["aggregations", "mutations", "buckets"]
             buckets = resp
             for i in path_to_results:
                 buckets = buckets[i]
             flattened_response = [
                 {
                     "mutation": i["key"],
-                    "mutation_count": i["genomes"]["doc_count"],
+                    "mutation_count": i["doc_count"],
                     "lineage_count": get_total_hits(resp),
                     "lineage": query_lineage,
                 }
@@ -125,5 +128,11 @@ class LineageMutationsHandler(BaseHandler):
                 if genes:
                     df_response = df_response[df_response["gene"].str.lower().isin(genes)]
                 dict_response[query_lineage] = df_response.to_dict(orient="records")
+
+            self.observability.log("transformations")
+
         resp = {"success": True, "results": dict_response}
+
+        self.observability.log("before_return")
+
         return resp
