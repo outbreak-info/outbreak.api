@@ -1,4 +1,4 @@
--e git+https://github.com/biothings/biothings.api.git@0.11.x#egg=biothings[hub]
+-e git+https://github.com/biothings/biothings.api.git@0.12.x#egg=biothings[hub]
 
 # outbreak_parser_tools is used in multiple data plugin parsers
 -e git+https://github.com/outbreak-info/outbreak_parser_tools.git@main#egg=outbreak_parser_tools
