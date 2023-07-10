@@ -1,6 +1,10 @@
 name: Deploy-to-EC2-Dev
 
-on: workflow_dispatch
+# on: workflow_dispatch
+on:
+  push:
+    branches:
+      - dev
 
 jobs:
   deploy:
