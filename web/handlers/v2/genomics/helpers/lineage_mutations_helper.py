@@ -1,3 +1,5 @@
+from elasticsearch_dsl import Search, Q, A
+
 import pandas as pd
 import re
 
@@ -18,29 +20,46 @@ def gene_mapping():
     }
     return gene_mapping
 
-def create_query(pangolin_lineage = []):
-    query_lineages = ""
-    for lineage_param in re.split(r',| OR ', pangolin_lineage):
-        lineage_ands = lineage_param.split(" AND ")
-        lineage_ors = lineage_param.split(" OR ")
-        if len(lineage_ands) > 1:
-            if query_lineages != "":
-                query_lineages = query_lineages + " OR "
-            query_lineages = query_lineages + "(pangolin_lineage.keyword: " + lineage_ands[0] + " AND mutations.keyword: "
-            modified_mutations = ["\\:".join(mutation.split(":")) if ":" in mutation else mutation for mutation in lineage_ands[1:]]
-            query_mutations = " AND mutations.keyword: ".join(modified_mutations)
-            query_lineages = query_lineages + query_mutations
-            query_lineages = query_lineages + ")"
-        elif len(lineage_ors) > 1:
-            if query_lineages != "":
-                query_lineages = query_lineages + " OR "
-            query_lineages = "pangolin_lineage.keyword: " + lineage_ors[0] + " OR mutations: "
-            query_mutations = " OR pangolin_lineage.keyword: ".join(lineage_ors[1:])
-            query_lineages = query_lineages + query_mutations
-        else:
-            if query_lineages != "":
-                query_lineages = query_lineages + " OR "
-            query_lineages = query_lineages + "(pangolin_lineage.keyword: " + lineage_param + ")"
+def create_query(lineages = "", mutations = ""):
+    if len(lineages) > 0:
+        lineages = "pangolin_lineage.keyword: ({})".format(lineages)
+    if len(mutations) > 0:
+        mutations = mutations.replace(":","\\:")
+        mutations = "mutations.keyword: ({})".format(mutations)
+    query_filters = " AND ".join([lineages, mutations])
+
+    search = Search()
+    search = search.extra(size=0, track_total_hits=True)
+
+    # Create the bool query
+    bool_query = Q(
+        "query_string",
+        query=query_filters
+    )
+
+    # Add the bool query to the filter
+    search = search.query("bool", filter=bool_query)
+
+    # Add the terms aggregation for lineages
+    search.aggs.bucket("lineages", "terms", field="pangolin_lineage.keyword")
+
+    # Add the terms aggregation for mutations within each lineage
+    search.aggs["lineages"].bucket("mutations", "terms", field="mutations.keyword", size=2)
+
+    search.to_dict
+
+    return search
+
+def create_query(lineages = "", mutations = ""):
+    filters = []
+    if len(lineages) > 0:
+        lineages = "pangolin_lineage.keyword: ({})".format(lineages)
+        filters.append(lineages)
+    if len(mutations) > 0:
+        mutations = mutations.replace(":","\\:")
+        mutations = "mutations.keyword: ({})".format(mutations)
+        filters.append(mutations)
+    query_filters = " AND ".join(filters)
 
     query = {"size": 0,
                 "track_total_hits": True,
@@ -49,25 +68,17 @@ def create_query(pangolin_lineage = []):
                         "filter": [
                             {
                                 "query_string": {
-                                    # Ex: "query": "(pangolin_lineage.keyword: BA.1 OR pangolin_lineage.keyword: BA.1.1) OR (pangolin_lineage.keyword: BA.2 AND mutations: 'S\\:D614G')"
-                                    "query": query_lineages
+                                    "query": query_filters # (pangolin_lineage : BA.2) AND (mutations : NOT(MUTATION) OR MUTATION) 
                                 }
                             }
                         ]
                     }
                 },
                 "aggs": {
-                    "lineages": {
+                    "mutations": {
                         "terms": {
-                            "field": "pangolin_lineage.keyword"
-                        },
-                        "aggs": {
-                            "mutations": {
-                                "terms": {
-                                    "field": "mutations.keyword",
-                                    "size": 2
-                                }
-                            }
+                            "field": "mutations.keyword",
+                            "size": 2
                         }
                     }
                 }

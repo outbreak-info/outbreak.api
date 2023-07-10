@@ -7,24 +7,26 @@ class LineageMutationsHandler(BaseHandler):
     name = "lineage-mutations"
     kwargs = dict(BaseHandler.kwargs)
     kwargs["GET"] = {
-        "pangolin_lineage": {"type": str, "required": True},
+        "lineages": {"type": str, "required": True},
+        "mutations": {"type": str},
         "frequency": {"type": float, "default": 0.8, "min": 0, "max": 1},
         "gene": {"type": str, "default": None},
     }
 
     async def _get(self):
         # Parse querystring parameters
-        pangolin_lineage = self.args.pangolin_lineage
+        lineages = self.args.lineages if self.args.lineages else ""
+        mutations = self.args.mutations if self.args.mutations else ""
         frequency = self.args.frequency
-        gene = self.args.gene
-        genes = gene.lower().split(",") if gene else []
+        genes = self.args.gene.lower().split(",") if self.args.gene else []
 
-        query = helper.create_query(pangolin_lineage)
+        query = helper.create_query(lineages=lineages, mutations=mutations)
         self.observability.log("es_query_before", query)
-        resp = await self.asynchronous_fetch(query)
+        resp = await self.asynchronous_fetch(query=query)
         self.observability.log("es_query_after", query)
         dict_response = helper.parse_response(resp=resp, frequency=frequency, genes=genes)
         self.observability.log("transformations_after")
+
         result = {"success": True, "results": dict_response}
 
         return result
