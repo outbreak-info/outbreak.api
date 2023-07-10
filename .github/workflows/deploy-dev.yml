@@ -4,7 +4,7 @@ name: Deploy-to-EC2-Dev
 on:
   push:
     branches:
-      - dev
+      - add-manual-deploy-to-dev
 
 jobs:
   deploy:
