@@ -101,7 +101,7 @@ def parse_response(resp = {}, frequency = 1, genes = []):
         {
             "mutation": i["key"],
             "mutation_count": i["doc_count"],
-            "lineage_count": lineage["hits"]["total"]["value"],
+            "lineage_count": resp["hits"]["total"]["value"],
             "lineage": lineage["key"],
         }
         for i in buckets
