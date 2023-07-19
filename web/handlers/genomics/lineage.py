@@ -343,7 +343,8 @@ class MutationsByLineage(BaseHandler):
                 df_response.loc[:, "proportion"] = prop[0]
                 df_response.loc[:, "proportion_ci_lower"] = prop[1]
                 df_response.loc[:, "proportion_ci_upper"] = prop[2]
-            df_response = df_response[df_response["proportion"] >= query_frequency_threshold]
+            if "proportion" in df_response:
+                df_response = df_response[df_response["proportion"] >= query_frequency_threshold]
             results[",".join(muts)] = df_response.to_dict(orient="records")
         resp = {"success": True, "results": results}
         return resp
