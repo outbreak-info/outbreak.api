@@ -26,6 +26,8 @@ jobs:
           SCRIPT_AFTER: |
             set -x
             echo "Installing backend requirements."
+            cd /home/ubuntu
+            source venv/bin/activate
             cd /home/ubuntu/outbreak.api
             pip install -Ur requirements_web.txt --no-cache-dir --ignore-installed --force-reinstall
             echo "Restarting outbreak_web.service DEV service..."
