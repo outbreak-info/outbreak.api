@@ -20,35 +20,36 @@ def gene_mapping():
     }
     return gene_mapping
 
-def create_query(lineages = "", mutations = ""):
-    if len(lineages) > 0:
-        lineages = "pangolin_lineage.keyword: ({})".format(lineages)
-    if len(mutations) > 0:
-        mutations = mutations.replace(":","\\:")
-        mutations = "mutations.keyword: ({})".format(mutations)
-    query_filters = " AND ".join([lineages, mutations])
+# def create_query(lineages = "", mutations = ""):
+#     if len(lineages) > 0:
+#         lineages = "pangolin_lineage.keyword: ({})".format(lineages)
+#     if len(mutations) > 0:
+#         mutations = mutations.replace(":","\\:")
+#         mutations = "mutations.keyword: ({})".format(mutations)
+#     query_filters = " AND ".join([lineages, mutations])
 
-    search = Search()
-    search = search.extra(size=0, track_total_hits=True)
+#     search = Search()
+#     search = search.extra(size=0, track_total_hits=True)
 
-    # Create the bool query
-    bool_query = Q(
-        "query_string",
-        query=query_filters
-    )
+#     # Create the bool query
+#     bool_query = Q(
+#         "query_string",
+#         query=query_filters
+#     )
 
-    # Add the bool query to the filter
-    search = search.query("bool", filter=bool_query)
+#     # Add the bool query to the filter
+#     search = search.query("bool", filter=bool_query)
 
-    # Add the terms aggregation for lineages
-    search.aggs.bucket("lineages", "terms", field="pangolin_lineage.keyword")
+#     # Add the terms aggregation for lineages
+#     search.aggs.bucket("lineages", "terms", field="pangolin_lineage.keyword")
 
-    # Add the terms aggregation for mutations within each lineage
-    search.aggs["lineages"].bucket("mutations", "terms", field="mutations.keyword", size=2)
+#     # Add the terms aggregation for mutations within each lineage
+#     search.aggs["lineages"].bucket("mutations", "terms", field="mutations.keyword", size=2)
 
-    search.to_dict
+#     print("##### search.to_dict")
+#     print(search.to_dict)
 
-    return search
+#     return search
 
 def create_query(lineages = "", mutations = ""):
     filters = []
@@ -86,11 +87,12 @@ def create_query(lineages = "", mutations = ""):
 
     return query
 
-def parse_response(resp = {}, frequency = 1, genes = []):
+def parse_response(resp = {}, frequency = 1, lineages = "", genes = []):
     dict_response = {}
 
     lineage = resp["aggregations"]
-    lineage["key"] = "## TO DO"
+    if len(lineages) > 0:
+        lineage["key"] = lineages
 
     path_to_results = ["mutations", "buckets"]
 
@@ -147,7 +149,7 @@ def parse_response(resp = {}, frequency = 1, genes = []):
         df_response.loc[~df_response["codon_end"].isna(), "change_length_nt"] = (
             (df_response["codon_end"] - df_response["codon_num"]) + 1
         ) * 3
-        df_response = df_response[df_response["prevalence"] >= frequency].fillna("None")
+        df_response = df_response[df_response["prevalence"] >= frequency].fillna(pd.NA).replace([pd.NA], [None])
         if genes:
             df_response = df_response[df_response["gene"].str.lower().isin(genes)]
         dict_response[lineage["key"]] = df_response.to_dict(orient="records")
