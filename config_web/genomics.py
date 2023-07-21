@@ -1,5 +1,8 @@
+ES_MUTLESS_INDEX = "genomics_api_local_mutless"
+ES_MUTS_INDEX = "genomics_api_local_muts"
+ES_INDEX = [ES_MUTLESS_INDEX, ES_MUTS_INDEX]
+
 API_PREFIX = "genomics"
-ES_INDEX = "outbreak-genomics"
 API_VERSION = "v2"
 
 APP_LIST_V2 = [
