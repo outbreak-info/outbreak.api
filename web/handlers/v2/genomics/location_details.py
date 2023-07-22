@@ -36,7 +36,9 @@ class LocationDetailsHandler(BaseHandler):
                 ]
             )
         query["query"] = parse_location_id_to_query(query_str)
+        self.observability.log("es_query_before", query)
         resp = await self.asynchronous_fetch(query)
+        self.observability.log("es_query_after", query)
         flattened_response = []
         for rec in resp["aggregations"]["loc"]["buckets"]:
             if loc_id_len == 1:

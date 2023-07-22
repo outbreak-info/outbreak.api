@@ -173,21 +173,23 @@ class LocationDetailsHandler(BaseHandler):
         loc_id_len = len(query_ids)
         if loc_id_len >= 1:
             query["aggs"]["loc"]["composite"]["sources"].extend([
-                {"country": { "terms": {"field": "country"}}},
-                {"country_id": { "terms": {"field": "country_id"} }}
+                {"country": { "terms": {"field": "country.keyword"}}},
+                {"country_id": { "terms": {"field": "country_id.keyword"} }}
             ])
         if loc_id_len >= 2: # 3 is max length
             query["aggs"]["loc"]["composite"]["sources"].extend([
-                {"division": { "terms": {"field": "division"}}},
-                {"division_id": { "terms": {"field": "division_id"} }}
+                {"division": { "terms": {"field": "division.keyword"}}},
+                {"division_id": { "terms": {"field": "division_id.keyword"} }}
             ])
         if loc_id_len == 3: # 3 is max length
             query["aggs"]["loc"]["composite"]["sources"].extend([
-                {"location": { "terms": {"field": "location"}}},
-                {"location_id": { "terms": {"field": "location_id"} }}
+                {"location": { "terms": {"field": "location.keyword"}}},
+                {"location_id": { "terms": {"field": "location_id.keyword"} }}
             ])
         query["query"] = parse_location_id_to_query(query_str)
+        self.observability.log("es_query_before", query)
         resp = yield self.asynchronous_fetch(query)
+        self.observability.log("es_query_after", query)
         flattened_response = []
         for rec in resp["aggregations"]["loc"]["buckets"]:
             if loc_id_len == 1:

@@ -167,7 +167,7 @@ def create_nested_mutation_query(location_id = None, lineages = [], mutations = 
         }
         bool_must["bool"]["must"].append({
             "term": {
-                "pangolin_lineage": i
+                "pangolin_lineage.keyword": i
             }
         })
         bool_should.append(bool_must)
@@ -228,7 +228,7 @@ def parse_location_id_to_query(query_id, query_obj = None):
                 "must": []
             }
         }
-    location_types = ["country_id", "division_id", "location_id"]
+    location_types = ["country_id.keyword", "division_id.keyword", "location_id.keyword"]
     for i in range(min(3, len(location_codes))):
         if i == 1 and len(location_codes[i].split("-")) > 1:              # For division remove iso2 code if present
             location_codes[i] = location_codes[i].split("-")[1]
