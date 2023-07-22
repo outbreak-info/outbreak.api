@@ -15,9 +15,11 @@ class LineageHandler(BaseHandler):
         query = {
             "size": 0,
             "query": {"wildcard": {"pangolin_lineage": {"value": query_str}}},
-            "aggs": {"lineage": {"terms": {"field": "pangolin_lineage", "size": 10000}}},
+            "aggs": {"lineage": {"terms": {"field": "pangolin_lineage.keyword", "size": 10000}}},
         }
+        self.observability.log("es_query_before", query)
         resp = await self.asynchronous_fetch(query)
+        self.observability.log("es_query_after", query)
         path_to_results = ["aggregations", "lineage", "buckets"]
         buckets = resp
         for i in path_to_results:
@@ -30,5 +32,6 @@ class LineageHandler(BaseHandler):
                 return {"success": False, "results": [], "errors": "Invalide size value"}
             flattened_response = sorted(flattened_response, key=lambda x: -x["total_count"])
             flattened_response = flattened_response[:size]
+        self.observability.log("transformations_after")
         resp = {"success": True, "results": flattened_response}
         return resp
