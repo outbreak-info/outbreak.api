@@ -33,19 +33,19 @@ class SequenceCountHandler(BaseHandler):
             for i in path_to_results:
                 buckets = buckets[i]
             flattened_response = [{
-                "date": i["key"],
+                "date": i["key_as_string"].split("T")[0],
                 "total_count": i["doc_count"]
-            } for i in buckets if not (len(i["key"].split("-")) < 3 or "XX" in i["key"])]
+            } for i in buckets if not (len(i["key_as_string"].split("-")) < 3 or "XX" in i["key_as_string"])]
             flattened_response = sorted(flattened_response, key = lambda x: x["date"])
         else:
             if query_subadmin:
                 subadmin = None
                 if query_location is None:
-                    subadmin = "country_id"
+                    subadmin = "country_id.keyword"
                 elif len(query_location.split("_")) == 1: # Country
-                    subadmin = "division_id"
+                    subadmin = "division_id.keyword"
                 elif len(query_location.split("_")) == 2: # Division
-                    subadmin = "location_id"
+                    subadmin = "location_id.keyword"
                 query["aggs"] = {
                     "subadmin": {
                         "terms": {

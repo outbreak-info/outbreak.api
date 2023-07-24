@@ -264,6 +264,7 @@ class SequenceCountHandler(BaseHandler):
     }
 
     async def _get(self):
+        print("@@@@@")
         query_location = self.args.location_id
         query_cumulative = self.args.cumulative
         query_subadmin = self.args.subadmin
@@ -278,9 +279,9 @@ class SequenceCountHandler(BaseHandler):
             for i in path_to_results:
                 buckets = buckets[i]
             flattened_response = [
-                {"date": i["key"], "total_count": i["doc_count"]}
+                {"date": i["key_as_string"], "total_count": i["doc_count"]}
                 for i in buckets
-                if not (len(i["key"].split("-")) < 3 or "XX" in i["key"])
+                if not (len(i["key_as_string"].split("-")) < 3 or "XX" in i["key_as_string"])
             ]
             flattened_response = sorted(flattened_response, key=lambda x: x["date"])
         else:
@@ -309,10 +310,10 @@ class SequenceCountHandler(BaseHandler):
                 flattened_response = [
                     {
                         "total_count": i["doc_count"],
-                        "location_id": parse_id(i["key"], query_location),
+                        "location_id": parse_id(i["key_as_string"], query_location),
                     }
                     for i in resp["aggregations"]["subadmin"]["buckets"]
-                    if i["key"].lower() != "none"
+                    if i["key_as_string"].lower() != "none"
                 ]
                 flattened_response = sorted(flattened_response, key=lambda x: -x["total_count"])
             else:
