@@ -1,4 +1,4 @@
-import web.handlers.v2.genomics.helpers.location_details as helper
+import web.handlers.v2.genomics.helpers.location_details_helper as helper
 
 from web.handlers.genomics.base import BaseHandler
 
