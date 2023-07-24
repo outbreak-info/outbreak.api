@@ -51,7 +51,7 @@ def gene_mapping():
 
 #     return search
 
-def create_query(lineages = "", mutations = ""):
+def create_query_filter(lineages = "", mutations = ""):
     filters = []
     if len(lineages) > 0:
         lineages = "pangolin_lineage.keyword: ({})".format(lineages)
@@ -61,7 +61,11 @@ def create_query(lineages = "", mutations = ""):
         mutations = "mutations.keyword: ({})".format(mutations)
         filters.append(mutations)
     query_filters = " AND ".join(filters)
+    return query_filters
 
+
+def create_query(lineages = "", mutations = ""):
+    query_filters = create_query_filter(lineages=lineages, mutations=mutations)
     query = {"size": 0,
                 "track_total_hits": True,
                 "query": {
@@ -84,7 +88,6 @@ def create_query(lineages = "", mutations = ""):
                     }
                 }
             }
-
     return query
 
 def parse_response(resp = {}, frequency = 1, lineages = "", genes = []):
@@ -153,5 +156,4 @@ def parse_response(resp = {}, frequency = 1, lineages = "", genes = []):
         if genes:
             df_response = df_response[df_response["gene"].str.lower().isin(genes)]
         dict_response[lineage["key"]] = df_response.to_dict(orient="records")
-
     return dict_response
