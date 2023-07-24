@@ -14,7 +14,7 @@ class LineageHandler(BaseHandler):
     async def _get(self):
         params = helper.params_adapter(self.args)
         query = helper.create_query(params)
-        resp = await self.asynchronous_fetch(query)
-        dict_response = helper.parse_response(resp=resp, size=params["size"])
-        resp = {"success": True, "results": dict_response}
+        query_resp = await self.asynchronous_fetch(query)
+        parsed_resp = helper.parse_response(resp=query_resp, size=params["size"])
+        resp = {"success": True, "results": parsed_resp}
         return resp
