@@ -64,10 +64,10 @@ def transform_prevalence(resp, path_to_results = [], cumulative = False):
     if len(buckets) == 0:
         return {"success": True, "results": {}}
     flattened_response = [{
-        "date": i["key"],
+        "date": i["key_as_string"].split("T")[0],
         "total_count": i["doc_count"],
         "lineage_count": i["lineage_count"]["doc_count"]
-    } for i in buckets if len(i["key"].split("-")) > 1 and "XX" not in i["key"]]
+    } for i in buckets if len(i["key_as_string"].split("-")) > 1 and "XX" not in i["key_as_string"]]
     df_response = (
         pd.DataFrame(flattened_response)
         .assign(date = lambda x: pd.to_datetime(x["date"], format="%Y-%m-%d"))
@@ -76,7 +76,7 @@ def transform_prevalence(resp, path_to_results = [], cumulative = False):
     first_date = df_response[df_response["lineage_count"] > 0]["date"].min()
     dict_response = {}
     if not cumulative:
-        df_response = df_response[df_response["date"] >= first_date - pd.to_timedelta(6, unit='d')] # Go back 6 days for total_rolling
+        df_response = df_response[pd.to_datetime(df_response["date"]) >= first_date - pd.to_timedelta(6, unit='d')] # Go back 6 days for total_rolling
         df_response = compute_rolling_mean(df_response, "date", "total_count", "total_count_rolling")
         df_response = compute_rolling_mean(df_response, "date", "lineage_count", "lineage_count_rolling")
         df_response = df_response[df_response["date"] >= first_date] # Revert back to first date after total_rolling calculations are complete
@@ -84,7 +84,7 @@ def transform_prevalence(resp, path_to_results = [], cumulative = False):
         df_response.loc[:, "proportion"] = d[0]
         df_response.loc[:, "proportion_ci_lower"] = d[1]
         df_response.loc[:, "proportion_ci_upper"] = d[2]
-        df_response.loc[:,"date"] = df_response["date"].apply(lambda x: x.strftime("%Y-%m-%d"))
+        df_response.loc[:, "date"] = df_response["date"].apply(lambda x: x.strftime("%Y-%m-%d"))
         dict_response = df_response.to_dict(orient="records")
     else:                       # For cumulative only calculate cumsum prevalence
         df_response = df_response[df_response["date"] >= first_date]
@@ -151,49 +151,84 @@ def transform_prevalence_by_location_and_tiime(flattened_response, ndays = None,
         }
     return dict_response
 
+##### TODO: Remove this code / Keeping this code here for reference until finishing the refactor
+# def create_nested_mutation_query(location_id = None, lineages = [], mutations = []):
+#     # For multiple lineages and mutations: (Lineage 1 AND mutation 1 AND mutation 2..) OR (Lineage 2 AND mutation 1 AND mutation 2..) ...
+#     query_obj = {
+#         "bool": {
+#             "should": []
+#         }
+#     }
+#     bool_should = []
+#     for i in lineages:
+#         bool_must = {
+#             "bool": {
+#                 "must": []
+#             }
+#         }
+#         bool_must["bool"]["must"].append({
+#             "term": {
+#                 "pangolin_lineage.keyword": i
+#             }
+#         })
+#         bool_should.append(bool_must)
+#     bool_mutations = []
+#     for i in mutations:
+#         bool_mutations.append({
+#             "nested": {
+#                 "path": "mutations",
+#                 "query": {
+#                     "term" : { "mutations.mutation" : i }
+#                 }
+#             }
+#         })
+#     if len(bool_mutations) > 0: # If mutations specified
+#         if len(bool_should) > 0: # If lineage and mutations specified
+#             for i in bool_should:
+#                 i["bool"]["must"].extend(bool_mutations)
+#             query_obj["bool"]["should"] = bool_should
+#         else:                   # If only mutations are specified
+#             query_obj = {
+#                 "bool": {
+#                     "must": bool_mutations
+#                 }
+#             }
+#     else:                       # If only lineage specified
+#         query_obj["bool"]["should"] = bool_should
+#     parse_location_id_to_query(location_id, query_obj)
+#     return query_obj
+
+# TODO: Improve this function
+def create_query_filter(lineages = "", mutations = ""):
+    filters = []
+    if lineages and len(lineages) > 0:
+        lineages = "pangolin_lineage.keyword: ({})".format(lineages)
+        filters.append(lineages)
+    if mutations and len(mutations) > 0:
+        mutations = mutations.replace(":","\\:")
+        mutations = "mutations.keyword: ({})".format(mutations)
+        filters.append(mutations)
+    query_filters = " AND ".join(filters)
+
+    if (not lineages and not mutations):
+        query_filters = "*"
+    return query_filters
+
 def create_nested_mutation_query(location_id = None, lineages = [], mutations = []):
     # For multiple lineages and mutations: (Lineage 1 AND mutation 1 AND mutation 2..) OR (Lineage 2 AND mutation 1 AND mutation 2..) ...
+    query_filters = create_query_filter(lineages=lineages, mutations=mutations)
     query_obj = {
         "bool": {
-            "should": []
+            "must": [
+                    {
+                  "query_string": {
+                    "query": query_filters # Ex: "(pangolin_lineage.keyword:BA.2) AND (mutations.keyword: S\\:E484K OR S\\:L18F)"
+                  }
+                }
+            ]
         }
     }
-    bool_should = []
-    for i in lineages:
-        bool_must = {
-            "bool": {
-                "must": []
-            }
-        }
-        bool_must["bool"]["must"].append({
-            "term": {
-                "pangolin_lineage.keyword": i
-            }
-        })
-        bool_should.append(bool_must)
-    bool_mutations = []
-    for i in mutations:
-        bool_mutations.append({
-            "nested": {
-                "path": "mutations",
-                "query": {
-                    "term" : { "mutations.mutation" : i }
-                }
-            }
-        })
-    if len(bool_mutations) > 0: # If mutations specified
-        if len(bool_should) > 0: # If lineage and mutations specified
-            for i in bool_should:
-                i["bool"]["must"].extend(bool_mutations)
-            query_obj["bool"]["should"] = bool_should
-        else:                   # If only mutations are specified
-            query_obj = {
-                "bool": {
-                    "must": bool_mutations
-                }
-            }
-    else:                       # If only lineage specified
-        query_obj["bool"]["should"] = bool_should
+    # TODO: Didn't test it passing location_id as parameter yet
     parse_location_id_to_query(location_id, query_obj)
     return query_obj
 
