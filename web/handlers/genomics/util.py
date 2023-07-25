@@ -199,7 +199,7 @@ def transform_prevalence_by_location_and_tiime(flattened_response, ndays = None,
 #     return query_obj
 
 # TODO: Improve this function
-def create_query_filter(lineages = "", mutations = ""):
+def create_query_filter(lineages = "", mutations = "", locations = ""):
     filters = []
     if lineages and len(lineages) > 0:
         lineages = "pangolin_lineage.keyword: ({})".format(lineages)
@@ -208,15 +208,18 @@ def create_query_filter(lineages = "", mutations = ""):
         mutations = mutations.replace(":","\\:")
         mutations = "mutations.keyword: ({})".format(mutations)
         filters.append(mutations)
+    if locations and len(locations) > 0:
+        locations = "country_id.keyword: ({})".format(locations)
+        filters.append(locations)
     query_filters = " AND ".join(filters)
 
-    if (not lineages and not mutations):
+    if (not lineages and not mutations and not locations):
         query_filters = "*"
     return query_filters
 
-def create_nested_mutation_query(location_id = None, lineages = [], mutations = []):
+def create_nested_mutation_query(location_id = None, lineages = "", mutations = ""):
     # For multiple lineages and mutations: (Lineage 1 AND mutation 1 AND mutation 2..) OR (Lineage 2 AND mutation 1 AND mutation 2..) ...
-    query_filters = create_query_filter(lineages=lineages, mutations=mutations)
+    query_filters = create_query_filter(lineages=lineages, mutations=mutations, locations=location_id)
     query_obj = {
         "bool": {
             "must": [
@@ -229,7 +232,7 @@ def create_nested_mutation_query(location_id = None, lineages = [], mutations = 
         }
     }
     # TODO: Didn't test it passing location_id as parameter yet
-    parse_location_id_to_query(location_id, query_obj)
+    # parse_location_id_to_query(location_id, query_obj)
     return query_obj
 
 def classify_other_category(grp, keep_lineages):
@@ -322,8 +325,6 @@ def create_lineage_concat_query(queries, query_tmpl):
         }
 
 def create_iterator(lineages, mutations):
-    #print(lineages)
-    #print(mutations)
     if len(lineages) > 0:
         return zip(lineages, [mutations] * len(lineages))
     if len(lineages) == 0 and len(mutations) > 0:
