@@ -234,41 +234,34 @@ class MutationDetailsHandler(BaseHandler):
     @gen.coroutine
     def _get(self):
         mutations = self.get_argument("mutations", None)
-        mutations = mutations.split(",") if mutations is not None else []
+
+        mutations = mutations.replace(":","\\:")
+        query_filters = "mutation.keyword: ({})".format(mutations)
+
         query = {
             "size": 0,
+            "query": {
+                "query_string": {
+                "query": query_filters # Ex: "mutation.keyword: \"ORF1a:A735A\" OR \"ORF1a:P3395H\""
+                }
+            },
             "aggs": {
-                "by_mutations": {
-                    "nested": {
-                        "path": "mutations"
-                    },
-		    "aggs": {
-			"inner": {
-                            "filter": {
-                                "bool": {
-                                    "should": [
-                                        {"match": {"mutations.mutation": i}}
-                                for i in mutations
-                                    ]
-                                }
-                            },
-			    "aggs": {
-				"by_name": {
-				    "terms": {"field": "mutations.mutation"},
-				    "aggs": {
-				        "by_nested": {
-				            "top_hits": {"size": 1}
-				        }
-				    }
-				}
-			    }
-			}
-		    }
-		}
-	    }
+                "by_name": {
+                "terms": {
+                    "field": "mutation.keyword"
+                },
+                "aggs": {
+                    "by_nested": {
+                    "top_hits": {
+                        "size": 1
+                    }
+                    }
+                }
+                }
+            }
         }
         resp = yield self.asynchronous_fetch(query)
-        path_to_results = ["aggregations", "by_mutations", "inner", "by_name", "buckets"]
+        path_to_results = ["aggregations", "by_name", "buckets"]
         buckets = resp
         for i in path_to_results:
             buckets = buckets[i]
