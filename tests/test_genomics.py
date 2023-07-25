@@ -33,37 +33,46 @@ def test_global_prev_3_1():
     url = 'global-prevalence?pangolin_lineage=BA.2&mutations=S:D614G'
     endpoints._generic_api_test(url)
 
-#### WORKING UNTIL HERE
+def test_global_prev_4():
+    url = 'global-prevalence?pangolin_lineage=BA.2&cumulative=true'
+    res = endpoints._get_endpoint(url)
+    res_json = res.json()
+    endpoints._test_success(res_json, url)
+    cum_global_prev = res_json.get('results').get('global_prevalence')
+    assert cum_global_prev is not None, "cumulative global prevalence did not return a global_prevalence"
 
-# def test_global_prev_4():
-#     url = 'global-prevalence?pangolin_lineage=b.1.1.7&cumulative=true'
-#     res = endpoints._get_endpoint(url)
-#     res_json = res.json()
-#     endpoints._test_success(res_json, url)
-#     cum_global_prev = res_json.get('results').get('global_prevalence')
-#     assert cum_global_prev is not None, "cumulative global prevalence did not return a global_prevalence"
+def test_prev_by_location_1():
+    url = 'prevalence-by-location'
+    res = endpoints._get_endpoint(url)
+    res_json = res.json()
+    endpoints._test_success(res_json, url)
 
-# def test_prev_by_location_1():
-#     url = 'prevalence-by-location'
-#     res = endpoints._get_endpoint(url)
-#     res_json = res.json()
-#     endpoints._test_success(res_json, url)
+def test_prev_by_location_2():
+    url = 'prevalence-by-location?pangolin_lineage=BA.2&location_id=USA'
+    res = endpoints._get_endpoint(url)
+    res_json = res.json()
+    assert res_json.get('results'), f"{url} no results"
+    assert len(res_json['results']), f"{url} no results"
+    assert res_json['results'].get('(BA.2) AND (USA)'), f"{url} no BA.2"
+    assert len(res_json['results']['(BA.2) AND (USA)']), f"{url} no results for BA.2"
 
-# def test_prev_by_location_2():
-#     url = 'prevalence-by-location?pangolin_lineage=b.1.1.7&location_id=USA'
-#     res = endpoints._get_endpoint(url)
-#     res_json = res.json()
-#     assert res_json.get('results'), f"{url} no results"
-#     assert len(res_json['results']), f"{url} no results"
-#     assert res_json['results'].get('b.1.1.7'), f"{url} no b.1.1.7"
-#     assert len(res_json['results']['b.1.1.7']), f"{url} no results for b.1.1.7"
+def test_prev_by_location_2_1():
+    url = 'prevalence-by-location?pangolin_lineage=BA.2&mutations=S:D614G&location_id=USA'
+    res = endpoints._get_endpoint(url)
+    res_json = res.json()
+    assert res_json.get('results'), f"{url} no results"
+    assert len(res_json['results']), f"{url} no results"
+    assert res_json['results'].get('(BA.2) AND (S:D614G) AND (USA)'), f"{url} no BA.2"
+    assert len(res_json['results']['(BA.2) AND (S:D614G) AND (USA)']), f"{url} no results for BA.2"
 
-# def test_mutation_details():
-#     url = 'mutation-details?mutations=S:E484K,S:N501Y'
-#     res = endpoints._get_endpoint(url)
-#     res_json = res.json()
-#     endpoints._test_success(res_json, url)
-#     endpoints._test_results(res_json, url)
+def test_mutation_details():
+    url = 'mutation-details?mutations=ORF1a:A735A OR ORF1a:P3395H'
+    res = endpoints._get_endpoint(url)
+    res_json = res.json()
+    endpoints._test_success(res_json, url)
+    endpoints._test_results(res_json, url)
+
+##### TODO: Working until here
 
 # def test_mutations_by_lineage():
 #     url = 'mutations-by-lineage?mutations=S:E484K&location_id=USA'
