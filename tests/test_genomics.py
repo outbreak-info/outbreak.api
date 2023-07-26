@@ -72,13 +72,19 @@ def test_mutation_details():
     endpoints._test_success(res_json, url)
     endpoints._test_results(res_json, url)
 
-##### TODO: Working until here
+def test_mutations_by_lineage_1():
+    url = 'mutations-by-lineage?mutations=S:E484K&location_id=USA'
+    res = endpoints._get_endpoint(url)
+    res_json = res.json()
+    endpoints._test_success(res_json, url)
 
-# def test_mutations_by_lineage():
-#     url = 'mutations-by-lineage?mutations=S:E484K&location_id=USA'
-#     res = endpoints._get_endpoint(url)
-#     res_json = res.json()
-#     endpoints._test_success(res_json, url)
+def test_mutations_by_lineage_2():
+    url = 'mutations-by-lineage?mutations=S:E484K%20AND%20S:S477N'
+    res = endpoints._get_endpoint(url)
+    res_json = res.json()
+    endpoints._test_success(res_json, url)
+
+##### TODO: Working until here
 
 # def test_lineage_wildcard():
 #     url = 'lineage?name=b.1.*'
