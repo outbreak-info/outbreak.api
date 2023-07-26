@@ -1,7 +1,9 @@
+import pandas as pd
+import web.handlers.genomics.helpers.mutations_details_helper as helper
+from .util import create_nested_mutation_query, calculate_proportion, parse_location_id_to_query, get_total_hits
+
 from .base import BaseHandler
 from tornado import gen
-import pandas as pd
-from .util import create_nested_mutation_query, calculate_proportion, parse_location_id_to_query, get_total_hits
 
 import re
 
@@ -233,46 +235,10 @@ class MutationDetailsHandler(BaseHandler):
     @gen.coroutine
     def _get(self):
         mutations = self.get_argument("mutations", None)
-
-        mutations = mutations.replace(":","\\:")
-        query_filters = "mutation.keyword: ({})".format(mutations)
-
-        query = {
-            "size": 0,
-            "query": {
-                "query_string": {
-                "query": query_filters # Ex: "mutation.keyword: \"ORF1a:A735A\" OR \"ORF1a:P3395H\""
-                }
-            },
-            "aggs": {
-                "by_name": {
-                "terms": {
-                    "field": "mutation.keyword"
-                },
-                "aggs": {
-                    "by_nested": {
-                    "top_hits": {
-                        "size": 1
-                    }
-                    }
-                }
-                }
-            }
-        }
-        resp = yield self.asynchronous_fetch(query)
-        path_to_results = ["aggregations", "by_name", "buckets"]
-        buckets = resp
-        for i in path_to_results:
-            buckets = buckets[i]
-        flattened_response = []
-        for i in buckets:
-            for j in i["by_nested"]["hits"]["hits"]:
-                tmp = j["_source"]
-                for k in ["change_length_nt", "codon_num", "pos"]:
-                    if k in tmp and tmp[k] != "None":
-                        tmp[k] = int(float(tmp[k]))
-                flattened_response.append(tmp)
-        resp = {"success": True, "results": flattened_response}
+        query = helper.create_query(mutations=mutations)
+        query_resp = yield self.asynchronous_fetch(query)
+        parsed_resp = helper.parse_response(resp=query_resp)
+        resp = {"success": True, "results": parsed_resp}
         return resp
 
 class MutationsByLineage(BaseHandler):
