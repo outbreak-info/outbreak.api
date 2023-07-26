@@ -1,0 +1,37 @@
+name: Deploy-to-EC2-Dev
+
+on: workflow_dispatch
+# on:
+#   push:
+#     branches:
+#       - add-manual-deploy-to-dev
+
+jobs:
+  deploy:
+    name: Deploy to EC2 DEV manually
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Step 0 - Checkout the Files
+        uses: actions/checkout@v3
+
+      - name: Step 1 - Deploy to Prod Server
+        uses: easingthemes/ssh-deploy@main
+        env:
+          SOURCE: "/"
+          SSH_PRIVATE_KEY: ${{ secrets.AWS_DEV_EC2_SSH_KEY }}
+          REMOTE_HOST: ${{ secrets.AWS_DEV_HOST_DNS }}
+          REMOTE_USER: ${{ secrets.AWS_DEV_USERNAME }}
+          TARGET: ${{ secrets.AWS_DEV_TARGET_DIR }}
+          SCRIPT_AFTER: |
+            set -x
+            echo "Installing backend requirements."
+            cd /home/ubuntu
+            source venv/bin/activate
+            cd /home/ubuntu/outbreak.api
+            pip install -Ur requirements_web.txt --no-cache-dir --ignore-installed --force-reinstall
+            echo "Restarting outbreak_web.service DEV service..."
+            sudo systemctl restart outbreak_web.service
+            echo "outbreak_web.service service restarted!!!"
+            set +x
+            echo $RSYNC_STDOUT

@@ -1,5 +1,3 @@
-from biothings.web.settings.default import APP_LIST
-
 API_PREFIX = "genomics"
 ES_INDEX = "outbreak-genomics"
 API_VERSION = "v2"
@@ -127,5 +125,4 @@ APP_LIST = [
     *APP_LIST_V2,
     *APP_LIST_v1,
     *APP_LIST_ORIGIN,
-    *APP_LIST,
 ]

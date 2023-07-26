@@ -3,8 +3,10 @@ import pandas as pd
 from web.handlers.genomics.base import BaseHandler
 from web.handlers.genomics.util import (
     calculate_proportion,
+    create_date_range_filter,
     create_nested_mutation_query,
     parse_location_id_to_query,
+    parse_time_window_to_query,
 )
 
 
@@ -16,6 +18,8 @@ class MutationsByLineage(BaseHandler):
         "mutations": {"type": str, "default": None},
         "pangolin_lineage": {"type": str, "default": None},
         "frequency": {"type": float, "default": 0, "min": 0, "max": 1},
+        "min_date": {"type": str, "default": None, "date_format": "%Y-%m-%d"},
+        "max_date": {"type": str, "default": None, "date_format": "%Y-%m-%d"},
     }
 
     async def _get(self):
@@ -55,7 +59,19 @@ class MutationsByLineage(BaseHandler):
             query["aggs"]["lineage"]["aggs"]["mutations"]["filter"] = create_nested_mutation_query(
                 mutations=muts
             )
+
+            date_range_filter = create_date_range_filter(
+                "date_collected", self.args.min_date, self.args.max_date
+            )
+            query_obj = parse_time_window_to_query(date_range_filter)
+            if query_obj:
+                query["query"] = query_obj
+            # import json
+
+            # print(json.dumps(query))
             resp = await self.asynchronous_fetch(query)
+            # print(json.dumps(resp))
+
             path_to_results = ["aggregations", "lineage", "buckets"]
             buckets = resp
             for i in path_to_results:
@@ -71,6 +87,8 @@ class MutationsByLineage(BaseHandler):
                         "mutation_count": i["mutations"]["doc_count"],
                     }
                 )
+            if not flattened_response:
+                return {"success": True, "results": {self.args.mutations: []}}
             df_response = pd.DataFrame(flattened_response)
             if df_response.shape[0] > 0:
                 prop = calculate_proportion(

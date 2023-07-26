@@ -25,17 +25,19 @@ https://api.outbreak.info/genomics/sequence-count?location_id=USA&cumulative=tru
 Daily number of sequences for California
 https://api.outbreak.info/genomics/sequence-count?location_id=USA_US-CA
 
-## 2. Global daily prevalence of a PANGO lineage
+## 2. [DEPRECATED] Global daily prevalence of a PANGO lineage
 
 ```
-Returns the global daily prevalence of a PANGO lineage
+Returns the global daily prevalence of a PANGO lineage.
+
+DEPRECATED: replaced by `prevalence-by-location` with no location specified.
 ```
 
 Endpoint: https://api.outbreak.info/genomics/global-prevalence
 
 Parameters
 
-* `pangolin_lineage` (Required).
+* `pangolin_lineage` (Optional). Returns global value if not specified.
 * `mutations` (Optional). Comma separated list of mutations.
 * `cumulative` (Optional). If `true` returns the cumulative global prevalence since the first day of detection.
 
@@ -86,7 +88,7 @@ Parameters:
 * `mutations` (Optional). List of mutations separated by `AND`.
 * `location_id`  (Optional). If not specified, returns cumulative prevalence at the country level globally.
 * `ndays` (Optional). Specify number of days from current date to calculative cumuative counts. If not specified, there is no limit on the window.
-* `detected` (Optional). If `true` returns ony if at least
+* `detected` (Optional). If `true` returns only the name of the location if at least one sequence of the variant has been detected in the given time window.
 
 
 ## 5. Most recent collection date by location
@@ -215,7 +217,7 @@ Parameters:
 Examples,
 
 Get location details using id: `USA_US-CA`
-https://dev.outbreak.info/genomics/location-lookup?id=USA_US-CA
+https://api.outbreak.info/genomics/location-lookup?id=USA_US-CA
 
 ## 14. Match mutations using wildcards.
 
