@@ -1,5 +1,3 @@
-import web.handlers.v2.genomics.helpers.lineage_helper as helper
-
 from web.handlers.genomics.base import BaseHandler
 
 
@@ -12,9 +10,25 @@ class LineageHandler(BaseHandler):
     }
 
     async def _get(self):
-        params = helper.params_adapter(self.args)
-        query = helper.create_query(params)
-        query_resp = await self.asynchronous_fetch(query)
-        parsed_resp = helper.parse_response(resp=query_resp, size=params["size"])
-        resp = {"success": True, "results": parsed_resp}
+        query_str = self.get_argument("name", None)
+        size = self.get_argument("size", None)
+        query = {
+            "size": 0,
+            "query": {"wildcard": {"pangolin_lineage": {"value": query_str}}},
+            "aggs": {"lineage": {"terms": {"field": "pangolin_lineage", "size": 10000}}},
+        }
+        resp = await self.asynchronous_fetch(query)
+        path_to_results = ["aggregations", "lineage", "buckets"]
+        buckets = resp
+        for i in path_to_results:
+            buckets = buckets[i]
+        flattened_response = [{"name": i["key"], "total_count": i["doc_count"]} for i in buckets]
+        if size:
+            try:
+                size = int(size)
+            except Exception:
+                return {"success": False, "results": [], "errors": "Invalide size value"}
+            flattened_response = sorted(flattened_response, key=lambda x: -x["total_count"])
+            flattened_response = flattened_response[:size]
+        resp = {"success": True, "results": flattened_response}
         return resp

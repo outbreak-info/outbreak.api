@@ -1,8 +1,11 @@
-from web.handlers.genomics.base import BaseHandler
-from web.handlers.genomics.util import get_total_hits, parse_location_id_to_query
+from web.handlers.v3.genomics.base import BaseHandlerV3
+from web.handlers.v3.genomics.util import (
+    get_total_hits,
+    parse_location_id_to_query
+)
 
 
-class SequenceCountHandler(BaseHandler):
+class SequenceCountHandler(BaseHandlerV3):
     country_iso3_to_iso2 = {
         "BGD": "BD",
         "BEL": "BE",
@@ -256,7 +259,7 @@ class SequenceCountHandler(BaseHandler):
         "MOZ": "MZ",
     }  # TODO: Move to separate class.
     name = "sequence-count"
-    kwargs = dict(BaseHandler.kwargs)
+    kwargs = dict(BaseHandlerV3.kwargs)
     kwargs["GET"] = {
         "location_id": {"type": str, "default": None},
         "cumulative": {"type": bool, "default": False},
@@ -267,56 +270,129 @@ class SequenceCountHandler(BaseHandler):
         query_location = self.args.location_id
         query_cumulative = self.args.cumulative
         query_subadmin = self.args.subadmin
+        query_subadmin = True if query_subadmin == "true" else False
+        query_cumulative = True if query_cumulative == "true" else False
         query = {}
         if query_location is not None:
             query["query"] = parse_location_id_to_query(query_location)
+        flattened_response = []
         if not query_cumulative:
-            query["aggs"] = {"date": {"terms": {"field": "date_collected", "size": self.size}}}
+            query["aggs"] = {
+                "date": {
+                    "terms": {
+                        "field": "date_collected",
+                        "size": self.size
+                    }
+                }
+            }
             resp = await self.asynchronous_fetch(query)
             path_to_results = ["aggregations", "date", "buckets"]
             buckets = resp
             for i in path_to_results:
                 buckets = buckets[i]
-            flattened_response = [
-                {"date": i["key"], "total_count": i["doc_count"]}
-                for i in buckets
-                if not (len(i["key"].split("-")) < 3 or "XX" in i["key"])
-            ]
-            flattened_response = sorted(flattened_response, key=lambda x: x["date"])
+            flattened_response = [{
+                "date": i["key_as_string"].split("T")[0],
+                "total_count": i["doc_count"]
+            } for i in buckets if not (len(i["key_as_string"].split("-")) < 3 or "XX" in i["key_as_string"])]
+            flattened_response = sorted(flattened_response, key = lambda x: x["date"])
         else:
             if query_subadmin:
                 subadmin = None
                 if query_location is None:
-                    subadmin = "country_id"
-                elif len(query_location.split("_")) == 1:  # Country
-                    subadmin = "division_id"
-                elif len(query_location.split("_")) == 2:  # Division
-                    subadmin = "location_id"
-                query["aggs"] = {"subadmin": {"terms": {"field": subadmin, "size": self.size}}}
-                resp = await self.asynchronous_fetch(query)
-                parse_id = lambda x, y: x
-                if subadmin == "division_id":
-                    parse_id = lambda x, loc_id: "_".join(
-                        [
-                            loc_id,
-                            self.country_iso3_to_iso2[loc_id] + "-" + x
-                            if loc_id in self.country_iso3_to_iso2
-                            else loc_id + "-" + x,
-                        ]
-                    )
-                if subadmin == "location_id":
-                    parse_id = lambda x, loc_id: "_".join([loc_id, x])
-                flattened_response = [
-                    {
-                        "total_count": i["doc_count"],
-                        "location_id": parse_id(i["key"], query_location),
+                    subadmin = "country_id.keyword"
+                elif len(query_location.split("_")) == 1: # Country
+                    subadmin = "division_id.keyword"
+                elif len(query_location.split("_")) == 2: # Division
+                    subadmin = "location_id.keyword"
+                query["aggs"] = {
+                    "subadmin": {
+                        "terms": {
+                            "field": subadmin,
+                            "size": self.size
+                        }
                     }
-                    for i in resp["aggregations"]["subadmin"]["buckets"]
-                    if i["key"].lower() != "none"
-                ]
-                flattened_response = sorted(flattened_response, key=lambda x: -x["total_count"])
+                }
+                resp = await self.asynchronous_fetch(query)
+                parse_id = lambda x,y: x
+                if subadmin == "division_id":
+                    parse_id = lambda x,loc_id: "_".join([loc_id, self.country_iso3_to_iso2[loc_id]+"-"+x if loc_id in self.country_iso3_to_iso2 else loc_id+"-"+x])
+                if subadmin == "location_id":
+                    parse_id = lambda x,loc_id: "_".join([loc_id, x])
+                flattened_response = [{
+                    "total_count": i["doc_count"],
+                    "location_id": parse_id(i["key"], query_location)
+                } for i in resp["aggregations"]["subadmin"]["buckets"] if i["key"].lower() != "none"]
+                flattened_response = sorted(flattened_response, key = lambda x: -x["total_count"])
             else:
                 resp = await self.asynchronous_fetch(query)
-                flattened_response = {"total_count": get_total_hits(resp)}
+                flattened_response = {
+                    "total_count": get_total_hits(resp)
+                }
         resp = {"success": True, "results": flattened_response}
         return resp
+
+
+
+
+        # query = {}
+        # if query_location is not None:
+        #     query["query"] = parse_location_id_to_query(query_location)
+        # if not query_cumulative:
+        #     query["aggs"] = {"date": {"terms": {"field": "date_collected", "size": self.size}}}
+        #     print("########## 0")
+        #     self.observability.log("es_query_before", query)
+        #     resp = await self.asynchronous_fetch(query)
+        #     path_to_results = ["aggregations", "date", "buckets"]
+        #     buckets = resp
+        #     for i in path_to_results:
+        #         buckets = buckets[i]
+        #     flattened_response = [
+        #         {"date": i["key_as_string"].split("T")[0], "total_count": i["doc_count"]}
+        #         for i in buckets
+        #         if not (len(i["key_as_string"].split("-")) < 3 or "XX" in i["key_as_string"])
+        #     ]
+        #     flattened_response = sorted(flattened_response, key=lambda x: x["date"])
+        # else:
+        #     print("########## 1")
+        #     if query_subadmin:
+        #         subadmin = None
+        #         if query_location is None:
+        #             subadmin = "country_id.keyword"
+        #         elif len(query_location.split("_")) == 1:  # Country
+        #             subadmin = "division_id.keyword"
+        #         elif len(query_location.split("_")) == 2:  # Division
+        #             subadmin = "location_id.keyword"
+        #         query["aggs"] = {"subadmin": {"terms": {"field": subadmin, "size": self.size}}}
+        #         self.observability.log("es_query_before", query)
+        #         resp = await self.asynchronous_fetch(query)
+        #         self.observability.log("resp", resp)
+        #         parse_id = lambda x, y: x
+        #         if subadmin == "division_id":
+        #             parse_id = lambda x, loc_id: "_".join(
+        #                 [
+        #                     loc_id,
+        #                     self.country_iso3_to_iso2[loc_id] + "-" + x
+        #                     if loc_id in self.country_iso3_to_iso2
+        #                     else loc_id + "-" + x,
+        #                 ]
+        #             )
+        #         if subadmin == "location_id":
+        #             parse_id = lambda x, loc_id: "_".join([loc_id, x])
+        #         flattened_response = [
+        #             {
+        #                 "total_count": i["doc_count"],
+        #                 "location_id": parse_id(i["key_as_string"].split("T")[0], query_location),
+        #             }
+        #             for i in resp["aggregations"]["subadmin"]["buckets"]
+        #             if ("key_as_string" in i and i["key_as_string"].lower() != "none")
+        #         ]
+        #         self.observability.log("flattened_response_0", flattened_response)
+        #         flattened_response = sorted(flattened_response, key=lambda x: -x["total_count"])
+        #         self.observability.log("flattened_response_1", flattened_response)
+        #     else:
+        #         print("########## 2")
+        #         self.observability.log("es_query_before", query)
+        #         resp = await self.asynchronous_fetch(query)
+        #         flattened_response = {"total_count": get_total_hits(resp)}
+        # resp = {"success": True, "results": flattened_response}
+        # return resp

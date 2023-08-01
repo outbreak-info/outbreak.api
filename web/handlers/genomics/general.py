@@ -33,19 +33,19 @@ class SequenceCountHandler(BaseHandler):
             for i in path_to_results:
                 buckets = buckets[i]
             flattened_response = [{
-                "date": i["key_as_string"].split("T")[0],
+                "date": i["key"],
                 "total_count": i["doc_count"]
-            } for i in buckets if not (len(i["key_as_string"].split("-")) < 3 or "XX" in i["key_as_string"])]
+            } for i in buckets if not (len(i["key"].split("-")) < 3 or "XX" in i["key"])]
             flattened_response = sorted(flattened_response, key = lambda x: x["date"])
         else:
             if query_subadmin:
                 subadmin = None
                 if query_location is None:
-                    subadmin = "country_id.keyword"
+                    subadmin = "country_id"
                 elif len(query_location.split("_")) == 1: # Country
-                    subadmin = "division_id.keyword"
+                    subadmin = "division_id"
                 elif len(query_location.split("_")) == 2: # Division
-                    subadmin = "location_id.keyword"
+                    subadmin = "location_id"
                 query["aggs"] = {
                     "subadmin": {
                         "terms": {
@@ -173,23 +173,21 @@ class LocationDetailsHandler(BaseHandler):
         loc_id_len = len(query_ids)
         if loc_id_len >= 1:
             query["aggs"]["loc"]["composite"]["sources"].extend([
-                {"country": { "terms": {"field": "country.keyword"}}},
-                {"country_id": { "terms": {"field": "country_id.keyword"} }}
+                {"country": { "terms": {"field": "country"}}},
+                {"country_id": { "terms": {"field": "country_id"} }}
             ])
         if loc_id_len >= 2: # 3 is max length
             query["aggs"]["loc"]["composite"]["sources"].extend([
-                {"division": { "terms": {"field": "division.keyword"}}},
-                {"division_id": { "terms": {"field": "division_id.keyword"} }}
+                {"division": { "terms": {"field": "division"}}},
+                {"division_id": { "terms": {"field": "division_id"} }}
             ])
         if loc_id_len == 3: # 3 is max length
             query["aggs"]["loc"]["composite"]["sources"].extend([
-                {"location": { "terms": {"field": "location.keyword"}}},
-                {"location_id": { "terms": {"field": "location_id.keyword"} }}
+                {"location": { "terms": {"field": "location"}}},
+                {"location_id": { "terms": {"field": "location_id"} }}
             ])
         query["query"] = parse_location_id_to_query(query_str)
-        self.observability.log("es_query_before", query)
         resp = yield self.asynchronous_fetch(query)
-        self.observability.log("es_query_after", query)
         flattened_response = []
         for rec in resp["aggregations"]["loc"]["buckets"]:
             if loc_id_len == 1:

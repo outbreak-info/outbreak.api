@@ -1,9 +1,50 @@
+ES_INDEX = "outbreak-genomics"
+
 ES_MUTLESS_INDEX = "genomics_api_local_mutless"
 ES_MUTS_INDEX = "genomics_api_local_muts"
-ES_INDEX = [ES_MUTLESS_INDEX, ES_MUTS_INDEX]
+ES_INDEX_V3 = [ES_MUTLESS_INDEX, ES_MUTS_INDEX]
 
 API_PREFIX = "genomics"
 API_VERSION = "v2"
+
+APP_LIST_V3 = [
+    (
+        r"/{pre}/v3/lineage-mutations",
+        "web.handlers.v3.genomics.lineage_mutations.LineageMutationsHandler",
+    ),
+    (
+        r"/{pre}/v3/lineage",
+        "web.handlers.v3.genomics.lineage.LineageHandler",
+    ),
+    (
+        r"/{pre}/v3/lineage-by-country",
+        "web.handlers.v3.genomics.lineage_by_country.LineageByCountryHandler",
+    ),
+    (
+        r"/{pre}/v3/mutations-by-lineage",
+        "web.handlers.v3.genomics.mutations_by_lineage.MutationsByLineage",
+    ),
+    (
+        r"/{pre}/v3/location-lookup",
+        "web.handlers.v3.genomics.location_details.LocationDetailsHandler",
+    ),
+    (
+        r"/{pre}/v3/mutation-details",
+        "web.handlers.v3.genomics.mutation_details.MutationDetailsHandler",
+    ),
+    (
+        r"/{pre}/v3/prevalence-by-location",
+        "web.handlers.v3.genomics.PrevalenceByLocationAndTimeHandler",
+    ),
+    (
+        r"/{pre}/v3/global-prevalence",
+        "web.handlers.v3.genomics.GlobalPrevalenceByTimeHandler",
+    ),
+    (
+        r"/{pre}/v3/sequence-count",
+        "web.handlers.v3.genomics.SequenceCountHandler",
+    ),
+]
 
 APP_LIST_V2 = [
     (
@@ -124,6 +165,7 @@ APP_LIST_ORIGIN = [
 ]
 
 APP_LIST = [
+    *APP_LIST_V3,
     *APP_LIST_SWITCHED_TO_V2,
     *APP_LIST_V2,
     *APP_LIST_v1,

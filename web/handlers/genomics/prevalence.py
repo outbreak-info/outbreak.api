@@ -29,6 +29,8 @@ class GlobalPrevalenceByTimeHandler(BaseHandler):
                 }
             }
         }
+        query_mutations = query_mutations.split(",") if query_mutations is not None else []
+        query_pangolin_lineage = query_pangolin_lineage.split(",") if query_pangolin_lineage is not None else []
         query_obj = create_nested_mutation_query(lineages = query_pangolin_lineage, mutations = query_mutations)
         query["aggs"]["prevalence"]["aggs"]["lineage_count"]["filter"] = query_obj
         resp = yield self.asynchronous_fetch(query)
