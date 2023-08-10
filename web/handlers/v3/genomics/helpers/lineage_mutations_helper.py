@@ -1,9 +1,10 @@
-from elasticsearch_dsl import Search, Q, A
+# from elasticsearch_dsl import Search, Q, A
+from typing import Dict, List, Optional
 
 import pandas as pd
 import re
 
-def gene_mapping():    
+def gene_mapping() -> Dict:
     gene_mapping = {
         "orf1a": "ORF1a",
         "orf1b": "ORF1b",
@@ -51,7 +52,7 @@ def gene_mapping():
 
 #     return search
 
-def create_query_filter(lineages = "", mutations = ""):
+def create_query_filter(lineages: str = "", mutations: str = "") -> Dict:
     filters = []
     if len(lineages) > 0:
         lineages = "pangolin_lineage.keyword: ({})".format(lineages)
@@ -64,7 +65,7 @@ def create_query_filter(lineages = "", mutations = ""):
     return query_filters
 
 
-def create_query(lineages = "", mutations = ""):
+def create_query(lineages: str = "", mutations: str = "") -> Dict:
     query_filters = create_query_filter(lineages=lineages, mutations=mutations)
     query = {"size": 0,
                 "track_total_hits": True,
@@ -73,7 +74,7 @@ def create_query(lineages = "", mutations = ""):
                         "filter": [
                             {
                                 "query_string": {
-                                    "query": query_filters # (pangolin_lineage : BA.2) AND (mutations : NOT(MUTATION) OR MUTATION) 
+                                    "query": query_filters # Ex: (pangolin_lineage : BA.2) AND (mutations : NOT(MUTATION) OR MUTATION) 
                                 }
                             }
                         ]
@@ -90,7 +91,7 @@ def create_query(lineages = "", mutations = ""):
             }
     return query
 
-def parse_response(resp = {}, frequency = 1, lineages = "", genes = []):
+def parse_response(resp: Dict = None, frequency: int = 1, lineages: str = "", genes: Optional[List[str]] = None) -> Dict:
     dict_response = {}
 
     lineage = resp["aggregations"]

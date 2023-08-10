@@ -1,4 +1,4 @@
-import web.handlers.v2.genomics.helpers.lineage_mutations_helper as lineage_mutations_helper
+import web.handlers.v3.genomics.helpers.lineage_mutations_helper as lineage_mutations_helper
 
 import pytest
 
@@ -11,9 +11,9 @@ import pytest
     ("LA OR LB", "MA OR MB", "pangolin_lineage.keyword: (LA OR LB) AND mutations.keyword: (MA OR MB)"),
     ("LA AND LB", "MA OR MB", "pangolin_lineage.keyword: (LA AND LB) AND mutations.keyword: (MA OR MB)"),
 ])
+
 def test_create_query_filter(lineage_param, mutation_param, expected_output):
     assert lineage_mutations_helper.create_query_filter(lineage_param, mutation_param) == expected_output
-
 
 def test_parse_response():
     resp = {
