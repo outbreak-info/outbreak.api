@@ -3,13 +3,13 @@ import web.handlers.v3.genomics.helpers.lineage_mutations_helper as lineage_muta
 import pytest
 
 @pytest.mark.parametrize("lineage_param, mutation_param, expected_output", [
-    ("LA", "", "pangolin_lineage.keyword: (LA)"),
-    ("LA AND LB:1 AND LC:2", "", "pangolin_lineage.keyword: (LA AND LB:1 AND LC:2)"),
-    ("LA OR LB OR LC", "", "pangolin_lineage.keyword: (LA OR LB OR LC)"),
-    ("LA", "MA", "pangolin_lineage.keyword: (LA) AND mutations.keyword: (MA)"),
-    ("LA AND LB", "MA AND MB", "pangolin_lineage.keyword: (LA AND LB) AND mutations.keyword: (MA AND MB)"),
-    ("LA OR LB", "MA OR MB", "pangolin_lineage.keyword: (LA OR LB) AND mutations.keyword: (MA OR MB)"),
-    ("LA AND LB", "MA OR MB", "pangolin_lineage.keyword: (LA AND LB) AND mutations.keyword: (MA OR MB)"),
+    ("LA", "", "pangolin_lineage: (LA)"),
+    ("LA AND LB:1 AND LC:2", "", "pangolin_lineage: (LA AND LB:1 AND LC:2)"),
+    ("LA OR LB OR LC", "", "pangolin_lineage: (LA OR LB OR LC)"),
+    ("LA", "MA", "pangolin_lineage: (LA) AND mutations: (MA)"),
+    ("LA AND LB", "MA AND MB", "pangolin_lineage: (LA AND LB) AND mutations: (MA AND MB)"),
+    ("LA OR LB", "MA OR MB", "pangolin_lineage: (LA OR LB) AND mutations: (MA OR MB)"),
+    ("LA AND LB", "MA OR MB", "pangolin_lineage: (LA AND LB) AND mutations: (MA OR MB)"),
 ])
 
 def test_create_query_filter(lineage_param, mutation_param, expected_output):

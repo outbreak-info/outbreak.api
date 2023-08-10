@@ -285,25 +285,26 @@ class SequenceCountHandler(BaseHandlerV3):
                     }
                 }
             }
+            self.observability.log("es_quer_before", query)
             resp = await self.asynchronous_fetch(query)
             path_to_results = ["aggregations", "date", "buckets"]
             buckets = resp
             for i in path_to_results:
                 buckets = buckets[i]
             flattened_response = [{
-                "date": i["key_as_string"].split("T")[0],
+                "date": i["key"],
                 "total_count": i["doc_count"]
-            } for i in buckets if not (len(i["key_as_string"].split("-")) < 3 or "XX" in i["key_as_string"])]
+            } for i in buckets if not (len(i["key"].split("-")) < 3 or "XX" in i["key"])]
             flattened_response = sorted(flattened_response, key = lambda x: x["date"])
         else:
             if query_subadmin:
                 subadmin = None
                 if query_location is None:
-                    subadmin = "country_id.keyword"
+                    subadmin = "country_id"
                 elif len(query_location.split("_")) == 1: # Country
-                    subadmin = "division_id.keyword"
+                    subadmin = "division_id"
                 elif len(query_location.split("_")) == 2: # Division
-                    subadmin = "location_id.keyword"
+                    subadmin = "location_id"
                 query["aggs"] = {
                     "subadmin": {
                         "terms": {
@@ -312,6 +313,7 @@ class SequenceCountHandler(BaseHandlerV3):
                         }
                     }
                 }
+                self.observability.log("es_quer_before", query)
                 resp = await self.asynchronous_fetch(query)
                 parse_id = lambda x,y: x
                 if subadmin == "division_id":
@@ -357,11 +359,11 @@ class SequenceCountHandler(BaseHandlerV3):
         #     if query_subadmin:
         #         subadmin = None
         #         if query_location is None:
-        #             subadmin = "country_id.keyword"
+        #             subadmin = "country_id"
         #         elif len(query_location.split("_")) == 1:  # Country
-        #             subadmin = "division_id.keyword"
+        #             subadmin = "division_id"
         #         elif len(query_location.split("_")) == 2:  # Division
-        #             subadmin = "location_id.keyword"
+        #             subadmin = "location_id"
         #         query["aggs"] = {"subadmin": {"terms": {"field": subadmin, "size": self.size}}}
         #         self.observability.log("es_query_before", query)
         #         resp = await self.asynchronous_fetch(query)

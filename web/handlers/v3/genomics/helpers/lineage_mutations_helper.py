@@ -55,11 +55,11 @@ def gene_mapping() -> Dict:
 def create_query_filter(lineages: str = "", mutations: str = "") -> Dict:
     filters = []
     if len(lineages) > 0:
-        lineages = "pangolin_lineage.keyword: ({})".format(lineages)
+        lineages = "pangolin_lineage: ({})".format(lineages)
         filters.append(lineages)
     if len(mutations) > 0:
         mutations = mutations.replace(":","\\:")
-        mutations = "mutations.keyword: ({})".format(mutations)
+        mutations = "mutations: ({})".format(mutations)
         filters.append(mutations)
     query_filters = " AND ".join(filters)
     return query_filters
@@ -83,7 +83,7 @@ def create_query(lineages: str = "", mutations: str = "") -> Dict:
                 "aggs": {
                     "mutations": {
                         "terms": {
-                            "field": "mutations.keyword",
+                            "field": "mutations",
                             "size": 2
                         }
                     }

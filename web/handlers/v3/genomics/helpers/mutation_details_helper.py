@@ -6,7 +6,7 @@ def params_adapter(args):
 
 def create_query_filter(params):
     mutations = params["mutations"].replace(":","\\:")
-    query_filters = "mutation.keyword: ({})".format(mutations)
+    query_filters = "mutation: ({})".format(mutations)
     return query_filters
 
 def create_query(params):
@@ -21,7 +21,7 @@ def create_query(params):
         "aggs": {
             "by_name": {
             "terms": {
-                "field": "mutation.keyword"
+                "field": "mutation"
             },
             "aggs": {
                 "by_nested": {

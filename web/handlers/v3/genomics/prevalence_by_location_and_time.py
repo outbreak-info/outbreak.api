@@ -62,6 +62,7 @@ class PrevalenceByLocationAndTimeHandler(BaseHandlerV3):
         query["aggs"]["prevalence"]["aggs"]["count"]["aggs"]["lineage_count"][
             "filter"
         ] = query_obj
+        self.observability.log("es_query_before", query)
         resp = await self.asynchronous_fetch(query)
         path_to_results = ["aggregations", "prevalence", "count", "buckets"]
         resp = transform_prevalence(resp, path_to_results, cumulative)
@@ -77,9 +78,9 @@ class PrevalenceByLocationAndTimeHandler(BaseHandlerV3):
         #     )
         # TODO: Trying to keep a similar behavior for `res_key` for now.
         res_key = create_query_filter(lineages=lineages, mutations=mutations, locations=query_location)
-        res_key = res_key.replace("pangolin_lineage.keyword: ", "")
-        res_key = res_key.replace("mutations.keyword: ", "")
-        res_key = res_key.replace("country_id.keyword: ", "")
+        res_key = res_key.replace("pangolin_lineage: ", "")
+        res_key = res_key.replace("mutations: ", "")
+        res_key = res_key.replace("country_id: ", "")
         res_key = res_key.replace("\\", "")
         results[res_key] = resp
         return {"success": True, "results": results}

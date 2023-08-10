@@ -19,7 +19,7 @@ class LineageByCountryHandler(BaseHandlerV3):
                     "aggs": {
                         "country": {
                             "terms": {
-                                "field": "country.keyword",
+                                "field": "country",
                                 "size": self.size
                             }
                         }
@@ -27,10 +27,14 @@ class LineageByCountryHandler(BaseHandlerV3):
                 }
             }
         }
-        query_mutations = query_mutations.split(",") if query_mutations is not None else []
-        query_pangolin_lineage = query_pangolin_lineage.split(",") if query_pangolin_lineage is not None else []
-        query_obj = create_nested_mutation_query(lineages = query_pangolin_lineage, mutations = query_mutations)
+        # query_mutations = query_mutations.split(",") if query_mutations is not None else []
+        # query_pangolin_lineage = query_pangolin_lineage.split(",") if query_pangolin_lineage is not None else []
+        lineages = query_pangolin_lineage if query_pangolin_lineage else ""
+        mutations = query_mutations if query_mutations else ""
+
+        query_obj = create_nested_mutation_query(lineages = lineages, mutations = mutations)
         query["aggs"]["prevalence"]["filter"] = query_obj
+        self.observability.log("es_query_before", query)
         resp = yield self.asynchronous_fetch(query)
         parsed_resp = helper.parse_response(resp)
         result = {"success": True, "results": parsed_resp}

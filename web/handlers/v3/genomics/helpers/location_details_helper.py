@@ -6,22 +6,22 @@ def create_query(query_ids, query_str):
     if loc_id_len >= 1:
         query["aggs"]["loc"]["composite"]["sources"].extend(
             [
-                {"country": {"terms": {"field": "country.keyword"}}},
-                {"country_id": {"terms": {"field": "country_id.keyword"}}},
+                {"country": {"terms": {"field": "country"}}},
+                {"country_id": {"terms": {"field": "country_id"}}},
             ]
         )
     if loc_id_len >= 2:  # 3 is max length
         query["aggs"]["loc"]["composite"]["sources"].extend(
             [
-                {"division": {"terms": {"field": "division.keyword"}}},
-                {"division_id": {"terms": {"field": "division_id.keyword"}}},
+                {"division": {"terms": {"field": "division"}}},
+                {"division_id": {"terms": {"field": "division_id"}}},
             ]
         )
     if loc_id_len == 3:  # 3 is max length
         query["aggs"]["loc"]["composite"]["sources"].extend(
             [
-                {"location": {"terms": {"field": "location.keyword"}}},
-                {"location_id": {"terms": {"field": "location_id.keyword"}}},
+                {"location": {"terms": {"field": "location"}}},
+                {"location_id": {"terms": {"field": "location_id"}}},
             ]
         )
     query["query"] = parse_location_id_to_query(query_str)

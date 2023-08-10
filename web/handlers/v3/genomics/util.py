@@ -15,14 +15,14 @@ def calculate_proportion(_x, _n):
 def create_query_filter(lineages = "", mutations = "", locations = ""):
     filters = []
     if lineages and len(lineages) > 0:
-        lineages = "pangolin_lineage.keyword: ({})".format(lineages)
+        lineages = "pangolin_lineage: ({})".format(lineages)
         filters.append(lineages)
     if mutations and len(mutations) > 0:
         mutations = mutations.replace(":","\\:")
-        mutations = "mutations.keyword: ({})".format(mutations)
+        mutations = "mutations: ({})".format(mutations)
         filters.append(mutations)
     if locations and len(locations) > 0:
-        locations = "country_id.keyword: ({})".format(locations)
+        locations = "country_id: ({})".format(locations)
         filters.append(locations)
     query_filters = " AND ".join(filters)
 
@@ -38,7 +38,7 @@ def create_nested_mutation_query(location_id = None, lineages = "", mutations = 
             "must": [
                     {
                   "query_string": {
-                    "query": query_filters # Ex: "(pangolin_lineage.keyword:BA.2) AND (mutations.keyword: S\\:E484K OR S\\:L18F)"
+                    "query": query_filters # Ex: "(pangolin_lineage:BA.2) AND (mutations: S\\:E484K OR S\\:L18F)"
                   }
                 }
             ]
@@ -58,7 +58,7 @@ def parse_location_id_to_query(query_id, query_obj = None):
                 "must": []
             }
         }
-    location_types = ["country_id.keyword", "division_id.keyword", "location_id.keyword"]
+    location_types = ["country_id", "division_id", "location_id"]
     for i in range(min(3, len(location_codes))):
         if i == 1 and len(location_codes[i].split("-")) > 1:              # For division remove iso2 code if present
             location_codes[i] = location_codes[i].split("-")[1]
@@ -93,10 +93,10 @@ def transform_prevalence(resp, path_to_results = [], cumulative = False):
     if len(buckets) == 0:
         return {"success": True, "results": {}}
     flattened_response = [{
-        "date": i["key_as_string"].split("T")[0],
+        "date": i["key"],
         "total_count": i["doc_count"],
         "lineage_count": i["lineage_count"]["doc_count"]
-    } for i in buckets if len(i["key_as_string"].split("-")) > 1 and "XX" not in i["key_as_string"]]
+    } for i in buckets if len(i["key"].split("-")) > 1 and "XX" not in i["key"]]
     df_response = (
         pd.DataFrame(flattened_response)
         .assign(date = lambda x: pd.to_datetime(x["date"], format="%Y-%m-%d"))
