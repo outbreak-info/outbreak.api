@@ -15,7 +15,7 @@ def create_query(params):
         "size": 0,
         "query": {
             "query_string": {
-            "query": query_filters # Ex: "mutation.keyword: \"ORF1a:A735A\" OR \"ORF1a:P3395H\""
+            "query": query_filters # Ex: "mutation: \"ORF1a:A735A\" OR \"ORF1a:P3395H\""
             }
         },
         "aggs": {

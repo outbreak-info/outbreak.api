@@ -8,7 +8,7 @@ def create_query(params):
     query = {
         "size": 0,
         "query": {"wildcard": {"pangolin_lineage": {"value": params["query_str"]}}},
-        "aggs": {"lineage": {"terms": {"field": "pangolin_lineage.keyword", "size": 10000}}},
+        "aggs": {"lineage": {"terms": {"field": "pangolin_lineage", "size": 10000}}},
     }
     return query
 

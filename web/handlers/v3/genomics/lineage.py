@@ -42,7 +42,7 @@ class MutationsByLineage(BaseHandlerV3):
                 "size": 0,
                 "aggs": {
                 "lineage": {
-                        "terms": {"field": "pangolin_lineage.keyword", "size": self.size},
+                        "terms": {"field": "pangolin_lineage", "size": self.size},
                         "aggs": {
                             "mutations": {
                                 "filter": {}
@@ -57,13 +57,13 @@ class MutationsByLineage(BaseHandlerV3):
                 if "query" in query: # Only query added will be bool for location
                     query["query"]["bool"]["must"].append({
                         "term": {
-                            "pangolin_lineage.keyword": query_pangolin_lineage
+                            "pangolin_lineage": query_pangolin_lineage
                         }
                     })
                 else:
                     query["query"] = {
                         "term": {
-                            "pangolin_lineage.keyword": query_pangolin_lineage
+                            "pangolin_lineage": query_pangolin_lineage
                         }
                     }
             query["aggs"]["lineage"]["aggs"]["mutations"]["filter"] = create_nested_mutation_query(mutations = muts)
