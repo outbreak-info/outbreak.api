@@ -81,6 +81,7 @@ class LineageMutationsHandler(BaseHandler):
                 }
                 for i in buckets
             ]
+            # new code should start about here!
             if len(flattened_response) > 0:
                 df_response = pd.DataFrame(flattened_response).assign(
                     gene=lambda x: x["mutation"].apply(
