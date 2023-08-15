@@ -5,6 +5,45 @@ import pandas as pd
 from web.handlers.genomics.base import BaseHandler
 from web.handlers.genomics.util import create_nested_mutation_query, get_total_hits
 
+def calculate_mutation_details(flattened_response, genes):
+
+  df_response = flattened_response.assign(
+    gene=lambda x: x["mutation"].apply(
+      lambda k: gene_mapping[k.split(":")[0]]
+      if k.split(":")[0] in gene_mapping
+      else k.split(":")[0]
+    ),
+    ref_aa=lambda x: x["mutation"]
+      .apply(
+        lambda k: re.findall("[A-Za-z*]+", k.split(":")[1])[0]
+        if "DEL" not in k and "del" not in k and "_" not in k
+        else k
+      )
+      .str.upper(),
+    alt_aa=lambda x: x["mutation"]
+      .apply(
+        lambda k: re.findall("[A-Za-z*]+", k.split(":")[1])[1]
+        if "DEL" not in k and "del" not in k and "_" not in k
+        else k.split(":")[1]
+      )
+      .str.upper(),
+    codon_num=lambda x: x["mutation"].apply(
+      lambda k: int(re.findall("[0-9]+", k.split(":")[1])[0])
+    ),
+    codon_end=lambda x: x["mutation"].apply(
+      lambda k: int(re.findall("[0-9]+", k.split(":")[1])[1])
+      if "/" in k and ("DEL" in k or "del" in k)
+      else None
+    ),
+    type=lambda x: x["mutation"].apply(
+      lambda k: "deletion" if "DEL" in k or "del" in k else "substitution"
+    ),
+  )
+  df_response = df_response[df_response["ref_aa"] != df_response["alt_aa"]]
+  df_response["prevalence"] = df_response["mutation_count"] / df_response["lineage_count"]
+  if genes:
+    df_response = df_response[df_response["gene"].str.lower().isin(genes)]
+  return df_response.set_index('mutation')
 
 class LineageMutationsHandler(BaseHandler):
     gene_mapping = {
@@ -73,7 +112,7 @@ class LineageMutationsHandler(BaseHandler):
             for i in path_to_results:
                 buckets = buckets[i]
             flattened_response = [
-                {
+                {
                     "mutation": i["key"],
                     "mutation_count": i["genomes"]["doc_count"],
                     "lineage_count": get_total_hits(resp),
@@ -81,44 +120,8 @@ class LineageMutationsHandler(BaseHandler):
                 }
                 for i in buckets
             ]
-            # new code should start about here!
             if len(flattened_response) > 0:
-                df_response = pd.DataFrame(flattened_response).assign(
-                    gene=lambda x: x["mutation"].apply(
-                        lambda k: self.gene_mapping[k.split(":")[0]]
-                        if k.split(":")[0] in self.gene_mapping
-                        else k.split(":")[0]
-                    ),
-                    ref_aa=lambda x: x["mutation"]
-                    .apply(
-                        lambda k: re.findall("[A-Za-z*]+", k.split(":")[1])[0]
-                        if "DEL" not in k and "del" not in k and "_" not in k
-                        else k
-                    )
-                    .str.upper(),
-                    alt_aa=lambda x: x["mutation"]
-                    .apply(
-                        lambda k: re.findall("[A-Za-z*]+", k.split(":")[1])[1]
-                        if "DEL" not in k and "del" not in k and "_" not in k
-                        else k.split(":")[1]
-                    )
-                    .str.upper(),
-                    codon_num=lambda x: x["mutation"].apply(
-                        lambda k: int(re.findall("[0-9]+", k.split(":")[1])[0])
-                    ),
-                    codon_end=lambda x: x["mutation"].apply(
-                        lambda k: int(re.findall("[0-9]+", k.split(":")[1])[1])
-                        if "/" in k and ("DEL" in k or "del" in k)
-                        else None
-                    ),
-                    type=lambda x: x["mutation"].apply(
-                        lambda k: "deletion" if "DEL" in k or "del" in k else "substitution"
-                    ),
-                )
-                df_response = df_response[df_response["ref_aa"] != df_response["alt_aa"]]
-                df_response.loc[:, "prevalence"] = (
-                    df_response["mutation_count"] / df_response["lineage_count"]
-                )
+                df_response = calculate_mutation_details(flattened_response, genes)
                 df_response.loc[~df_response["codon_end"].isna(), "change_length_nt"] = (
                     (df_response["codon_end"] - df_response["codon_num"]) + 1
                 ) * 3
