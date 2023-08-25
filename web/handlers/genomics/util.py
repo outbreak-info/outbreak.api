@@ -2,6 +2,24 @@ from datetime import timedelta, datetime as dt
 from scipy.stats import beta
 import pandas as pd
 
+import os
+os.chdir('/Users/sarahrandall/Downloads')
+
+data = pd.read_json("prevalence-by-location-all-lineages-test-case.jsonl.gz", lines=True)
+
+# min_date="2022-03-15"
+# max_date="2022-03-20"
+# prevalence_threshold = 0.05
+
+# data = data[(data["date"].between(min_date, max_date)) & (data["prevalence"] >= prevalence_threshold)]
+#index_col should always be "date"
+
+
+
+
+# # data['proportion'] = data['proportion'].apply(lambda x: x*100)
+
+
 def calculate_proportion(_x, _n):
     x = _x.round()
     n = _n.round()
@@ -19,7 +37,6 @@ def expand_dates(df, date_min, date_max, index_col, grp_col):
         df
         .set_index(index_col)
         .reindex(idx, fill_value = 0)
-        .drop(grp_col, axis = 1)
         .reset_index()
         .rename(
             columns = {
@@ -197,7 +214,7 @@ def create_nested_mutation_query(location_id = None, lineages = [], mutations = 
     parse_location_id_to_query(location_id, query_obj)
     return query_obj
 
-def classify_other_category(grp, keep_lineages):
+def classify_other_category(grp, keep_lineages): # Understood as ignores any lineages user want to keep
     grp.loc[(~grp["lineage"].isin(keep_lineages)) | (grp["lineage"] == "none"), "lineage"] = "other" # Temporarily remove none. TODO: Proper fix
     grp = grp.groupby("lineage").agg({
         "total_count": lambda x: x.iloc[0],
@@ -205,18 +222,37 @@ def classify_other_category(grp, keep_lineages):
     })
     return grp
 
-def get_major_lineage_prevalence(df, index_col, keep_lineages = [], prevalence_threshold = 0.05, nday_threshold = 10, ndays = 180):
-    date_limit = dt.today() - timedelta(days = ndays)
-    lineages_to_retain = df[(df["prevalence"] >= prevalence_threshold) & (df["date"] >= date_limit)]["lineage"].value_counts()
-    num_unique_dates = df[df["date"] >= date_limit]["date"].unique().shape[0]
-    if num_unique_dates < nday_threshold:
-        nday_threshold = round((nday_threshold/ndays) * num_unique_dates)
-    lineages_to_retain = lineages_to_retain[lineages_to_retain >= nday_threshold].index.tolist()
-    lineages_to_retain.extend(keep_lineages)
-    df = df.groupby(index_col).apply(classify_other_category, lineages_to_retain)
-    df = df.reset_index()
-    df.loc[:,"prevalence"] = df["lineage_count"]/df["total_count"]
-    return df
+def get_major_lineage_prevalence(df, index_col = "date", min_date = None, max_date = None, keep_lineages = [], prevalence_threshold = 0.05, nday_threshold = 10, ndays = 180):
+   
+    df['prevalence'] = df['total_count']/df['lineage_count']
+    df = df.sort_values(by="date") #Sort date values
+    
+    if min_date and max_date:
+        df = df[(df["date"].between(min_date, max_date)) & (df["prevalence"] >= prevalence_threshold)]
+        if keep_lineages != []: # still unsure about what this is for?
+            df = df.groupby(index_col).apply(classify_other_category, keep_lineages)
+            #or  grp.loc[(~grp["lineage"].isin(keep_lineages)) | (grp["lineage"] == "none"), "lineage"] = "other" only?
+            # should any and all lineages not in keep_lineages be called other or doesclassify() do other calculations?
+            
+    elif ndays and nday_threshold:
+        if df["date"].iloc[-1] < dt.today(): #Will not work if ndays is outside of data date range
+            date = df["date"].iloc[-1]
+        else:
+            date = dt.today()
+            
+        date_limit = date - timedelta(days = ndays)
+        df = df[(df["prevalence"] >= prevalence_threshold) & (df['date'] > date_limit) & (df['date'] < date)]
+             
+        #want to select data between today and timedelta
+        num_unique_dates = df[df["date"] >= date_limit]["date"].unique().shape[0]
+        if num_unique_dates < nday_threshold: # what's this for? how it relate to threshold?
+             nday_threshold = round((nday_threshold/ndays) * num_unique_dates)
+             if keep_lineages != []:
+                 df = df.groupby(index_col).apply(classify_other_category, keep_lineages)
+
+        return df
+    
+
 
 def parse_location_id_to_query(query_id, query_obj = None):
     if query_id == None:
