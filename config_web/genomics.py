@@ -1,8 +1,12 @@
 ES_INDEX = "outbreak-genomics"
 
-ES_MUTLESS_INDEX = "genomics_api_local_mutless"
-ES_MUTS_INDEX = "genomics_api_local_muts"
+# ES_MUTLESS_INDEX = "genomics_api_local_mutless"
+# ES_MUTS_INDEX = "genomics_api_local_muts"
+ES_MUTLESS_INDEX = "outbreak-genomics-mutless"
+ES_MUTS_INDEX = "outbreak-genomics-muts"
 ES_INDEX_V3 = [ES_MUTLESS_INDEX, ES_MUTS_INDEX]
+ES_INDEX_V3 = "outbreak-genomics-mut*"
+
 
 API_PREFIX = "genomics"
 API_VERSION = "v2"
@@ -21,12 +25,12 @@ APP_LIST_V3 = [
         "web.handlers.v3.genomics.lineage_by_country.LineageByCountryHandler",
     ),
     (
-        r"/{pre}/v3/mutations-by-lineage",
-        "web.handlers.v3.genomics.mutations_by_lineage.MutationsByLineage",
+        r"/{pre}/v3/mutations",
+        "web.handlers.v3.genomics.mutations.MutationHandler",
     ),
     (
-        r"/{pre}/v3/location-lookup",
-        "web.handlers.v3.genomics.location_details.LocationDetailsHandler",
+        r"/{pre}/v3/mutations-by-lineage",
+        "web.handlers.v3.genomics.mutations_by_lineage.MutationsByLineage",
     ),
     (
         r"/{pre}/v3/mutation-details",

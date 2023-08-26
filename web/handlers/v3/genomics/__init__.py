@@ -3,7 +3,7 @@
 from .lineage import LineageHandler
 from .lineage_mutations import LineageMutationsHandler
 # from .location import LocationHandler
-from .location_details import LocationDetailsHandler
+# from .location_details import LocationDetailsHandler
 # from .most_recent_date import MostRecentCollectionDateHandler, MostRecentSubmissionDateHandler
 from .mutation_details import MutationDetailsHandler
 # from .mutations import MutationHandler

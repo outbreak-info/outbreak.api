@@ -3,7 +3,7 @@ def parse_response(resp = {}, size = None):
     buckets = resp
     for i in path_to_results:
         buckets = buckets[i]
-    flattened_response = [{"name": i["key"], "total_count": i["doc_count"]} for i in buckets]
+    flattened_response = [{"key": i["key"], "doc_count": i["doc_count"]} for i in buckets]
     if size:
         try:
             size = int(size)

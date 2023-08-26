@@ -34,8 +34,11 @@ class LineageByCountryHandler(BaseHandlerV3):
 
         query_obj = create_nested_mutation_query(lineages = lineages, mutations = mutations)
         query["aggs"]["prevalence"]["filter"] = query_obj
-        self.observability.log("es_query_before", query)
+        # self.observability.log("es_query_before", query)
         resp = yield self.asynchronous_fetch(query)
+        # self.observability.log(resp, "es_response")
         parsed_resp = helper.parse_response(resp)
+        # self.observability.log(parsed_resp, "parsed_response")
         result = {"success": True, "results": parsed_resp}
+        # self.observability.log(result, "result")
         return result

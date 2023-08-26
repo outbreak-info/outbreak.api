@@ -15,21 +15,21 @@ def create_query(params):
         "size": 0,
         "query": {
             "query_string": {
-            "query": query_filters # Ex: "mutation: \"ORF1a:A735A\" OR \"ORF1a:P3395H\""
+                "query": query_filters # Ex: "mutation: \"ORF1a:A735A\" OR \"ORF1a:P3395H\""
             }
         },
         "aggs": {
             "by_name": {
-            "terms": {
-                "field": "mutation"
-            },
-            "aggs": {
-                "by_nested": {
-                "top_hits": {
-                    "size": 1
+                "terms": {
+                    "field": "mutation"
+                },
+                "aggs": {
+                    "by_nested": {
+                        "top_hits": {
+                            "size": 1
+                        }
+                    }
                 }
-                }
-            }
             }
         }
     }
@@ -47,5 +47,8 @@ def parse_response(resp = {}):
             for k in ["change_length_nt", "codon_num", "pos"]:
                 if k in tmp and tmp[k] != "None":
                     tmp[k] = int(float(tmp[k]))
+            # TODO: These .pop could be removed after deleting them from datasource
+            tmp.pop("is_synyonymous", None)
+            tmp.pop("id", None)
             flattened_response.append(tmp)
     return flattened_response

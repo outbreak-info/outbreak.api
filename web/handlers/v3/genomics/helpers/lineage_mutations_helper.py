@@ -84,7 +84,7 @@ def create_query(lineages: str = "", mutations: str = "") -> Dict:
                     "mutations": {
                         "terms": {
                             "field": "mutations",
-                            "size": 2
+                            "size": 10000
                         }
                     }
                 }

@@ -146,9 +146,9 @@ def test_lineages_mutations_2():
     res_json = res.json()
     endpoints._test_success(res_json, url)
 
-# # ################################################
-# # ############ V3
-# # ################################################
+# ################################################
+# ############ V3
+# ################################################
 
 def test_seq_counts_1_v3():
     url = 'v3/sequence-count'
@@ -242,7 +242,6 @@ def test_mutations_by_lineage_2_v3():
     res = endpoints._get_endpoint(url)
     res_json = res.json()
     endpoints._test_success(res_json, url)
-
 
 def test_lineage_by_country_v3():
     url = 'v3/lineage-by-country'
