@@ -1,10 +1,6 @@
 import web.handlers.v3.genomics.helpers.sequence_count_helper as helper
 
 from web.handlers.v3.genomics.base import BaseHandlerV3
-from web.handlers.v3.genomics.util import (
-    get_total_hits,
-    parse_location_id_to_query
-)
 
 
 class SequenceCountHandler(BaseHandlerV3):
