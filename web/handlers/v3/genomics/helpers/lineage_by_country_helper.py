@@ -1,3 +1,37 @@
+from web.handlers.v3.genomics.util import (
+    create_nested_mutation_query,
+)
+
+def params_adapter(args):
+    params = {}
+    params["pangolin_lineage"] = args.pangolin_lineage or None
+    params["mutations"] = args.mutations or None
+    return params
+
+def create_query(params, size):
+    query = {
+        "aggs": {
+            "prevalence": {
+                "filter" : {},
+                "aggs": {
+                    "country": {
+                        "terms": {
+                            "field": "country",
+                            "size": size
+                        }
+                    }
+                }
+            }
+        }
+    }
+    # query_mutations = query_mutations.split(",") if query_mutations is not None else []
+    # query_pangolin_lineage = query_pangolin_lineage.split(",") if query_pangolin_lineage is not None else []
+    lineages = params["pangolin_lineage"] if params["pangolin_lineage"] else ""
+    mutations = params["mutations"] if params["mutations"] else ""
+    query_obj = create_nested_mutation_query(lineages = lineages, mutations = mutations)
+    query["aggs"]["prevalence"]["filter"] = query_obj
+    return query
+
 def parse_response(resp = {}, size = None):
     path_to_results = ["aggregations", "prevalence", "country", "buckets"]
     buckets = resp
