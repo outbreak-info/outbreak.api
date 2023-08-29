@@ -20,7 +20,5 @@ class GlobalPrevalenceByTimeHandler(BaseHandlerV3):
         query_resp = await self.asynchronous_fetch(query)
         path_to_results = ["aggregations", "prevalence", "buckets"]
         resp = transform_prevalence(query_resp, path_to_results, params["cumulative"])
-        return {
-            "success": True,
-            "results": resp
-        }
+        resp = {"success": True, "results": resp}
+        return resp
