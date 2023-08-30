@@ -2,23 +2,6 @@ from datetime import timedelta, datetime as dt
 from scipy.stats import beta
 import pandas as pd
 
-import os
-os.chdir('/Users/sarahrandall/Downloads')
-
-data = pd.read_json("prevalence-by-location-all-lineages-test-case.jsonl.gz", lines=True)
-
-# min_date="2022-03-15"
-# max_date="2022-03-20"
-# prevalence_threshold = 0.05
-
-# data = data[(data["date"].between(min_date, max_date)) & (data["prevalence"] >= prevalence_threshold)]
-#index_col should always be "date"
-
-
-
-
-# # data['proportion'] = data['proportion'].apply(lambda x: x*100)
-
 
 def calculate_proportion(_x, _n):
     x = _x.round()
@@ -226,31 +209,45 @@ def get_major_lineage_prevalence(df, index_col = "date", min_date = None, max_da
    
     df['prevalence'] = df['total_count']/df['lineage_count']
     df = df.sort_values(by="date") #Sort date values
+    min_date = dt.strptime(min_date, "%Y-%m-%d")
+    max_date = dt.strptime(max_date, "%Y-%m-%d")
     
     if min_date and max_date:
         df = df[(df["date"].between(min_date, max_date)) & (df["prevalence"] >= prevalence_threshold)]
-        if keep_lineages != []: # still unsure about what this is for?
-            df = df.groupby(index_col).apply(classify_other_category, keep_lineages)
-            #or  grp.loc[(~grp["lineage"].isin(keep_lineages)) | (grp["lineage"] == "none"), "lineage"] = "other" only?
-            # should any and all lineages not in keep_lineages be called other or doesclassify() do other calculations?
-            
-    elif ndays and nday_threshold:
-        if df["date"].iloc[-1] < dt.today(): #Will not work if ndays is outside of data date range
+              
+    elif min_date:
+        date_limit = dt.strptime(min_date, "%Y-%m-%d") + timedelta(days=ndays)
+        df = df[(df["prevalence"] >= prevalence_threshold) & (df['date'] > min_date) & (df['date'] < date_limit)]
+        
+    elif max_date:
+        date_limit = dt.strptime(max_date, "%Y-%m-%d") - timedelta(days=ndays)
+        df = df[(df["prevalence"] >= prevalence_threshold) & (df['date'] < max_date) & (df['date'] > date_limit)]
+    
+        
+    if df["date"].iloc[-1] < dt.today():
             date = df["date"].iloc[-1]
-        else:
+    else:
             date = dt.today()
-            
-        date_limit = date - timedelta(days = ndays)
-        df = df[(df["prevalence"] >= prevalence_threshold) & (df['date'] > date_limit) & (df['date'] < date)]
-             
-        #want to select data between today and timedelta
-        num_unique_dates = df[df["date"] >= date_limit]["date"].unique().shape[0]
-        if num_unique_dates < nday_threshold: # what's this for? how it relate to threshold?
-             nday_threshold = round((nday_threshold/ndays) * num_unique_dates)
-             if keep_lineages != []:
-                 df = df.groupby(index_col).apply(classify_other_category, keep_lineages)
+            date_range = date - timedelta(days = ndays)
+            df = df[(df["prevalence"] >= prevalence_threshold) & (df['date'] > date_range) & (df['date'] < date)]
+    
+    date_limit = date - timedelta(days = ndays)
+    num_unique_dates = df[df["date"] >= date_limit]["date"].unique().shape[0]
+    if num_unique_dates < nday_threshold: 
+         nday_threshold = round((nday_threshold/ndays) * num_unique_dates)
+         
+    date_range = date - timedelta(days = nday_threshold) #Finding lineages nday_threshold days in the date range
+    lineages_to_retain = df[(df["prevalence"] >= prevalence_threshold) & (df['date'] > date_range) & (df['date'] < date)]
+    lineages_to_retain = lineages_to_retain['lineage'].to_list()
+    keep_lineages.append(lineages_to_retain)
+    
+    df = df.groupby(index_col).apply(classify_other_category, keep_lineages)
 
-        return df
+    return df
+
+ # In order to be considered important enough to not be grouped into the "other" lineage, 
+ # a lineage needs to appear on at least nday_threshold days in the date range -- 
+ # so num_unique_dates > nday_threshold.
     
 
 
