@@ -2,23 +2,6 @@ from datetime import timedelta, datetime as dt
 from scipy.stats import beta
 import pandas as pd
 
-import os
-os.chdir('/Users/sarahrandall/Downloads')
-
-data = pd.read_json("prevalence-by-location-all-lineages-test-case.jsonl.gz", lines=True)
-
-# min_date="2022-03-15"
-# max_date="2022-03-20"
-# prevalence_threshold = 0.05
-
-# data = data[(data["date"].between(min_date, max_date)) & (data["prevalence"] >= prevalence_threshold)]
-#index_col should always be "date"
-
-
-
-
-# # data['proportion'] = data['proportion'].apply(lambda x: x*100)
-
 
 def calculate_proportion(_x, _n):
     x = _x.round()
