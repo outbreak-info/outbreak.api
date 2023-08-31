@@ -137,3 +137,10 @@ def transform_prevalence(resp, path_to_results = [], cumulative = False):
                 "last_detected": df_date_sorted["date"].iloc[-1].strftime("%Y-%m-%d")
             }
     return dict_response
+
+def create_iterator(lineages, mutations):
+    if lineages is not None and len(lineages) > 0:
+        return zip(range(len(lineages)), lineages, [mutations] * len(lineages))
+    if lineages is not None and len(lineages) == 0 and mutations is not None and len(mutations) > 0:
+        return zip([0], [None], [mutations])
+    return zip([], [], [])

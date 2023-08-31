@@ -8,7 +8,10 @@ from web.handlers.v3.genomics.util import (
 
 def params_adapter(args):
     params = {}
-    params["pangolin_lineage"] = args.pangolin_lineage or None
+    # params["pangolin_lineage"] = args.pangolin_lineage or None
+    params["pangolin_lineage"] = (
+        args.pangolin_lineage.split(",") if args.pangolin_lineage is not None else []
+    )
     params["mutations"] = args.mutations or None
     params["location_id"] = args.location_id or None
     params["cumulative"] = args.cumulative
@@ -16,7 +19,7 @@ def params_adapter(args):
     params["max_date"] = args.max_date or None
     return params
 
-def create_query(params, size):
+def create_query(idx, params, size):
     query = {
         "size": 0,
         "aggs": {
@@ -42,7 +45,7 @@ def create_query(params, size):
 
     parse_location_id_to_query(params["location_id"], query["aggs"]["prevalence"]["filter"])
 
-    lineages = params["pangolin_lineage"] if params["pangolin_lineage"] is not None else ""
+    lineages = params["pangolin_lineage"][idx] if params["pangolin_lineage"][idx] is not None else ""
     mutations = params["mutations"] if params["mutations"] is not None else ""
     query_obj = create_nested_mutation_query(
         lineages=lineages, mutations=mutations, location_id=params["location_id"]
@@ -53,11 +56,11 @@ def create_query(params, size):
 
     return query
 
-def parse_response(resp: Dict = None, params: Dict = None):
+def parse_response(resp: Dict = None, idx: int = 0, params: Dict = None):
     results = {}
     path_to_results = ["aggregations", "prevalence", "count", "buckets"]
     resp = transform_prevalence(resp, path_to_results, params["cumulative"])
-    lineages = params["pangolin_lineage"] if params["pangolin_lineage"] is not None else ""
+    lineages = params["pangolin_lineage"][idx] if params["pangolin_lineage"][idx] is not None else ""
     mutations = params["mutations"] if params["mutations"] is not None else ""
     # TODO: What should be returned as `res_key`?
     # res_key = None
@@ -75,5 +78,6 @@ def parse_response(resp: Dict = None, params: Dict = None):
     res_key = res_key.replace("mutations: ", "")
     res_key = res_key.replace("country_id: ", "")
     res_key = res_key.replace("\\", "")
+    # res_key = res_key[1:-1]
     results[res_key] = resp
     return results
