@@ -31,7 +31,6 @@ def create_query_filter(lineages = "", mutations = "", locations = ""):
     return query_filters
 
 def create_nested_mutation_query(location_id = None, lineages = "", mutations = ""):
-    # For multiple lineages and mutations: (Lineage 1 AND mutation 1 AND mutation 2..) OR (Lineage 2 AND mutation 1 AND mutation 2..) ...
     query_filters = create_query_filter(lineages=lineages, mutations=mutations, locations=location_id)
     query_obj = {
         "bool": {
@@ -44,8 +43,6 @@ def create_nested_mutation_query(location_id = None, lineages = "", mutations = 
             ]
         }
     }
-    # TODO: Didn't test it passing location_id as parameter yet
-    # parse_location_id_to_query(location_id, query_obj)
     return query_obj
 
 def parse_location_id_to_query(query_id, query_obj = None):
@@ -105,7 +102,8 @@ def transform_prevalence(resp, path_to_results = [], cumulative = False):
     first_date = df_response[df_response["lineage_count"] > 0]["date"].min()
     dict_response = {}
     if not cumulative:
-        df_response = df_response[pd.to_datetime(df_response["date"]) >= first_date - pd.to_timedelta(6, unit='d')] # Go back 6 days for total_rolling
+        # df_response = df_response[pd.to_datetime(df_response["date"]) >= first_date - pd.to_timedelta(6, unit='d')] # Go back 6 days for total_rolling
+        df_response = df_response[df_response["date"] >= first_date - pd.to_timedelta(6, unit='d')] # Go back 6 days for total_rolling
         df_response = compute_rolling_mean(df_response, "date", "total_count", "total_count_rolling")
         df_response = compute_rolling_mean(df_response, "date", "lineage_count", "lineage_count_rolling")
         df_response = df_response[df_response["date"] >= first_date] # Revert back to first date after total_rolling calculations are complete
@@ -144,3 +142,10 @@ def create_iterator(lineages, mutations):
     if lineages is not None and len(lineages) == 0 and mutations is not None and len(mutations) > 0:
         return zip([0], [None], [mutations])
     return zip([], [], [])
+
+def create_iterator_q(q_list):
+    if q_list is not None and len(q_list) > 0:
+        return zip(range(len(q_list)), q_list)
+    if q_list is not None and len(q_list) == 0:
+        return zip([0], [None])
+    return zip([], [])
