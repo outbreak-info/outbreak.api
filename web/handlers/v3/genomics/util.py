@@ -21,9 +21,9 @@ def create_query_filter(lineages = "", mutations = "", locations = ""):
         mutations = mutations.replace(":","\\:")
         mutations = "mutations: ({})".format(mutations)
         filters.append(mutations)
-    if locations and len(locations) > 0:
-        locations = "country_id: ({})".format(locations)
-        filters.append(locations)
+    # if locations and len(locations) > 0:
+    #     locations = "country_id: ({})".format(locations)
+    #     filters.append(locations)
     query_filters = " AND ".join(filters)
 
     if (not lineages and not mutations and not locations):
