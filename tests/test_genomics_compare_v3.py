@@ -352,44 +352,86 @@ def test_mutations_by_lineage_1():
 
     assert endpoints._deep_compare(result, result_v3) == True
 
-# def test_mutations_by_lineage_2():
-#     # TODO: DIFFERENT! Before, in this case we had two keys 'S:S477N' and 'S:E484K'
-#     #       Now we have just one key 'S:E484K AND S:S477N'
-#     #       Define how the values should be
-#     # HERE 0: {'S:S477N', 'S:E484K'} | {'S:E484K AND S:S477N'}
-#     # url = 'mutations-by-lineage?mutations=S:E484K%20AND%20S:S477N&pangolin_lineage=BA.2&min_date=2020-07-01&max_date=2020-07-02'
-#     # ### Two old queries
-#     # ## query OLD
-#     # {'size': 0, 'aggs': {'lineage': {'terms': {'field': 'pangolin_lineage', 'size': 10000}, 'aggs': {'mutations': {'filter': {'bool': {'must': [{'nested': {'path': 'mutations', 'query': {'term': {'mutations.mutation': 'S:E484K'}}}}]}}}}}}, 'query': {'term': {'pangolin_lineage': 'BA.2'}}, 'track_total_hits': True}
-#     # ## query OLD
-#     # {'size': 0, 'aggs': {'lineage': {'terms': {'field': 'pangolin_lineage', 'size': 10000}, 'aggs': {'mutations': {'filter': {'bool': {'must': [{'nested': {'path': 'mutations', 'query': {'term': {'mutations.mutation': 'S:S477N'}}}}]}}}}}}, 'query': {'term': {'pangolin_lineage': 'BA.2'}}, 'track_total_hits': True}
-#     # ## Old Endpoint Result
-#     # {'success': True, 'results': {'S:E484K': [{'pangolin_lineage': 'ba.2', 'lineage_count': 1240787, 'mutation_count': 16, 'proportion': 1.289504161471711e-05, 'proportion_ci_lower': 7.675252632298663e-06, 'proportion_ci_upper': 2.044060683627565e-05}], 'S:S477N': [{'pangolin_lineage': 'ba.2', 'lineage_count': 1240787, 'mutation_count': 1161902, 'proportion': 0.93642341513894, 'proportion_ci_lower': 0.9359930737759458, 'proportion_ci_upper': 0.9368517204706099}]}}
-#     # ### One new query
-#     # ## query NEW
-#     # {'size': 0, 'aggs': {'lineage': {'terms': {'field': 'pangolin_lineage', 'size': 10000}, 'aggs': {'mutations': {'filter': {'bool': {'must': [{'query_string': {'query': 'mutations: (S\\:E484K AND S\\:S477N)'}}]}}}}}}, 'query': {'term': {'pangolin_lineage': 'BA.2'}}, 'track_total_hits': True}
-#     # ## New Endpoint Result
-#     # {'success': True, 'results': {'S:E484K AND S:S477N': [{'pangolin_lineage': 'ba.2', 'lineage_count': 1240787, 'mutation_count': 8, 'proportion': 6.447520807358555e-06, 'proportion_ci_lower': 3.0481451620268656e-06, 'proportion_ci_upper': 1.216603523176905e-05}]}}
+def test_mutations_by_lineage_2_with_and():
+    # WARNING: Changed the way of mutations parameter is used
+    # In the v2 version there are the rules below related to the mutation querystring param:
+    # - the "," character is considered as "AND" operand
+    # --- Ex: "mutation=S:E484K,S:S477N" will be used as "S:E484K AND S:S477N"
+    # --- Ex: when "mutation=S:E484K AND S:S477N" will be created one ES query for each mutation"
+    # - the "AND" operand is considered to split in many queries
+    url = 'mutations-by-lineage?mutations=S:E484K,S:S477N&location_id=USA'
+    result = endpoints._get_endpoint(url)
+    result = result.json()
 
-#     url = 'mutations-by-lineage?mutations=S:E484K AND S:S477N&pangolin_lineage=BA.2&min_date=2020-07-01&max_date=2020-07-02'
+    url = 'mutations-by-lineage?mutations=S:E484K AND S:S477N&location_id=USA'
+    url = 'v3/' + url
+    result_v3 = endpoints._get_endpoint(url)
+    result_v3 = result_v3.json()
+
+    assert endpoints._deep_compare(result['results']['S:E484K,S:S477N'], result_v3['results']['S:E484K AND S:S477N']) == True
+
+# def test_mutations_by_lineage_2_with_and_with_lineage():
+#     # WARNING: Getting error when use "pangolin_lineage" param in the v2 version
+#     url = 'mutations-by-lineage?mutations=S:E484K,S:S477N&pangolin_lineage=AY.1&location_id=USA'
 #     result = endpoints._get_endpoint(url)
 #     result = result.json()
+#     print("### result")
 #     print(result)
-#     data_result = result['results']['S:E484K'] + result['results']['S:S477N']
 
-#     # url = 'v3/mutations-by-lineage?mutations=S:E484K%20AND%20S:S477N'
+#     url = 'mutations-by-lineage?mutations=S:E484K AND S:S477N&pangolin_lineage=AY.1&location_id=USA'
 #     url = 'v3/' + url
 #     result_v3 = endpoints._get_endpoint(url)
 #     result_v3 = result_v3.json()
+#     print("### result_v3")
 #     print(result_v3)
-#     data_result_v3 = result_v3['results']['S:E484K AND S:S477N']
 
-#     dict = next((item for item in data_result if item.get("pangolin_lineage") == "ba.2"), None)
-#     dict_v3 = next((item for item in data_result_v3 if item.get("pangolin_lineage") == "ba.2"), None)
+#     assert endpoints._deep_compare(result['results']['S:E484K,S:S477N'], result_v3['results']['S:E484K AND S:S477N']) == True
 
-#     assert endpoints._deep_compare(dict, dict_v3) == True
-#     # assert endpoints._deep_compare(data_result, data_result_v3) == True
-#     # assert result_v3['results']['(BA.2) AND (S:E484K AND S:S477N)'] is not None
+def test_mutations_by_lineage_2_with_comma():
+    # url = 'mutations-by-lineage?mutations=S:H146Q,S:R346H&location_id=USA'
+    # url = 'mutations-by-lineage?mutations=S:E484K AND S:S477N&location_id=USA'
+    url = 'mutations-by-lineage?mutations=S:E484K AND S:S477N&location_id=USA'
+    result = endpoints._get_endpoint(url)
+    result = result.json()
+
+    url = 'mutations-by-lineage?mutations=S:E484K,S:S477N&location_id=USA'
+    url = 'v3/' + url
+    result_v3 = endpoints._get_endpoint(url)
+    result_v3 = result_v3.json()
+
+    assert endpoints._deep_compare(result['results']['S:E484K'], result_v3['results']['S:E484K']) == True
+    assert endpoints._deep_compare(result['results']['S:S477N'], result_v3['results']['S:S477N']) == True
+
+def test_mutations_by_lineage_2_1_with_comma_lineage_and_date_filter():
+    # TODO: DIFFERENT! Before, in this case we had two keys 'S:S477N' and 'S:E484K'
+    #       Now we have just one key 'S:E484K AND S:S477N'
+    #       Define how the values should be
+    # HERE 0: {'S:S477N', 'S:E484K'} | {'S:E484K AND S:S477N'}
+    # url = 'mutations-by-lineage?mutations=S:E484K%20AND%20S:S477N&pangolin_lineage=BA.2&min_date=2020-07-01&max_date=2020-07-02'
+    # ### Two old queries
+    # ## query OLD
+    # {'size': 0, 'aggs': {'lineage': {'terms': {'field': 'pangolin_lineage', 'size': 10000}, 'aggs': {'mutations': {'filter': {'bool': {'must': [{'nested': {'path': 'mutations', 'query': {'term': {'mutations.mutation': 'S:E484K'}}}}]}}}}}}, 'query': {'term': {'pangolin_lineage': 'BA.2'}}, 'track_total_hits': True}
+    # ## query OLD
+    # {'size': 0, 'aggs': {'lineage': {'terms': {'field': 'pangolin_lineage', 'size': 10000}, 'aggs': {'mutations': {'filter': {'bool': {'must': [{'nested': {'path': 'mutations', 'query': {'term': {'mutations.mutation': 'S:S477N'}}}}]}}}}}}, 'query': {'term': {'pangolin_lineage': 'BA.2'}}, 'track_total_hits': True}
+    # ## Old Endpoint Result
+    # {'success': True, 'results': {'S:E484K': [{'pangolin_lineage': 'ba.2', 'lineage_count': 1240787, 'mutation_count': 16, 'proportion': 1.289504161471711e-05, 'proportion_ci_lower': 7.675252632298663e-06, 'proportion_ci_upper': 2.044060683627565e-05}], 'S:S477N': [{'pangolin_lineage': 'ba.2', 'lineage_count': 1240787, 'mutation_count': 1161902, 'proportion': 0.93642341513894, 'proportion_ci_lower': 0.9359930737759458, 'proportion_ci_upper': 0.9368517204706099}]}}
+    # ### One new query
+    # ## query NEW
+    # {'size': 0, 'aggs': {'lineage': {'terms': {'field': 'pangolin_lineage', 'size': 10000}, 'aggs': {'mutations': {'filter': {'bool': {'must': [{'query_string': {'query': 'mutations: (S\\:E484K AND S\\:S477N)'}}]}}}}}}, 'query': {'term': {'pangolin_lineage': 'BA.2'}}, 'track_total_hits': True}
+    # ## New Endpoint Result
+    # {'success': True, 'results': {'S:E484K AND S:S477N': [{'pangolin_lineage': 'ba.2', 'lineage_count': 1240787, 'mutation_count': 8, 'proportion': 6.447520807358555e-06, 'proportion_ci_lower': 3.0481451620268656e-06, 'proportion_ci_upper': 1.216603523176905e-05}]}}
+
+    url = 'mutations-by-lineage?mutations=S:E484K AND S:S477N&pangolin_lineage=BA.2&min_date=2020-07-01&max_date=2020-07-02'
+    result = endpoints._get_endpoint(url)
+    result = result.json()
+
+    url = 'mutations-by-lineage?mutations=S:E484K,S:S477N&pangolin_lineage=BA.2&min_date=2020-07-01&max_date=2020-07-02'
+    url = 'v3/' + url
+    result_v3 = endpoints._get_endpoint(url)
+    result_v3 = result_v3.json()
+
+    assert endpoints._deep_compare(result['results']['S:E484K'], result_v3['results']['S:E484K']) == True
+    assert endpoints._deep_compare(result['results']['S:S477N'], result_v3['results']['S:S477N']) == True
 
 def test_lineage_wildcard():
     url = 'lineage?name=b.1.*'

@@ -12,11 +12,15 @@ def params_adapter(args):
     params = {}
     params["pangolin_lineage"] = args.pangolin_lineage or None
     params["mutations"] = args.mutations or None
+    params["mutations_list"] = (
+        args.mutations.split(",") if args.mutations is not None else []
+    )
     params["location_id"] = args.location_id or None
     params["frequency"] = args.frequency
     return params
 
-def create_query(params, size):
+def create_query(mutation, params, size):
+    print("#### create_query")
     query = {
         "size": 0,
         "aggs": {
@@ -45,10 +49,10 @@ def create_query(params, size):
                     "pangolin_lineage": params["pangolin_lineage"]
                 }
             }
-    query["aggs"]["lineage"]["aggs"]["mutations"]["filter"] = create_nested_mutation_query(mutations = params["mutations"])
+    query["aggs"]["lineage"]["aggs"]["mutations"]["filter"] = create_nested_mutation_query(mutations = mutation)
     return query
 
-def parse_response(resp: Dict = None, params: Dict = None):
+def parse_response(resp: Dict = None, mutation: str = None, params: Dict = None):
     results = {}
     path_to_results = ["aggregations", "lineage", "buckets"]
     buckets = resp
@@ -69,6 +73,7 @@ def parse_response(resp: Dict = None, params: Dict = None):
         df_response.loc[:, "proportion"] = prop[0]
         df_response.loc[:, "proportion_ci_lower"] = prop[1]
         df_response.loc[:, "proportion_ci_upper"] = prop[2]
-    df_response = df_response[df_response["proportion"] >= params["frequency"]]
-    results[params["mutations"]] = df_response.to_dict(orient="records")
+    if "proportion" in df_response:
+        df_response = df_response[df_response["proportion"] >= params["frequency"]]
+    results[mutation] = df_response.to_dict(orient="records")
     return results
