@@ -1,5 +1,9 @@
 from tests.util import endpoints
 
+# # ################################################
+# # ############ Comparison Tests: v2 vs v3
+# # ################################################
+
 def test_global_prev_1():
     url = 'global-prevalence'
     result = endpoints._generic_api_test(url)
@@ -481,10 +485,6 @@ def test_mutations():
 
     assert endpoints._deep_compare(result, result_v3) == True
 
-###################################################
-# $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-###################################################
-
 def test_lineages_mutations():
     # WARNING: LITTLE DIFFERENCE!
     # The result contains few different items
@@ -532,7 +532,7 @@ def test_lineages_mutations_2():
     assert endpoints._deep_compare(mutation, mutation_v3) == True
 
 # # ################################################
-# # ############ V3
+# # ############ v3 Tests
 # # ################################################
 
 def test_seq_counts_1_v3():
