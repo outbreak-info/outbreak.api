@@ -9,7 +9,7 @@ from web.handlers.v3.genomics.util import (
 )
 
 
-def params_adapter(args):
+def params_adapter(args: Dict = None) -> Dict:
     params = {}
     if args.q is not None:
         params["q"] = args.q or None
@@ -45,7 +45,7 @@ def params_adapter(args):
     return params
 
 
-def create_query(idx, params, size):
+def create_query(idx: int = None, params: Dict = None, size: int = None) -> Dict:
     query = {
         "size": 0,
         "aggs": {
