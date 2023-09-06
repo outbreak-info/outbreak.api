@@ -1,8 +1,9 @@
 # from elasticsearch_dsl import Search, Q, A
+import re
 from typing import Dict, List, Optional
 
 import pandas as pd
-import re
+
 
 def gene_mapping() -> Dict:
     gene_mapping = {
@@ -20,6 +21,7 @@ def gene_mapping() -> Dict:
         "orf10": "ORF10",
     }
     return gene_mapping
+
 
 # def create_query(lineages = "", mutations = ""):
 #     if len(lineages) > 0:
@@ -52,13 +54,14 @@ def gene_mapping() -> Dict:
 
 #     return search
 
+
 def create_query_filter(lineages: str = "", mutations: str = "") -> Dict:
     filters = []
     if len(lineages) > 0:
         lineages = "pangolin_lineage: ({})".format(lineages)
         filters.append(lineages)
     if len(mutations) > 0:
-        mutations = mutations.replace(":","\\:")
+        mutations = mutations.replace(":", "\\:")
         mutations = "mutations: ({})".format(mutations)
         filters.append(mutations)
     query_filters = " AND ".join(filters)
@@ -67,31 +70,28 @@ def create_query_filter(lineages: str = "", mutations: str = "") -> Dict:
 
 def create_query(lineages: str = "", mutations: str = "") -> Dict:
     query_filters = create_query_filter(lineages=lineages, mutations=mutations)
-    query = {"size": 0,
-                "track_total_hits": True,
-                "query": {
-                    "bool": {
-                        "filter": [
-                            {
-                                "query_string": {
-                                    "query": query_filters # Ex: (pangolin_lineage : BA.2) AND (mutations : NOT(MUTATION) OR MUTATION) 
-                                }
-                            }
-                        ]
-                    }
-                },
-                "aggs": {
-                    "mutations": {
-                        "terms": {
-                            "field": "mutations",
-                            "size": 10000
+    query = {
+        "size": 0,
+        "track_total_hits": True,
+        "query": {
+            "bool": {
+                "filter": [
+                    {
+                        "query_string": {
+                            "query": query_filters  # Ex: (pangolin_lineage : BA.2) AND (mutations : NOT(MUTATION) OR MUTATION)
                         }
                     }
-                }
+                ]
             }
+        },
+        "aggs": {"mutations": {"terms": {"field": "mutations", "size": 10000}}},
+    }
     return query
 
-def parse_response(resp: Dict = None, frequency: int = 1, lineages: str = "", genes: Optional[List[str]] = None) -> Dict:
+
+def parse_response(
+    resp: Dict = None, frequency: int = 1, lineages: str = "", genes: Optional[List[str]] = None
+) -> Dict:
     dict_response = {}
 
     lineage = resp["aggregations"]
@@ -153,7 +153,11 @@ def parse_response(resp: Dict = None, frequency: int = 1, lineages: str = "", ge
         df_response.loc[~df_response["codon_end"].isna(), "change_length_nt"] = (
             (df_response["codon_end"] - df_response["codon_num"]) + 1
         ) * 3
-        df_response = df_response[df_response["prevalence"] >= frequency].fillna(pd.NA).replace([pd.NA], [None])
+        df_response = (
+            df_response[df_response["prevalence"] >= frequency]
+            .fillna(pd.NA)
+            .replace([pd.NA], [None])
+        )
         if genes:
             df_response = df_response[df_response["gene"].str.lower().isin(genes)]
         dict_response[lineage["key"]] = df_response.to_dict(orient="records")

@@ -1,13 +1,18 @@
+from typing import Dict
+
+
 def params_adapter(args):
     params = {}
     mutations = args.mutations
     params["mutations"] = mutations
     return params
 
+
 def create_query_filter(params):
-    mutations = params["mutations"].replace(":","\\:")
+    mutations = params["mutations"].replace(":", "\\:")
     query_filters = "mutation: ({})".format(mutations)
     return query_filters
+
 
 def create_query(params):
     query_filters = create_query_filter(params)
@@ -15,27 +20,20 @@ def create_query(params):
         "size": 0,
         "query": {
             "query_string": {
-                "query": query_filters # Ex: "mutation: \"ORF1a:A735A\" OR \"ORF1a:P3395H\""
+                "query": query_filters  # Ex: "mutation: \"ORF1a:A735A\" OR \"ORF1a:P3395H\""
             }
         },
         "aggs": {
             "by_name": {
-                "terms": {
-                    "field": "mutation"
-                },
-                "aggs": {
-                    "by_nested": {
-                        "top_hits": {
-                            "size": 1
-                        }
-                    }
-                }
+                "terms": {"field": "mutation"},
+                "aggs": {"by_nested": {"top_hits": {"size": 1}}},
             }
-        }
+        },
     }
     return query
 
-def parse_response(resp = {}):
+
+def parse_response(resp: Dict = None) -> Dict:
     path_to_results = ["aggregations", "by_name", "buckets"]
     buckets = resp
     for i in path_to_results:

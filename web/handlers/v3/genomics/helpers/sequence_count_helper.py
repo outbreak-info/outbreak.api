@@ -1,8 +1,7 @@
 from typing import Dict
-from web.handlers.v3.genomics.util import (
-    get_total_hits,
-    parse_location_id_to_query,
-)
+
+from web.handlers.v3.genomics.util import get_total_hits, parse_location_id_to_query
+
 
 def params_adapter(args):
     params = {}
@@ -11,38 +10,26 @@ def params_adapter(args):
     params["subadmin"] = args.subadmin
     return params
 
+
 def create_query(params, size):
     query = {}
     if params["location_id"] is not None:
         query["query"] = parse_location_id_to_query(params["location_id"])
 
     if not params["cumulative"]:
-        query["aggs"] = {
-            "date": {
-                "terms": {
-                    "field": "date_collected",
-                    "size": size
-                }
-            }
-        }
+        query["aggs"] = {"date": {"terms": {"field": "date_collected", "size": size}}}
     else:
         if params["subadmin"]:
             subadmin = None
             if params["location_id"] is None:
                 subadmin = "country_id"
-            elif len(params["location_id"].split("_")) == 1: # Country
+            elif len(params["location_id"].split("_")) == 1:  # Country
                 subadmin = "division_id"
-            elif len(params["location_id"].split("_")) == 2: # Division
+            elif len(params["location_id"].split("_")) == 2:  # Division
                 subadmin = "location_id"
-            query["aggs"] = {
-                "subadmin": {
-                    "terms": {
-                        "field": subadmin,
-                        "size": size
-                    }
-                }
-            }
+            query["aggs"] = {"subadmin": {"terms": {"field": subadmin, "size": size}}}
     return query
+
 
 def parse_response(resp: Dict = None, params: Dict = None):
     flattened_response = []
@@ -51,36 +38,47 @@ def parse_response(resp: Dict = None, params: Dict = None):
         buckets = resp
         for i in path_to_results:
             buckets = buckets[i]
-        flattened_response = [{
-            "date": i["key"],
-            "total_count": i["doc_count"]
-        } for i in buckets if not (len(i["key"].split("-")) < 3 or "XX" in i["key"])]
-        flattened_response = sorted(flattened_response, key = lambda x: x["date"])
+        flattened_response = [
+            {"date": i["key"], "total_count": i["doc_count"]}
+            for i in buckets
+            if not (len(i["key"].split("-")) < 3 or "XX" in i["key"])
+        ]
+        flattened_response = sorted(flattened_response, key=lambda x: x["date"])
     else:
         if params["subadmin"]:
             subadmin = None
             if params["location_id"] is None:
                 subadmin = "country_id"
-            elif len(params["location_id"].split("_")) == 1: # Country
+            elif len(params["location_id"].split("_")) == 1:  # Country
                 subadmin = "division_id"
-            elif len(params["location_id"].split("_")) == 2: # Division
+            elif len(params["location_id"].split("_")) == 2:  # Division
                 subadmin = "location_id"
 
-            parse_id = lambda x,y: x
+            parse_id = lambda x, y: x
             if subadmin == "division_id":
-                parse_id = lambda x,loc_id: "_".join([loc_id, country_iso3_to_iso2[loc_id]+"-"+x if loc_id in country_iso3_to_iso2 else loc_id+"-"+x])
+                parse_id = lambda x, loc_id: "_".join(
+                    [
+                        loc_id,
+                        country_iso3_to_iso2[loc_id] + "-" + x
+                        if loc_id in country_iso3_to_iso2
+                        else loc_id + "-" + x,
+                    ]
+                )
             if subadmin == "location_id":
-                parse_id = lambda x,loc_id: "_".join([loc_id, x])
-            flattened_response = [{
-                "total_count": i["doc_count"],
-                "location_id": parse_id(i["key"], params["location_id"])
-            } for i in resp["aggregations"]["subadmin"]["buckets"] if i["key"].lower() != "none"]
-            flattened_response = sorted(flattened_response, key = lambda x: -x["total_count"])
+                parse_id = lambda x, loc_id: "_".join([loc_id, x])
+            flattened_response = [
+                {
+                    "total_count": i["doc_count"],
+                    "location_id": parse_id(i["key"], params["location_id"]),
+                }
+                for i in resp["aggregations"]["subadmin"]["buckets"]
+                if i["key"].lower() != "none"
+            ]
+            flattened_response = sorted(flattened_response, key=lambda x: -x["total_count"])
         else:
-            flattened_response = {
-                "total_count": get_total_hits(resp)
-            }
+            flattened_response = {"total_count": get_total_hits(resp)}
     return flattened_response
+
 
 country_iso3_to_iso2 = {
     "BGD": "BD",

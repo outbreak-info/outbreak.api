@@ -1,8 +1,12 @@
+from typing import Dict
+
+
 def params_adapter(args):
     params = {}
     params["query_str"] = args.name if args.name else None
     params["size"] = args.size if args.size else None
     return params
+
 
 def create_query(params):
     query = {
@@ -12,7 +16,8 @@ def create_query(params):
     }
     return query
 
-def parse_response(resp = {}, size = None):
+
+def parse_response(resp: Dict = None, size: int = None) -> Dict:
     path_to_results = ["aggregations", "lineage", "buckets"]
     buckets = resp
     for i in path_to_results:
