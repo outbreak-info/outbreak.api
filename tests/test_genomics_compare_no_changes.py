@@ -58,7 +58,7 @@ def test_heavy_query():
     result = endpoints._get_endpoint(url)
     result = result.json()
 
-def test_location_lookup_v3():
+def test_location_lookup():
     url = 'location-lookup?id=USA_US-CA'
     res = endpoints._get_endpoint(url)
     res_json = res.json()

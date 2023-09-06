@@ -273,7 +273,7 @@ def test_prev_by_location_3_1():
     result = endpoints._get_endpoint(url)
     result = result.json()
 
-    url = 'prevalence-by-location?q=lineages:AY.1,lineages:AY.2&min_date=2020-07-01&max_date=2023-07-02'
+    url = 'prevalence-by-location?q=lineages:AY.1|lineages:AY.2&min_date=2020-07-01&max_date=2023-07-02'
     url = 'v3/' + url
     result_v3 = endpoints._get_endpoint(url)
     result_v3 = result_v3.json()
@@ -289,7 +289,7 @@ def test_prev_by_location_3_1_with_mutations():
     result = endpoints._get_endpoint(url)
     result = result.json()
 
-    url = 'prevalence-by-location?q=lineages:AY.1 AND mutations:S:E484K,lineages:AY.2 AND mutations:S:E484K&min_date=2020-07-01&max_date=2023-07-02'
+    url = 'prevalence-by-location?q=lineages:AY.1 AND mutations:S:E484K|lineages:AY.2 AND mutations:S:E484K&min_date=2020-07-01&max_date=2023-07-02'
     url = 'v3/' + url
     result_v3 = endpoints._get_endpoint(url)
     result_v3 = result_v3.json()
@@ -363,6 +363,7 @@ def test_mutations_by_lineage_2_with_and():
     # --- Ex: "mutation=S:E484K,S:S477N" will be used as "S:E484K AND S:S477N"
     # --- Ex: when "mutation=S:E484K AND S:S477N" will be created one ES query for each mutation"
     # - the "AND" operand is considered to split in many queries
+    # In v3 version the logic was inverted when considering "," and "AND" operands.
     url = 'mutations-by-lineage?mutations=S:E484K,S:S477N&location_id=USA'
     result = endpoints._get_endpoint(url)
     result = result.json()
@@ -392,8 +393,13 @@ def test_mutations_by_lineage_2_with_and():
 #     assert endpoints._deep_compare(result['results']['S:E484K,S:S477N'], result_v3['results']['S:E484K AND S:S477N']) == True
 
 def test_mutations_by_lineage_2_with_comma():
-    # url = 'mutations-by-lineage?mutations=S:H146Q,S:R346H&location_id=USA'
-    # url = 'mutations-by-lineage?mutations=S:E484K AND S:S477N&location_id=USA'
+    # WARNING: Changed the way of mutations parameter is used
+    # In the v2 version there are the rules below related to the mutation querystring param:
+    # - the "," character is considered as "AND" operand
+    # --- Ex: "mutation=S:E484K,S:S477N" will be used as "S:E484K AND S:S477N"
+    # --- Ex: when "mutation=S:E484K AND S:S477N" will be created one ES query for each mutation"
+    # - the "AND" operand is considered to split in many queries
+    # In v3 version the logic was inverted when considering "," and "AND" operands.
     url = 'mutations-by-lineage?mutations=S:E484K AND S:S477N&location_id=USA'
     result = endpoints._get_endpoint(url)
     result = result.json()
@@ -407,23 +413,13 @@ def test_mutations_by_lineage_2_with_comma():
     assert endpoints._deep_compare(result['results']['S:S477N'], result_v3['results']['S:S477N']) == True
 
 def test_mutations_by_lineage_2_1_with_comma_lineage_and_date_filter():
-    # TODO: DIFFERENT! Before, in this case we had two keys 'S:S477N' and 'S:E484K'
-    #       Now we have just one key 'S:E484K AND S:S477N'
-    #       Define how the values should be
-    # HERE 0: {'S:S477N', 'S:E484K'} | {'S:E484K AND S:S477N'}
-    # url = 'mutations-by-lineage?mutations=S:E484K%20AND%20S:S477N&pangolin_lineage=BA.2&min_date=2020-07-01&max_date=2020-07-02'
-    # ### Two old queries
-    # ## query OLD
-    # {'size': 0, 'aggs': {'lineage': {'terms': {'field': 'pangolin_lineage', 'size': 10000}, 'aggs': {'mutations': {'filter': {'bool': {'must': [{'nested': {'path': 'mutations', 'query': {'term': {'mutations.mutation': 'S:E484K'}}}}]}}}}}}, 'query': {'term': {'pangolin_lineage': 'BA.2'}}, 'track_total_hits': True}
-    # ## query OLD
-    # {'size': 0, 'aggs': {'lineage': {'terms': {'field': 'pangolin_lineage', 'size': 10000}, 'aggs': {'mutations': {'filter': {'bool': {'must': [{'nested': {'path': 'mutations', 'query': {'term': {'mutations.mutation': 'S:S477N'}}}}]}}}}}}, 'query': {'term': {'pangolin_lineage': 'BA.2'}}, 'track_total_hits': True}
-    # ## Old Endpoint Result
-    # {'success': True, 'results': {'S:E484K': [{'pangolin_lineage': 'ba.2', 'lineage_count': 1240787, 'mutation_count': 16, 'proportion': 1.289504161471711e-05, 'proportion_ci_lower': 7.675252632298663e-06, 'proportion_ci_upper': 2.044060683627565e-05}], 'S:S477N': [{'pangolin_lineage': 'ba.2', 'lineage_count': 1240787, 'mutation_count': 1161902, 'proportion': 0.93642341513894, 'proportion_ci_lower': 0.9359930737759458, 'proportion_ci_upper': 0.9368517204706099}]}}
-    # ### One new query
-    # ## query NEW
-    # {'size': 0, 'aggs': {'lineage': {'terms': {'field': 'pangolin_lineage', 'size': 10000}, 'aggs': {'mutations': {'filter': {'bool': {'must': [{'query_string': {'query': 'mutations: (S\\:E484K AND S\\:S477N)'}}]}}}}}}, 'query': {'term': {'pangolin_lineage': 'BA.2'}}, 'track_total_hits': True}
-    # ## New Endpoint Result
-    # {'success': True, 'results': {'S:E484K AND S:S477N': [{'pangolin_lineage': 'ba.2', 'lineage_count': 1240787, 'mutation_count': 8, 'proportion': 6.447520807358555e-06, 'proportion_ci_lower': 3.0481451620268656e-06, 'proportion_ci_upper': 1.216603523176905e-05}]}}
+    # WARNING: Changed the way of mutations parameter is used
+    # In the v2 version there are the rules below related to the mutation querystring param:
+    # - the "," character is considered as "AND" operand
+    # --- Ex: "mutation=S:E484K,S:S477N" will be used as "S:E484K AND S:S477N"
+    # --- Ex: when "mutation=S:E484K AND S:S477N" will be created one ES query for each mutation"
+    # - the "AND" operand is considered to split in many queries
+    # In v3 version the logic was inverted when considering "," and "AND" operands.
 
     url = 'mutations-by-lineage?mutations=S:E484K AND S:S477N&pangolin_lineage=BA.2&min_date=2020-07-01&max_date=2020-07-02'
     result = endpoints._get_endpoint(url)
