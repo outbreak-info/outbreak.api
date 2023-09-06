@@ -1,5 +1,4 @@
 import web.handlers.v3.genomics.helpers.sequence_count_helper as helper
-
 from web.handlers.v3.genomics.base import BaseHandlerV3
 
 

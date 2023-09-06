@@ -1,5 +1,4 @@
 import web.handlers.v3.genomics.helpers.lineage_mutations_helper as helper
-
 from web.handlers.v3.genomics.base import BaseHandlerV3
 
 
@@ -22,6 +21,8 @@ class LineageMutationsHandler(BaseHandlerV3):
         self.observability.log("es_query_before", query)
         resp = await self.asynchronous_fetch(query=query)
         self.observability.log("es_query_after", query)
-        dict_response = helper.parse_response(resp=resp, frequency=frequency, lineages=lineages, genes=genes)
+        dict_response = helper.parse_response(
+            resp=resp, frequency=frequency, lineages=lineages, genes=genes
+        )
         result = {"success": True, "results": dict_response}
         return result

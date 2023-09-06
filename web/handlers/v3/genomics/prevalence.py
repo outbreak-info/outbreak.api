@@ -1,8 +1,8 @@
-from .util import (
-    transform_prevalence
-)
 import web.handlers.v3.genomics.helpers.prevalence_helper as helper
 from web.handlers.v3.genomics.base import BaseHandlerV3
+
+from .util import transform_prevalence
+
 
 # Get global prevalence of lineage by date
 class GlobalPrevalenceByTimeHandler(BaseHandlerV3):
@@ -11,7 +11,7 @@ class GlobalPrevalenceByTimeHandler(BaseHandlerV3):
     kwargs["GET"] = {
         "pangolin_lineage": {"type": str, "required": False},
         "mutations": {"type": str, "required": False},
-        "cumulative": {"type": bool, "required": False}
+        "cumulative": {"type": bool, "required": False},
     }
 
     async def _get(self):
