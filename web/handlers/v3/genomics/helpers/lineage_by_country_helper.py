@@ -3,7 +3,7 @@ from typing import Dict
 from web.handlers.v3.genomics.util import create_nested_mutation_query
 
 
-def params_adapter(args):
+def params_adapter(args: Dict = None) -> Dict:
     params = {}
     params["pangolin_lineage"] = args.pangolin_lineage or None
     params["mutations"] = args.mutations or None

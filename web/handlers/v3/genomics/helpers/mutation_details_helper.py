@@ -1,7 +1,7 @@
 from typing import Dict
 
 
-def params_adapter(args):
+def params_adapter(args: Dict = None) -> Dict:
     params = {}
     mutations = args.mutations
     params["mutations"] = mutations

@@ -3,7 +3,7 @@ from typing import Dict
 from web.handlers.v3.genomics.util import get_total_hits, parse_location_id_to_query
 
 
-def params_adapter(args):
+def params_adapter(args: Dict = None) -> Dict:
     params = {}
     params["location_id"] = args.location_id or None
     params["cumulative"] = args.cumulative
