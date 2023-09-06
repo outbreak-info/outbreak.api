@@ -19,7 +19,7 @@ def params_adapter(args):
     return params
 
 
-def create_query(mutation, params, size):
+def create_query(mutation: str = None, params: Dict = None, size: int = None) -> Dict:
     query = {
         "size": 0,
         "aggs": {
@@ -44,7 +44,7 @@ def create_query(mutation, params, size):
     return query
 
 
-def parse_response(resp: Dict = None, mutation: str = None, params: Dict = None):
+def parse_response(resp: Dict = None, mutation: str = None, params: Dict = None) -> Dict:
     results = {}
     path_to_results = ["aggregations", "lineage", "buckets"]
     buckets = resp

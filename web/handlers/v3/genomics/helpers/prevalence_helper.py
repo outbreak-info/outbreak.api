@@ -1,3 +1,6 @@
+from typing import Dict
+
+
 def params_adapter(args):
     params = {}
     params["pangolin_lineage"] = args.pangolin_lineage or None
@@ -6,7 +9,7 @@ def params_adapter(args):
     return params
 
 
-def create_query_filter(params):
+def create_query_filter(params: Dict = None) -> Dict:
     lineages = params["pangolin_lineage"]
     mutations = params["mutations"]
     filters = []
@@ -27,7 +30,7 @@ def create_query_filter(params):
     return query_filters
 
 
-def create_query(params, size):
+def create_query(params: Dict = None, size: int = None):
     query_filters = create_query_filter(params)
     query = {
         "size": 0,

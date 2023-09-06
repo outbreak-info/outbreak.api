@@ -11,7 +11,7 @@ def params_adapter(args):
     return params
 
 
-def create_query(params, size):
+def create_query(params: Dict = None, size: int = None) -> Dict:
     query = {}
     if params["location_id"] is not None:
         query["query"] = parse_location_id_to_query(params["location_id"])
@@ -31,7 +31,7 @@ def create_query(params, size):
     return query
 
 
-def parse_response(resp: Dict = None, params: Dict = None):
+def parse_response(resp: Dict = None, params: Dict = None) -> Dict:
     flattened_response = []
     if not params["cumulative"]:
         path_to_results = ["aggregations", "date", "buckets"]

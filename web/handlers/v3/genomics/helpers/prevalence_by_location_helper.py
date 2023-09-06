@@ -81,7 +81,7 @@ def create_query(idx, params, size):
     return query
 
 
-def create_query_q(idx, params, size):
+def create_query_q(idx: int = None, params: Dict = None, size: int = None) -> Dict:
     query = {
         "size": 0,
         "aggs": {
@@ -125,7 +125,7 @@ def create_query_q(idx, params, size):
     return query
 
 
-def parse_response(resp: Dict = None, idx: int = 0, params: Dict = None):
+def parse_response(resp: Dict = None, idx: int = 0, params: Dict = None) -> Dict:
     results = {}
     path_to_results = ["aggregations", "prevalence", "count", "buckets"]
     resp = transform_prevalence(resp, path_to_results, params["cumulative"])
@@ -146,7 +146,7 @@ def parse_response(resp: Dict = None, idx: int = 0, params: Dict = None):
     return results
 
 
-def parse_response_q(resp: Dict = None, idx: int = 0, params: Dict = None):
+def parse_response_q(resp: Dict = None, idx: int = 0, params: Dict = None) -> Dict:
     results = {}
     path_to_results = ["aggregations", "prevalence", "count", "buckets"]
     resp = transform_prevalence(resp, path_to_results, params["cumulative"])
