@@ -13,7 +13,9 @@ def params_adapter(args):
     params = {}
     if args.q is not None:
         params["q"] = args.q or None
-        params["q_list"] = args.q.split(",") if args.q is not None else []
+
+        queries_delimiter = "|"
+        params["q_list"] = args.q.split(queries_delimiter) if args.q is not None else []
 
         params["query_string_list"] = []
         for q in params["q_list"]:
