@@ -10,7 +10,7 @@ def params_adapter(args):
     return params
 
 
-def create_query(params, size):
+def create_query(params: Dict = None, size: int = None) -> Dict:
     query = {
         "aggs": {
             "prevalence": {

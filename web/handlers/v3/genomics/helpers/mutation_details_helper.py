@@ -8,13 +8,13 @@ def params_adapter(args):
     return params
 
 
-def create_query_filter(params):
+def create_query_filter(params: Dict = None) -> Dict:
     mutations = params["mutations"].replace(":", "\\:")
     query_filters = "mutation: ({})".format(mutations)
     return query_filters
 
 
-def create_query(params):
+def create_query(params: Dict = None) -> Dict:
     query_filters = create_query_filter(params)
     query = {
         "size": 0,
