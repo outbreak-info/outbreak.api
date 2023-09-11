@@ -56,23 +56,6 @@ def create_query_filter_key(lineages="", mutations="", locations=""):
         query_filters = "*"
     return query_filters
 
-def create_nested_mutation_query(location_id=None, lineages="", mutations=""):
-    query_filters = create_query_filter(
-        lineages=lineages, mutations=mutations, locations=location_id
-    )
-    query_obj = {
-        "bool": {
-            "must": [
-                {
-                    "query_string": {
-                        "query": query_filters  # Ex: "(pangolin_lineage:BA.2) AND (mutations: S\\:E484K OR S\\:L18F)"
-                    }
-                }
-            ]
-        }
-    }
-    return query_obj
-
 
 def parse_location_id_to_query(query_id, query_obj=None):
     if query_id == None:

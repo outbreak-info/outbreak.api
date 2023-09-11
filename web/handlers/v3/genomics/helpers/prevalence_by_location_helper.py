@@ -2,7 +2,7 @@ import re
 from typing import Dict
 
 from web.handlers.v3.genomics.util import (
-    create_nested_mutation_query,
+    create_query_filter,
     create_query_filter_key,
     parse_location_id_to_query,
     transform_prevalence,
@@ -75,9 +75,25 @@ def create_query(idx: int = None, params: Dict = None, size: int = None) -> Dict
         params["pangolin_lineage"][idx] if params["pangolin_lineage"][idx] is not None else ""
     )
     mutations = params["mutations"] if params["mutations"] is not None else ""
-    query_obj = create_nested_mutation_query(
-        lineages=lineages, mutations=mutations, location_id=params["location_id"]
+    # query_obj = create_nested_mutation_query(
+    #     lineages=lineages, mutations=mutations, location_id=params["location_id"]
+    # )
+    # query["aggs"]["prevalence"]["aggs"]["count"]["aggs"]["lineage_count"]["filter"] = query_obj
+
+    query_filters = create_query_filter(
+        lineages=lineages, mutations=mutations, locations=params["location_id"]
     )
+    query_obj = {
+        "bool": {
+            "must": [
+                {
+                    "query_string": {
+                        "query": query_filters  # Ex: "(pangolin_lineage:BA.2) AND (mutations: S\\:E484K OR S\\:L18F)"
+                    }
+                }
+            ]
+        }
+    }
     query["aggs"]["prevalence"]["aggs"]["count"]["aggs"]["lineage_count"]["filter"] = query_obj
 
     return query
