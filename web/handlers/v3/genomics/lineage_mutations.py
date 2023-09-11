@@ -6,7 +6,8 @@ class LineageMutationsHandler(BaseHandlerV3):
     name = "lineage-mutations-v3"
     kwargs = dict(BaseHandlerV3.kwargs)
     kwargs["GET"] = {
-        "lineages": {"type": str, "required": True},
+        "pangolin_lineage": {"type": str},
+        "lineages": {"type": str},
         "mutations": {"type": str},
         "frequency": {"type": float, "default": 0.8, "min": 0, "max": 1},
         "gene": {"type": str, "default": None},
@@ -14,6 +15,8 @@ class LineageMutationsHandler(BaseHandlerV3):
 
     async def _get(self):
         lineages = self.args.lineages if self.args.lineages else ""
+        if lineages is None or lineages == "":
+            lineages = self.args.pangolin_lineage if self.args.pangolin_lineage else ""
         mutations = self.args.mutations if self.args.mutations else ""
         frequency = self.args.frequency
         genes = self.args.gene.lower().split(",") if self.args.gene else []

@@ -35,6 +35,26 @@ def create_query_filter(lineages="", mutations="", locations=""):
         query_filters = "*"
     return query_filters
 
+# TODO: Improve this function
+def create_query_filter_key(lineages="", mutations="", locations=""):
+    filters = []
+    if lineages and len(lineages) > 0 and mutations and len(mutations) > 0:
+        lineages = "({})".format(lineages)
+        filters.append(lineages)
+        mutations = "({})".format(mutations)
+        filters.append(mutations)
+    else:
+        if lineages and len(lineages) > 0:
+            lineages = "{}".format(lineages)
+            filters.append(lineages)
+        if mutations and len(mutations) > 0:
+            mutations = "{}".format(mutations)
+            filters.append(mutations)
+    query_filters = " AND ".join(filters)
+
+    if not lineages and not mutations and not locations:
+        query_filters = "*"
+    return query_filters
 
 def create_nested_mutation_query(location_id=None, lineages="", mutations=""):
     query_filters = create_query_filter(

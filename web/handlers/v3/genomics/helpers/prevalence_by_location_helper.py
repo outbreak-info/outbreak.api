@@ -3,7 +3,7 @@ from typing import Dict
 
 from web.handlers.v3.genomics.util import (
     create_nested_mutation_query,
-    create_query_filter,
+    create_query_filter_key,
     parse_location_id_to_query,
     transform_prevalence,
 )
@@ -136,14 +136,14 @@ def parse_response(resp: Dict = None, idx: int = 0, params: Dict = None) -> Dict
     )
     mutations = params["mutations"] if params["mutations"] is not None else ""
     # TODO: Trying to keep a similar behavior for `res_key` for now.
-    res_key = create_query_filter(
+    res_key = create_query_filter_key(
         lineages=lineages, mutations=mutations, locations=params["location_id"]
     )
-    res_key = res_key.replace("pangolin_lineage: ", "")
-    res_key = res_key.replace("mutations: ", "")
-    res_key = res_key.replace("country_id: ", "")
-    res_key = res_key.replace("\\", "")
-    # res_key = res_key[1:-1]
+    # res_key = res_key.replace("pangolin_lineage: ", "")
+    # res_key = res_key.replace("mutations: ", "")
+    # res_key = res_key.replace("country_id: ", "")
+    # res_key = res_key.replace("\\", "")
+    # # res_key = res_key[1:-1]
     results[res_key] = resp
     return results
 

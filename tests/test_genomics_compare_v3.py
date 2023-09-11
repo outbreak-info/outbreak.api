@@ -78,7 +78,7 @@ def test_prev_by_location_2():
     result_v3 = endpoints._get_endpoint(url)
     result_v3 = result_v3.json()
 
-    assert endpoints._deep_compare(result["results"]["BA.2"], result_v3["results"]["(BA.2)"])
+    assert endpoints._deep_compare(result["results"]["BA.2"], result_v3["results"]["BA.2"])
 
 
 def test_prev_by_location_2_with_location_id():
@@ -92,17 +92,14 @@ def test_prev_by_location_2_with_location_id():
     result_v3 = endpoints._get_endpoint(url)
     result_v3 = result_v3.json()
 
-    # assert endpoints._deep_compare(result['results']['BA.2'], result_v3['results']['(BA.2) AND (USA)'])
-    assert endpoints._deep_compare(result["results"]["BA.2"], result_v3["results"]["(BA.2)"])
+    assert endpoints._deep_compare(result["results"]["BA.2"], result_v3["results"]["BA.2"])
 
 
 def test_prev_by_location_2_1():
-    # WARNING FIXED: The result key was changed from 'BA.2' to '(BA.2) AND (USA)'
-    # Before it's considering lineages and mutations as key.
-    # Now it's considering all variables, including country/location.
+    # WARNING FIXED: The result key was changed from 'BA.2' to '(BA.2)'
     # The result key value changed:
     #   from 'BA.2'
-    #   to '(BA.2) AND (USA)'
+    #   to '(BA.2)'
 
     url = "prevalence-by-location?pangolin_lineage=BA.2&location_id=USA"
     result = endpoints._get_endpoint(url)
@@ -112,18 +109,10 @@ def test_prev_by_location_2_1():
     result_v3 = endpoints._get_endpoint(url)
     result_v3 = result_v3.json()
 
-    # assert endpoints._deep_compare(result['results']['BA.2'], result_v3['results']['(BA.2) AND (USA)'])
-    assert endpoints._deep_compare(result["results"]["BA.2"], result_v3["results"]["(BA.2)"])
+    assert endpoints._deep_compare(result["results"]["BA.2"], result_v3["results"]["BA.2"])
 
 
 def test_prev_by_location_2_2_with_mutations():
-    # WARNING FIXED: The result key was changed from '(BA.2) AND (S:D614G)' to '(BA.2) AND (S:D614G) AND (USA)'
-    # Before it's considering lineages and mutations as key.
-    # Now it's considering all variables, including country/location.
-    # The result key value changed:
-    #   from '(BA.2) AND (S:D614G)'
-    #   to '(BA.2) AND (S:D614G) AND (USA)'
-
     url = "prevalence-by-location?pangolin_lineage=BA.2&mutations=S:D614G&location_id=USA"
     result = endpoints._get_endpoint(url)
     result = result.json()
@@ -132,20 +121,12 @@ def test_prev_by_location_2_2_with_mutations():
     result_v3 = endpoints._get_endpoint(url)
     result_v3 = result_v3.json()
 
-    # assert endpoints._deep_compare(result['results']['(BA.2) AND (S:D614G)'], result_v3['results']['(BA.2) AND (S:D614G) AND (USA)'])
     assert endpoints._deep_compare(
         result["results"]["(BA.2) AND (S:D614G)"], result_v3["results"]["(BA.2) AND (S:D614G)"]
     )
 
 
 def test_prev_by_location_2_2_with_mutations_1():
-    # WARNING FIXED: The result key was changed from '(BA.2) AND (S:D614G)' to '(BA.2) AND (S:D614G) AND (USA)'
-    # Before it's considering lineages and mutations as key.
-    # Now it's considering all variables, including country/location.
-    # The result key value changed:
-    #   from '(BA.2) AND (S:D614G)'
-    #   to '(BA.2) AND (S:D614G) AND (USA)'
-
     url = (
         "prevalence-by-location?pangolin_lineage=BA.2&mutations=S:D614G AND S:R21T&location_id=USA"
     )
@@ -156,7 +137,6 @@ def test_prev_by_location_2_2_with_mutations_1():
     result_v3 = endpoints._get_endpoint(url)
     result_v3 = result_v3.json()
 
-    # assert endpoints._deep_compare(result['results']['(BA.2) AND (S:D614G AND S:R21T)'], result_v3['results']['(BA.2) AND (S:D614G AND S:R21T) AND (USA)'])
     assert endpoints._deep_compare(
         result["results"]["(BA.2) AND (S:D614G AND S:R21T)"],
         result_v3["results"]["(BA.2) AND (S:D614G AND S:R21T)"],
@@ -175,10 +155,10 @@ def test_prev_by_location_2_3():
     result_v3 = result_v3.json()
 
     assert (
-        endpoints._deep_compare(result["results"]["BA.1"], result_v3["results"]["(BA.1)"]) == True
+        endpoints._deep_compare(result["results"]["BA.1"], result_v3["results"]["BA.1"]) == True
     )
     assert (
-        endpoints._deep_compare(result["results"]["BA.2"], result_v3["results"]["(BA.2)"]) == True
+        endpoints._deep_compare(result["results"]["BA.2"], result_v3["results"]["BA.2"]) == True
     )
 
 
@@ -196,10 +176,10 @@ def test_prev_by_location_2_4():
     result_v3 = result_v3.json()
 
     assert (
-        endpoints._deep_compare(result["results"]["BA.1"], result_v3["results"]["(BA.1)"]) == True
+        endpoints._deep_compare(result["results"]["BA.1"], result_v3["results"]["BA.1"]) == True
     )
     assert (
-        endpoints._deep_compare(result["results"]["BA.2"], result_v3["results"]["(BA.2)"]) == True
+        endpoints._deep_compare(result["results"]["BA.2"], result_v3["results"]["BA.2"]) == True
     )
 
 
@@ -217,10 +197,10 @@ def test_prev_by_location_2_4_1():
     result_v3 = result_v3.json()
 
     assert (
-        endpoints._deep_compare(result["results"]["BA.1"], result_v3["results"]["(BA.1)"]) == True
+        endpoints._deep_compare(result["results"]["BA.1"], result_v3["results"]["BA.1"]) == True
     )
     assert (
-        endpoints._deep_compare(result["results"]["BA.2"], result_v3["results"]["(BA.2)"]) == True
+        endpoints._deep_compare(result["results"]["BA.2"], result_v3["results"]["BA.2"]) == True
     )
 
 
@@ -246,7 +226,7 @@ def test_prev_by_location_2_4_3():
     result_v3 = result_v3.json()
     endpoints._test_success(result_v3, url)
 
-    assert result_v3["results"]["(BA.1 OR BA.2)"] is not None
+    assert result_v3["results"]["BA.1 OR BA.2"] is not None
 
 
 def test_prev_by_location_2_4_4():
@@ -259,8 +239,8 @@ def test_prev_by_location_2_4_4():
     result_v3 = result_v3.json()
     endpoints._test_success(result_v3, url)
 
-    assert result_v3["results"]["(BA.1 OR BA.2)"] is not None
-    assert result_v3["results"]["(AY.1 OR AY.2)"] is not None
+    assert result_v3["results"]["BA.1 OR BA.2"] is not None
+    assert result_v3["results"]["AY.1 OR AY.2"] is not None
 
 
 def test_prev_by_location_2_4_5():
@@ -403,13 +383,31 @@ def test_heavy_query():
     for lineage in pangolin_lineages.split(","):
         assert (
             endpoints._deep_compare(
-                result["results"][lineage], result_v3["results"]["(" + lineage + ")"]
+                result["results"][lineage], result_v3["results"][lineage]
             )
             == True
         )
 
 
 def test_mutation_details():
+    # WARNING: v3 has two more fields in the result
+    #       "id": "14749560_ORF1a:P3395H_CAC_10448",
+    #       "is_synyonymous": False,
+    # Remove these fields from datasource. For now it was removed
+    # in the handler
+
+    url = "mutation-details?mutations=ORF1a:A735A,ORF1a:P3395H"
+    result = endpoints._get_endpoint(url)
+    result = result.json()
+
+    url = "mutation-details?mutations=ORF1a:A735A,ORF1a:P3395H"
+    url = "v3/" + url
+    result_v3 = endpoints._get_endpoint(url)
+    result_v3 = result_v3.json()
+
+    assert endpoints._deep_compare(result, result_v3) == True
+
+def test_mutation_details_2():
     # WARNING: v3 has two more fields in the result
     #       "id": "14749560_ORF1a:P3395H_CAC_10448",
     #       "is_synyonymous": False,
@@ -590,17 +588,22 @@ def test_mutations():
     assert endpoints._deep_compare(result, result_v3) == True
 
 
-def test_lineages_mutations():
+def test_lineages_mutations_a():
     # WARNING: LITTLE DIFFERENCE!
-    # The result contains few different items
+    # Changed from string "None" to None
     url = "lineage-mutations?pangolin_lineage=BA.2"
     result = endpoints._get_endpoint(url)
     result = result.json()
 
-    url = "lineage-mutations?lineages=BA.2"
+    url = "lineage-mutations?pangolin_lineage=BA.2"
     url = "v3/" + url
     result_v3 = endpoints._get_endpoint(url)
     result_v3 = result_v3.json()
+
+    url = "lineage-mutations?lineages=BA.2"
+    url = "v3/" + url
+    result_v3_new = endpoints._get_endpoint(url)
+    result_v3_new = result_v3_new.json()
 
     mutation = next(
         (d for d in result["results"]["BA.2"] if d.get("mutation") == "orf6:d61l"), None
@@ -608,12 +611,16 @@ def test_lineages_mutations():
     mutation_v3 = next(
         (d for d in result_v3["results"]["BA.2"] if d.get("mutation") == "orf6:d61l"), None
     )
+    mutation_v3_new = next(
+        (d for d in result_v3_new["results"]["BA.2"] if d.get("mutation") == "orf6:d61l"), None
+    )
     assert endpoints._deep_compare(mutation, mutation_v3) == True
+    assert endpoints._deep_compare(mutation, mutation_v3_new) == True
 
 
 def test_lineages_mutations_1():
     # WARNING: LITTLE DIFFERENCE!
-    # The result contains few different items
+    # Changed from string "None" to None
     url = "lineage-mutations?pangolin_lineage=BA.2&mutations=S:D614G&frequency=0&gene=ORF1a,ORF1b,S,ORF7b"
     result = endpoints._get_endpoint(url)
     result = result.json()
@@ -651,6 +658,36 @@ def test_lineages_mutations_2():
         None,
     )
     assert endpoints._deep_compare(mutation, mutation_v3) == True
+
+
+def test_seq_counts_1():
+    url = "sequence-count"
+    result = endpoints._generic_api_test(url)
+
+    url = "v3/" + url
+    result_v3 = endpoints._generic_api_test(url)
+
+    assert endpoints._deep_compare(result, result_v3) == True
+
+
+def test_seq_counts_2_1():
+    url = "sequence-count?location_id=USA&cumulative=true&subadmin=true"
+    result = endpoints._generic_api_test(url)
+
+    url = "v3/" + url
+    result_v3 = endpoints._generic_api_test(url)
+
+    assert endpoints._deep_compare(result, result_v3) == True
+
+
+def test_seq_counts_2_2():
+    url = "sequence-count?location_id=USA_US-CA"
+    result = endpoints._generic_api_test(url)
+
+    url = "v3/" + url
+    result_v3 = endpoints._generic_api_test(url)
+
+    assert endpoints._deep_compare(result, result_v3) == True
 
 
 # # ################################################
@@ -721,8 +758,8 @@ def test_prev_by_location_2_v3():
     assert len(res_json["results"]), f"{url} no results"
     # assert res_json['results'].get('(BA.2) AND (USA)'), f"{url} no BA.2"
     # assert len(res_json['results']['(BA.2) AND (USA)']), f"{url} no results for BA.2"
-    assert res_json["results"].get("(BA.2)"), f"{url} no BA.2"
-    assert len(res_json["results"]["(BA.2)"]), f"{url} no results for BA.2"
+    assert res_json["results"].get("BA.2"), f"{url} no BA.2"
+    assert len(res_json["results"]["BA.2"]), f"{url} no results for BA.2"
 
 
 def test_prev_by_location_2_1_v3():
@@ -842,7 +879,7 @@ ENDPOINTS_TESTED = [
     "mutations-by-lineage"
     "mutation-details"
     "global-prevalence"
-    # 'sequence-count'
+    'sequence-count'
     "lineage-mutations"
 ]
 
