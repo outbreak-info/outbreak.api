@@ -23,36 +23,32 @@ def gene_mapping() -> Dict:
     return gene_mapping
 
 
-# def create_query(lineages = "", mutations = ""):
-#     if len(lineages) > 0:
-#         lineages = "pangolin_lineage.keyword: ({})".format(lineages)
-#     if len(mutations) > 0:
-#         mutations = mutations.replace(":","\\:")
-#         mutations = "mutations.keyword: ({})".format(mutations)
-#     query_filters = " AND ".join([lineages, mutations])
+def params_adapter(args: Dict = None) -> Dict:
+    params = {}
+    if args.q is not None:
+        params["q"] = args.q or None
 
-#     search = Search()
-#     search = search.extra(size=0, track_total_hits=True)
+        queries_delimiter = "|"
+        params["q_list"] = args.q.split(queries_delimiter) if args.q is not None else []
 
-#     # Create the bool query
-#     bool_query = Q(
-#         "query_string",
-#         query=query_filters
-#     )
+        params["query_string_list"] = []
+        for q in params["q_list"]:
+            q_formatted = q.replace("lineages", "pangolin_lineage")
+            keywords = ["mutations", "pangolin_lineage"]
+            pattern = rf'({"|".join(keywords)}):|:'
+            q_formatted = re.sub(
+                pattern, lambda match: match.group(0) if match.group(1) else r"\:", q_formatted
+            )
+            params["query_string_list"].append(q_formatted)
 
-#     # Add the bool query to the filter
-#     search = search.query("bool", filter=bool_query)
+    params["lineages"] = args.lineages if args.lineages else ""
+    if params["lineages"] is None or params["lineages"] == "":
+        params["lineages"] = args.pangolin_lineage if args.pangolin_lineage else ""
+    params["mutations"] = args.mutations if args.mutations else ""
+    params["frequency"] = args.frequency
+    params["genes"] = args.gene.lower().split(",") if args.gene else []
 
-#     # Add the terms aggregation for lineages
-#     search.aggs.bucket("lineages", "terms", field="pangolin_lineage.keyword")
-
-#     # Add the terms aggregation for mutations within each lineage
-#     search.aggs["lineages"].bucket("mutations", "terms", field="mutations.keyword", size=2)
-
-#     print("##### search.to_dict")
-#     print(search.to_dict)
-
-#     return search
+    return params
 
 
 def create_query_filter(lineages: str = "", mutations: str = "") -> Dict:

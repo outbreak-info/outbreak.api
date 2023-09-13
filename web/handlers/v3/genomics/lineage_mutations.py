@@ -14,18 +14,13 @@ class LineageMutationsHandler(BaseHandlerV3):
     }
 
     async def _get(self):
-        lineages = self.args.lineages if self.args.lineages else ""
-        if lineages is None or lineages == "":
-            lineages = self.args.pangolin_lineage if self.args.pangolin_lineage else ""
-        mutations = self.args.mutations if self.args.mutations else ""
-        frequency = self.args.frequency
-        genes = self.args.gene.lower().split(",") if self.args.gene else []
-        query = helper.create_query(lineages=lineages, mutations=mutations)
+        params = helper.params_adapter(self.args)
+        query = helper.create_query(lineages=params["lineages"], mutations=params["mutations"])
         self.observability.log("es_query_before", query)
         resp = await self.asynchronous_fetch(query=query)
         self.observability.log("es_query_after", query)
         dict_response = helper.parse_response(
-            resp=resp, frequency=frequency, lineages=lineages, genes=genes
+            resp=resp, frequency=params["frequency"], lineages=params["lineages"], genes=params["genes"]
         )
         result = {"success": True, "results": dict_response}
         return result
