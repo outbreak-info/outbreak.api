@@ -13,12 +13,18 @@ def params_adapter(args: Dict = None) -> Dict:
 
 def create_query(params: Dict = None, size: int = None) -> Dict:
     query = {}
+    query["size"] = 0
     if params["location_id"] is not None:
         query["query"] = parse_location_id_to_query(params["location_id"])
 
     if not params["cumulative"]:
         query["aggs"] = {"date": {"terms": {"field": "date_collected", "size": size}}}
     else:
+        if "query" not in query:
+            query["query"] = {"exists": {"field": "pangolin_lineage"}}
+        else:
+            query["query"]["bool"]["must"].append({"exists": {"field": "pangolin_lineage"}})
+
         if params["subadmin"]:
             subadmin = None
             if params["location_id"] is None:
