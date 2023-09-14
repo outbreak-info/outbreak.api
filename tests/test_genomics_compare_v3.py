@@ -183,6 +183,27 @@ def test_prev_by_location_2_4():
     )
 
 
+def test_prev_by_location_2_5():
+    # WARNING: The key in the result was changed adding parenthesis.
+    # Ex: from 'BA.1' to '(BA.1)'
+    url = (
+        "prevalence-by-location?cumulative=true&pangolin_lineage=XBB.1.16,FU.1,FU.2,FU.2.1,FU.3,FU.3.1,FU.4,FU.5,GY.1,GY.2,GY.2.1,GY.3,GY.4,GY.5,GY.6,GY.7,GY.8,HF.1,HF.1.1,HF.1.2,JF.1,JF.2,XBB.1.16.1,XBB.1.16.2,XBB.1.16.3,XBB.1.16.4,XBB.1.16.5,XBB.1.16.6,XBB.1.16.7,XBB.1.16.8,XBB.1.16.9,XBB.1.16.10,XBB.1.16.11,XBB.1.16.12,XBB.1.16.13,XBB.1.16.14,XBB.1.16.15,XBB.1.16.16,XBB.1.16.17,XBB.1.16.18,XBB.1.16.19,XBB.1.16.20,XBB.1.16.21,XBB.1.16.22,XBB.1.16.23,XBB.1.16.24"
+    )
+    result = endpoints._get_endpoint(url)
+    result = result.json()
+
+    url = "v3/" + url
+    result_v3 = endpoints._get_endpoint(url)
+    result_v3 = result_v3.json()
+
+    assert (
+        endpoints._deep_compare(result["results"]["XBB.1.16"], result_v3["results"]["XBB.1.16"]) == True
+    )
+    assert (
+        endpoints._deep_compare(result["results"]["FU.1"], result_v3["results"]["FU.1"]) == True
+    )
+
+
 def test_prev_by_location_2_4_1():
     # WARNING: The key in the result was changed adding parenthesis.
     # Ex: from 'BA.1' to '(BA.1)'
@@ -201,6 +222,25 @@ def test_prev_by_location_2_4_1():
     )
     assert (
         endpoints._deep_compare(result["results"]["BA.2"], result_v3["results"]["BA.2"]) == True
+    )
+
+
+def test_prev_by_location_2_4_22():
+    # WARNING: The key in the result was changed adding parenthesis.
+    # Ex: from 'BA.1' to '(BA.1)'
+    url = (
+        # "prevalence-by-location?pangolin_lineage=XBB.1.16%20OR%20FU.1%20OR%20FU.2%20OR%20FU.2.1%20OR%20FU.3%20OR%20FU.3.1%20OR%20FU.4%20OR%20FU.5%20OR%20GY.1%20OR%20GY.2%20OR%20GY.2.1%20OR%20GY.3%20OR%20GY.4%20OR%20GY.5%20OR%20GY.6%20OR%20GY.7%20OR%20GY.8%20OR%20HF.1%20OR%20HF.1.1%20OR%20HF.1.2%20OR%20JF.1%20OR%20JF.2%20OR%20XBB.1.16.1%20OR%20XBB.1.16.2%20OR%20XBB.1.16.3%20OR%20XBB.1.16.4%20OR%20XBB.1.16.5%20OR%20XBB.1.16.6%20OR%20XBB.1.16.7%20OR%20XBB.1.16.8%20OR%20XBB.1.16.9%20OR%20XBB.1.16.10%20OR%20XBB.1.16.11%20OR%20XBB.1.16.12%20OR%20XBB.1.16.13%20OR%20XBB.1.16.14%20OR%20XBB.1.16.15%20OR%20XBB.1.16.16%20OR%20XBB.1.16.17%20OR%20XBB.1.16.18%20OR%20XBB.1.16.19%20OR%20XBB.1.16.20%20OR%20XBB.1.16.21%20OR%20XBB.1.16.22%20OR%20XBB.1.16.23%20OR%20XBB.1.16.24&location_id=USA_US-CA&cumulative=true"
+        "prevalence-by-location?pangolin_lineage=XBB.1.16%20OR%20FU.1&location_id=USA_US-CA&cumulative=true"
+    )
+    result = endpoints._get_endpoint(url)
+    result = result.json()
+
+    url = "v3/" + url
+    result_v3 = endpoints._get_endpoint(url)
+    result_v3 = result_v3.json()
+
+    assert (
+        endpoints._deep_compare(result["results"]["XBB.1.16 OR FU.1"], result_v3["results"]["XBB.1.16 OR FU.1"]) == True
     )
 
 
@@ -257,7 +297,7 @@ def test_prev_by_location_2_4_5():
     assert result_v3["results"]["(AY.1 OR AY.2) AND (s:n764k OR ORF1a:A735A)"] is not None
 
 
-def test_prev_by_location_3():
+def test_prev_by_location_q_3():
     # WARNING: This is a new functionallity.
     # Now it's possible to create logical query
     # Ex: lineages:AY.1
@@ -276,7 +316,7 @@ def test_prev_by_location_3():
     )
 
 
-def test_prev_by_location_3_with_mutations():
+def test_prev_by_location_q_3_with_mutations():
     # WARNING: This is a new functionallity.
     # Now it's possible to create logical query
     # Ex: lineages:AY.1 AND mutations:S:E484K
@@ -298,10 +338,10 @@ def test_prev_by_location_3_with_mutations():
     )
 
 
-def test_prev_by_location_3_1():
+def test_prev_by_location_q_3_1():
     # WARNING: This is a new functionallity.
     # Now it's possible to create a list of logical queries
-    # Ex: lineages:AY.1,lineages:AY.2
+    # Ex: lineages:AY.1|lineages:AY.2
     url = (
         "prevalence-by-location?pangolin_lineage=AY.1,AY.2&min_date=2020-07-01&max_date=2023-07-02"
     )
@@ -323,10 +363,10 @@ def test_prev_by_location_3_1():
     )
 
 
-def test_prev_by_location_3_1_with_mutations():
+def test_prev_by_location_q_3_1_with_mutations():
     # WARNING: This is a new functionallity.
     # Now it's possible to create a list of logical queries
-    # Ex: lineages:AY.1,lineages:AY.2
+    # Ex: lineages:AY.1|lineages:AY.2
     url = "prevalence-by-location?pangolin_lineage=AY.1,AY.2&mutations=S:E484K&min_date=2020-07-01&max_date=2023-07-02"
     result = endpoints._get_endpoint(url)
     result = result.json()
@@ -352,7 +392,7 @@ def test_prev_by_location_3_1_with_mutations():
     )
 
 
-def test_prev_by_location_3_2():
+def test_prev_by_location_q_3_2():
     # WARNING: This is a new functionallity.
     # Now it's possible to use a list of logic operators.
     # Ex: BA.1 OR BA.2,AY.1 OR AY.2
@@ -588,7 +628,7 @@ def test_mutations():
     assert endpoints._deep_compare(result, result_v3) == True
 
 
-def test_lineages_mutations_a():
+def test_lineage_mutations_a():
     # WARNING: LITTLE DIFFERENCE!
     # Changed from string "None" to None
     url = "lineage-mutations?pangolin_lineage=BA.2"
@@ -618,7 +658,7 @@ def test_lineages_mutations_a():
     assert endpoints._deep_compare(mutation, mutation_v3_new) == True
 
 
-def test_lineages_mutations_1():
+def test_lineage_mutations_1():
     # WARNING: LITTLE DIFFERENCE!
     # Changed from string "None" to None
     url = "lineage-mutations?pangolin_lineage=BA.2&mutations=S:D614G&frequency=0&gene=ORF1a,ORF1b,S,ORF7b"
@@ -639,7 +679,7 @@ def test_lineages_mutations_1():
     assert endpoints._deep_compare(mutation, mutation_v3) == True
 
 
-def test_lineages_mutations_2():
+def test_lineage_mutations_2():
     url = "lineage-mutations?pangolin_lineage=B.1.427%20OR%20B.1.429&frequency=1"
     result = endpoints._get_endpoint(url)
     result = result.json()
@@ -660,32 +700,127 @@ def test_lineages_mutations_2():
     assert endpoints._deep_compare(mutation, mutation_v3) == True
 
 
+def test_lineage_mutations_with_q():
+    url = "lineage-mutations?pangolin_lineage=BA.2&mutations=S:D614G&frequency=0&gene=ORF1a,ORF1b,S,ORF7b"
+    result = endpoints._get_endpoint(url)
+    result = result.json()
+
+    url = "lineage-mutations?q=lineages:BA.2 AND mutations:S:D614G&frequency=0&gene=ORF1a,ORF1b,S,ORF7b"
+    url = "v3/" + url
+    result_v3 = endpoints._get_endpoint(url)
+    result_v3 = result_v3.json()
+
+    mutation = next(
+        (d for d in result["results"]["BA.2"] if d.get("mutation") == "s:l24s"),
+        None,
+    )
+    mutation_v3 = next(
+        (d for d in result_v3["results"]["lineages:BA.2 AND mutations:S:D614G"] if d.get("mutation") == "s:l24s"),
+        None,
+    )
+    mutation_v3["lineage"] = "BA.2"
+
+    assert mutation != None
+    assert mutation_v3 != None
+    assert endpoints._deep_compare(mutation, mutation_v3) == True
+
+
+def test_lineage_mutations_with_q_1():
+    # WARNING: LITTLE DIFFERENCE!
+    # Changed from string "None" to None
+    url = "lineage-mutations?pangolin_lineage=BA.2&mutations=S:D614G&frequency=0&gene=ORF1a,ORF1b,S,ORF7b"
+    result = endpoints._get_endpoint(url)
+    result = result.json()
+
+    url = "lineage-mutations?q=lineages:BA.2 AND mutations:S:D614G&frequency=0&gene=ORF1a,ORF1b,S,ORF7b"
+    url = "v3/" + url
+    result_v3 = endpoints._get_endpoint(url)
+    result_v3 = result_v3.json()
+
+    mutation = next(
+        (d for d in result["results"]["BA.2"] if d.get("mutation") == "s:l24s"),
+        None,
+    )
+    mutation_v3 = next(
+        (d for d in result_v3["results"]["lineages:BA.2 AND mutations:S:D614G"] if d.get("mutation") == "s:l24s"),
+        None,
+    )
+    mutation_v3["lineage"] = "BA.2"
+
+    assert mutation != None
+    assert mutation_v3 != None
+    assert endpoints._deep_compare(mutation, mutation_v3) == True
+
+
+def test_lineage_mutations_with_q_2():
+    url = "lineage-mutations?pangolin_lineage=B.1.427%20OR%20B.1.429"
+    result = endpoints._get_endpoint(url)
+    result = result.json()
+
+    url = "lineage-mutations?q=lineages:(B.1.427 OR B.1.429)"
+    url = "v3/" + url
+    result_v3 = endpoints._get_endpoint(url)
+    result_v3 = result_v3.json()
+
+    mutation = next(
+        (d for d in result["results"]["B.1.427 OR B.1.429"] if d.get("mutation") == "s:d614g"),
+        None,
+    )
+    mutation_v3 = next(
+        (d for d in result_v3["results"]["lineages:(B.1.427 OR B.1.429)"] if d.get("mutation") == "s:d614g"),
+        None,
+    )
+    mutation_v3["lineage"] = "B.1.427 OR B.1.429"
+
+    assert mutation != None
+    assert mutation_v3 != None
+    assert endpoints._deep_compare(mutation, mutation_v3) == True
+
+
 def test_seq_counts_1():
     url = "sequence-count"
-    result = endpoints._generic_api_test(url)
+    result = endpoints._get_endpoint(url)
+    result = result.json()
 
     url = "v3/" + url
-    result_v3 = endpoints._generic_api_test(url)
+    result_v3 = endpoints._get_endpoint(url)
+    result_v3 = result_v3.json()
 
     assert endpoints._deep_compare(result, result_v3) == True
 
 
 def test_seq_counts_2_1():
     url = "sequence-count?location_id=USA&cumulative=true&subadmin=true"
-    result = endpoints._generic_api_test(url)
+    result = endpoints._get_endpoint(url)
+    result = result.json()
 
     url = "v3/" + url
-    result_v3 = endpoints._generic_api_test(url)
+    result_v3 = endpoints._get_endpoint(url)
+    result_v3 = result_v3.json()
 
     assert endpoints._deep_compare(result, result_v3) == True
 
 
 def test_seq_counts_2_2():
     url = "sequence-count?location_id=USA_US-CA"
-    result = endpoints._generic_api_test(url)
+    result = endpoints._get_endpoint(url)
+    result = result.json()
 
     url = "v3/" + url
-    result_v3 = endpoints._generic_api_test(url)
+    result_v3 = endpoints._get_endpoint(url)
+    result_v3 = result_v3.json()
+
+    assert endpoints._deep_compare(result, result_v3) == True
+
+
+def test_seq_counts_2_3():
+    url = "sequence-count?cumulative=true"
+    result = endpoints._get_endpoint(url)
+    result = result.json()
+
+    url = "v3/" + url
+    result_v3 = endpoints._get_endpoint(url)
+    result_v3 = result_v3.json()
 
     assert endpoints._deep_compare(result, result_v3) == True
 
@@ -825,7 +960,7 @@ def test_lineage_wildcard_v3():
     endpoints._test_success(res_json, url)
 
 
-def test_lineages_mutations_v3():
+def test_lineage_mutations_v3():
     # Old schema
     # url = 'lineage-mutations?pangolin_lineage=BA.2&mutations=S:D614G&frequency=0&gene=ORF1a,ORF1b,S,ORF7b'
     # New schema
@@ -837,7 +972,7 @@ def test_lineages_mutations_v3():
     endpoints._test_success(res_json, url)
 
 
-def test_lineages_mutations_v3_2():
+def test_lineage_mutations_v3_2():
     # Old schema
     # url = 'lineage-mutations?pangolin_lineage=BA.2%20OR%20BA.4.1%20OR%20BA.5.1&frequency=1'
     # New schema
