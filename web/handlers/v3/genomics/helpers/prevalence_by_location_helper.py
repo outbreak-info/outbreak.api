@@ -136,11 +136,11 @@ def create_query(idx: int = None, params: Dict = None, size: int = None) -> Dict
     lineages = (
         params["pangolin_lineage"][idx] if params["pangolin_lineage"][idx] is not None else ""
     )
+    lineages = lineages.split(" OR ") if lineages is not None else []
     mutations = params["query_mutations"] if params["query_mutations"] is not None else ""
 
-
     query_obj = create_mutation_query(
-        lineages=[lineages], mutations=mutations, location_id=params["location_id"]
+        lineages=lineages, mutations=mutations, location_id=params["location_id"]
     )
     query["aggs"]["prevalence"]["aggs"]["count"]["aggs"]["lineage_count"]["filter"] = query_obj
 
