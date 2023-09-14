@@ -2,12 +2,10 @@ import re
 from typing import Dict
 
 from web.handlers.v3.genomics.util import (
-    create_query_filter,
     create_query_filter_key,
     parse_location_id_to_query,
     transform_prevalence,
 )
-
 
 def params_adapter(args: Dict = None) -> Dict:
     params = {}
@@ -37,12 +35,76 @@ def params_adapter(args: Dict = None) -> Dict:
     )
 
     params["mutations"] = args.mutations or None
+    params["query_mutations"] = args.mutations.split(" AND ") if args.mutations is not None else []
     params["location_id"] = args.location_id or None
     params["cumulative"] = args.cumulative
     params["min_date"] = args.min_date or None
     params["max_date"] = args.max_date or None
 
     return params
+
+
+def create_mutation_query(location_id = None, lineages = [], mutations = []):
+    # For multiple lineages and mutations: (Lineage 1 AND mutation 1 AND mutation 2..) OR (Lineage 2 AND mutation 1 AND mutation 2..) ...
+    query_obj = {
+        "bool": {
+            "should": []
+        }
+    }
+    bool_should = []
+
+    for i in lineages:
+        bool_must = {
+            "bool": {
+                "must": []
+            }
+        }
+        bool_must["bool"]["must"].append({
+            "term": {
+                "pangolin_lineage": i
+            }
+        })
+        bool_should.append(bool_must)
+    bool_mutations = []
+    for i in mutations:
+        bool_mutations.append({
+            "term" : { "mutations" : i }
+        })
+    if len(bool_mutations) > 0: # If mutations specified
+        if len(bool_should) > 0: # If lineage and mutations specified
+            for i in bool_should:
+                i["bool"]["must"].extend(bool_mutations)
+            query_obj["bool"]["should"] = bool_should
+        else:                   # If only mutations are specified
+            query_obj = {
+                "bool": {
+                    "must": bool_mutations
+                }
+            }
+    else:                       # If only lineage specified
+        query_obj["bool"]["should"] = bool_should
+    parse_location_id_to_query(location_id, query_obj)
+    return query_obj
+
+def create_query_filter(lineages="", mutations="", locations=""):
+    filters = []
+    if lineages and len(lineages) > 0:
+        # lineages = "pangolin_lineage: ({})".format(lineages)
+        lineages = "pangolin_lineage: {}".format(lineages)
+        filters.append(lineages)
+    if mutations and len(mutations) > 0:
+        mutations = mutations.replace(":", "\\:")
+        # mutations = "mutations: ({})".format(mutations)
+        mutations = "mutations: {}".format(mutations)
+        filters.append(mutations)
+    # if locations and len(locations) > 0:
+    #     locations = "country_id: ({})".format(locations)
+    #     filters.append(locations)
+    query_filters = " AND ".join(filters)
+
+    if not lineages and not mutations and not locations:
+        query_filters = "*"
+    return query_filters
 
 
 def create_query(idx: int = None, params: Dict = None, size: int = None) -> Dict:
@@ -74,27 +136,29 @@ def create_query(idx: int = None, params: Dict = None, size: int = None) -> Dict
     lineages = (
         params["pangolin_lineage"][idx] if params["pangolin_lineage"][idx] is not None else ""
     )
-    mutations = params["mutations"] if params["mutations"] is not None else ""
-    # query_obj = create_nested_mutation_query(
-    #     lineages=lineages, mutations=mutations, location_id=params["location_id"]
-    # )
-    # query["aggs"]["prevalence"]["aggs"]["count"]["aggs"]["lineage_count"]["filter"] = query_obj
+    mutations = params["query_mutations"] if params["query_mutations"] is not None else ""
 
-    query_filters = create_query_filter(
-        lineages=lineages, mutations=mutations, locations=params["location_id"]
+
+    query_obj = create_mutation_query(
+        lineages=[lineages], mutations=mutations, location_id=params["location_id"]
     )
-    query_obj = {
-        "bool": {
-            "must": [
-                {
-                    "query_string": {
-                        "query": query_filters  # Ex: "(pangolin_lineage:BA.2) AND (mutations: S\\:E484K OR S\\:L18F)"
-                    }
-                }
-            ]
-        }
-    }
     query["aggs"]["prevalence"]["aggs"]["count"]["aggs"]["lineage_count"]["filter"] = query_obj
+
+    # query_filters = create_query_filter(
+    #     lineages=lineages, mutations=mutations, locations=params["location_id"]
+    # )
+    # query_obj = {
+    #     "bool": {
+    #         "must": [
+    #             {
+    #                 "query_string": {
+    #                     "query": query_filters  # Ex: "(pangolin_lineage:BA.2) AND (mutations: S\\:E484K OR S\\:L18F)"
+    #                 }
+    #             }
+    #         ]
+    #     }
+    # }
+    # query["aggs"]["prevalence"]["aggs"]["count"]["aggs"]["lineage_count"]["filter"] = query_obj
 
     return query
 
