@@ -1,9 +1,21 @@
+import abc
 import observability
 
 from web.handlers.genomics.base import BaseHandler
 
 
 class BaseHandlerV3(BaseHandler):
+    __metaclass__ = abc.ABCMeta
+
+    kwargs = dict(BaseHandler.kwargs)
+
+    def set_default_headers(self):
+        self.set_header("Content-Type", "application/json")
+        self.set_header("Access-Control-Allow-Origin", "*")
+        self.set_header("Access-Control-Allow-Headers", "content-type,Authorization")
+        self.set_header("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PATCH, PUT")
+
+    size = 10000
 
     def initialize(self):
         super().initialize(self)
