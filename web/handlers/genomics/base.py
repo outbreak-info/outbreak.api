@@ -10,6 +10,7 @@ class BaseHandler(BaseAPIHandler):
     kwargs = dict(BaseAPIHandler.kwargs)
 
     def set_default_headers(self):
+        super().set_default_headers()
         self.set_header("Content-Type", "application/json")
         self.set_header("Access-Control-Allow-Origin", "*")
         self.set_header("Access-Control-Allow-Headers", "content-type,Authorization")
@@ -24,23 +25,23 @@ class BaseHandler(BaseAPIHandler):
         response = await self.biothings.elasticsearch.async_client.search(
             index=self.biothings.config.genomics.ES_INDEX, body=query, size=0, request_timeout=90
         )
-        ### TODO: Remove FOR PROD
-        response_new = await self.biothings.elasticsearch.async_client.search(
-            index=self.biothings.config.genomics.ES_INDEX_V3, body=query, size=0, request_timeout=90
-        )
-        ### TODO: Remove FOR PROD
-        if not _deep_compare(response["hits"], response_new["hits"]):
-            # raise ValueError("### OLD AND NEW HAVE DIFFERENT VALUES ###")
-            print("##########################################")
-            print("### OLD AND NEW HAVE DIFFERENT VALUES ###")
-            print("##########################################")
-        else:
-            # raise ValueError("### OLD AND NEW HAVE DIFFERENT VALUES ###")
-            print("##########################################")
-            print("### OLD AND NEW    E Q U A L    VALUES ###")
-            print("##########################################")
-        # print("### response")
-        # print(response)
+        # ### TODO: Remove FOR PROD
+        # response_new = await self.biothings.elasticsearch.async_client.search(
+        #     index=self.biothings.config.genomics.ES_INDEX_V3, body=query, size=0, request_timeout=90
+        # )
+        # ### TODO: Remove FOR PROD
+        # if not _deep_compare(response["hits"], response_new["hits"]):
+        #     # raise ValueError("### OLD AND NEW HAVE DIFFERENT VALUES ###")
+        #     print("##########################################")
+        #     print("### OLD AND NEW HAVE DIFFERENT VALUES ###")
+        #     print("##########################################")
+        # else:
+        #     # raise ValueError("### OLD AND NEW HAVE DIFFERENT VALUES ###")
+        #     print("##########################################")
+        #     print("### OLD AND NEW    E Q U A L    VALUES ###")
+        #     print("##########################################")
+        # # print("### response")
+        # # print(response)
         return response
 
     async def asynchronous_fetch_count(self, query):
