@@ -10,7 +10,6 @@ class BaseHandler(BaseAPIHandler):
     kwargs = dict(BaseAPIHandler.kwargs)
 
     def set_default_headers(self):
-        super().set_default_headers()
         self.set_header("Content-Type", "application/json")
         self.set_header("Access-Control-Allow-Origin", "*")
         self.set_header("Access-Control-Allow-Headers", "content-type,Authorization")

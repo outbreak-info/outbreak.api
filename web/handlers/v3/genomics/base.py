@@ -8,7 +8,7 @@ class BaseHandlerV3(BaseHandler):
     size = 10000
 
     def initialize(self):
-        super().initialize(self)
+        super().initialize()
         self.observability = observability.Observability()
 
     async def asynchronous_fetch(self, query):
