@@ -825,6 +825,83 @@ def test_seq_counts_2_3():
     assert endpoints._deep_compare(result, result_v3) == True
 
 
+
+def test_cumulative_prevalence_by_location_1():
+    # url = "lineage-by-sub-admin-most-recent?pangolin_lineage=XBB.1.16%20OR%20FU.1%20OR%20FU.2%20OR%20FU.2.1%20OR%20FU.3%20OR%20FU.3.1%20OR%20FU.4%20OR%20FU.5%20OR%20GY.1%20OR%20GY.2%20OR%20GY.2.1%20OR%20GY.3%20OR%20GY.4%20OR%20GY.5%20OR%20GY.6%20OR%20GY.7%20OR%20GY.8%20OR%20HF.1%20OR%20HF.1.1%20OR%20HF.1.2%20OR%20JF.1%20OR%20JF.2%20OR%20XBB.1.16.1%20OR%20XBB.1.16.2%20OR%20XBB.1.16.3%20OR%20XBB.1.16.4%20OR%20XBB.1.16.5%20OR%20XBB.1.16.6%20OR%20XBB.1.16.7%20OR%20XBB.1.16.8%20OR%20XBB.1.16.9%20OR%20XBB.1.16.10%20OR%20XBB.1.16.11%20OR%20XBB.1.16.12%20OR%20XBB.1.16.13%20OR%20XBB.1.16.14%20OR%20XBB.1.16.15%20OR%20XBB.1.16.16%20OR%20XBB.1.16.17%20OR%20XBB.1.16.18%20OR%20XBB.1.16.19%20OR%20XBB.1.16.20%20OR%20XBB.1.16.21%20OR%20XBB.1.16.22%20OR%20XBB.1.16.23%20OR%20XBB.1.16.24&detected=true"
+    url = "lineage-by-sub-admin-most-recent?pangolin_lineage=XBB.1.16%20OR%20FU.1&detected=true"
+
+    result = endpoints._get_endpoint(url)
+    result = result.json()
+
+    # url_v2 = "v2/" + url
+    # result_v2 = endpoints._get_endpoint(url_v2)
+    # result_v2 = result_v2.json()
+
+    url_v3 = "v3/" + url
+    result_v3 = endpoints._get_endpoint(url_v3)
+    result_v3 = result_v3.json()
+
+    print("### result")
+    print(result)
+    # print("### result_v2")
+    # print(result_v2)
+    print("### result_v3")
+    print(result_v3)
+
+    # assert endpoints._deep_compare(result, result_v2) == True
+    assert endpoints._deep_compare(result, result_v3) == True
+
+
+def test_cumulative_prevalence_by_location_2():
+    url = "lineage-by-sub-admin-most-recent?pangolin_lineage=XBB.1.16%20OR%20FU.1%20OR%20FU.2%20OR%20FU.2.1%20OR%20FU.3%20OR%20FU.3.1%20OR%20FU.4%20OR%20FU.5%20OR%20GY.1%20OR%20GY.2%20OR%20GY.2.1%20OR%20GY.3%20OR%20GY.4%20OR%20GY.5%20OR%20GY.6%20OR%20GY.7%20OR%20GY.8%20OR%20HF.1%20OR%20HF.1.1%20OR%20HF.1.2%20OR%20JF.1%20OR%20JF.2%20OR%20XBB.1.16.1%20OR%20XBB.1.16.2%20OR%20XBB.1.16.3%20OR%20XBB.1.16.4%20OR%20XBB.1.16.5%20OR%20XBB.1.16.6%20OR%20XBB.1.16.7%20OR%20XBB.1.16.8%20OR%20XBB.1.16.9%20OR%20XBB.1.16.10%20OR%20XBB.1.16.11%20OR%20XBB.1.16.12%20OR%20XBB.1.16.13%20OR%20XBB.1.16.14%20OR%20XBB.1.16.15%20OR%20XBB.1.16.16%20OR%20XBB.1.16.17%20OR%20XBB.1.16.18%20OR%20XBB.1.16.19%20OR%20XBB.1.16.20%20OR%20XBB.1.16.21%20OR%20XBB.1.16.22%20OR%20XBB.1.16.23%20OR%20XBB.1.16.24&detected=true&location_id=USA"
+
+    result = endpoints._get_endpoint(url)
+    result = result.json()
+
+    url_v2 = "v2/" + url
+    result_v2 = endpoints._get_endpoint(url_v2)
+    result_v2 = result_v2.json()
+
+    url_v3 = "v3/" + url
+    result_v3 = endpoints._get_endpoint(url_v3)
+    result_v3 = result_v3.json()
+
+    print("### result")
+    print(result)
+    print("### result_v2")
+    print(result_v2)
+    print("### result_v3")
+    print(result_v3)
+
+    assert endpoints._deep_compare(result, result_v2) == True
+    assert endpoints._deep_compare(result, result_v3) == True
+
+
+def test_cumulative_prevalence_by_location_3():
+    url = "lineage-by-sub-admin-most-recent?pangolin_lineage=XBB.1.16%20OR%20FU.1%20OR%20FU.2%20OR%20FU.2.1%20OR%20FU.3%20OR%20FU.3.1%20OR%20FU.4%20OR%20FU.5%20OR%20GY.1%20OR%20GY.2%20OR%20GY.2.1%20OR%20GY.3%20OR%20GY.4%20OR%20GY.5%20OR%20GY.6%20OR%20GY.7%20OR%20GY.8%20OR%20HF.1%20OR%20HF.1.1%20OR%20HF.1.2%20OR%20JF.1%20OR%20JF.2%20OR%20XBB.1.16.1%20OR%20XBB.1.16.2%20OR%20XBB.1.16.3%20OR%20XBB.1.16.4%20OR%20XBB.1.16.5%20OR%20XBB.1.16.6%20OR%20XBB.1.16.7%20OR%20XBB.1.16.8%20OR%20XBB.1.16.9%20OR%20XBB.1.16.10%20OR%20XBB.1.16.11%20OR%20XBB.1.16.12%20OR%20XBB.1.16.13%20OR%20XBB.1.16.14%20OR%20XBB.1.16.15%20OR%20XBB.1.16.16%20OR%20XBB.1.16.17%20OR%20XBB.1.16.18%20OR%20XBB.1.16.19%20OR%20XBB.1.16.20%20OR%20XBB.1.16.21%20OR%20XBB.1.16.22%20OR%20XBB.1.16.23%20OR%20XBB.1.16.24&ndays=60"
+
+    result = endpoints._get_endpoint(url)
+    result = result.json()
+
+    url_v2 = "v2/" + url
+    result_v2 = endpoints._get_endpoint(url_v2)
+    result_v2 = result_v2.json()
+
+    url_v3 = "v3/" + url
+    result_v3 = endpoints._get_endpoint(url_v3)
+    result_v3 = result_v3.json()
+
+    print("### result")
+    print(result)
+    print("### result_v2")
+    print(result_v2)
+    print("### result_v3")
+    print(result_v3)
+
+    assert endpoints._deep_compare(result, result_v2) == True
+    assert endpoints._deep_compare(result, result_v3) == True
+
+
 # # ################################################
 # # ############ v3 Tests
 # # ################################################

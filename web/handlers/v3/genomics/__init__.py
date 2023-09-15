@@ -15,3 +15,4 @@ from .prevalence_by_location_and_time import PrevalenceByLocationAndTimeHandler
 from .sequence_count import SequenceCountHandler
 # from .submission_lag import SubmissionLagHandler
 # from biothings.web.handlers.genomics import BaseHandler
+from .cumulative_prevalence_by_location import CumulativePrevalenceByLocationHandler
