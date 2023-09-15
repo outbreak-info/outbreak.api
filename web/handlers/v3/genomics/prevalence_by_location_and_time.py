@@ -38,7 +38,7 @@ class PrevalenceByLocationAndTimeHandler(BaseHandlerV3):
 
             async def process_query_q(idx, i):
                 query = helper.create_query_q(idx, params, self.size)
-                query_resp = await self.asynchronous_fetch(query)
+                query_resp = await self.asynchronous_fetch_lineages(query)
                 parsed_resp.update(helper.parse_response_q(resp=query_resp, idx=idx, params=params))
 
             tasks = [process_query_q(idx, i) for idx, i in create_iterator_q(params["q_list"])]

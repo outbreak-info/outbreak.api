@@ -13,7 +13,7 @@ class LineageHandler(BaseHandlerV3):
     async def _get(self):
         params = helper.params_adapter(self.args)
         query = helper.create_query(params)
-        query_resp = await self.asynchronous_fetch(query)
+        query_resp = await self.asynchronous_fetch_lineages(query)
         parsed_resp = helper.parse_response(resp=query_resp, size=params["size"])
         resp = {"success": True, "results": parsed_resp}
         return resp

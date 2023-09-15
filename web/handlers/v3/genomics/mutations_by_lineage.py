@@ -18,16 +18,17 @@ class MutationsByLineage(BaseHandlerV3):
         params = helper.params_adapter(self.args)
         parsed_resp = {}
 
-        async def process_query(mutation):
-            query = helper.create_query(mutation, params, self.size)
-            self.observability.log(query)
-            query_resp = await self.asynchronous_fetch(query)
-            parsed_resp.update(
-                helper.parse_response(resp=query_resp, mutation=mutation, params=params)
-            )
+        if (params["mutations"] is not None and params["mutations"] != ""):
+            async def process_query(mutation):
+                query = helper.create_query(mutation, params, self.size)
+                self.observability.log(query)
+                query_resp = await self.asynchronous_fetch_lineages(query)
+                parsed_resp.update(
+                    helper.parse_response(resp=query_resp, mutation=mutation, params=params)
+                )
 
-        tasks = [process_query(mutation) for mutation in params["mutations_list"]]
-        await asyncio.gather(*tasks)
+            tasks = [process_query(mutation) for mutation in params["mutations_list"]]
+            await asyncio.gather(*tasks)
 
         resp = {"success": True, "results": parsed_resp}
         return resp

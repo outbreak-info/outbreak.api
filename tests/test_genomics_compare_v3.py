@@ -833,22 +833,22 @@ def test_cumulative_prevalence_by_location_1():
     result = endpoints._get_endpoint(url)
     result = result.json()
 
-    # url_v2 = "v2/" + url
-    # result_v2 = endpoints._get_endpoint(url_v2)
-    # result_v2 = result_v2.json()
+    url_v2 = "v2/" + url
+    result_v2 = endpoints._get_endpoint(url_v2)
+    result_v2 = result_v2.json()
 
     url_v3 = "v3/" + url
     result_v3 = endpoints._get_endpoint(url_v3)
     result_v3 = result_v3.json()
 
-    print("### result")
-    print(result)
+    # print("### result")
+    # print(result)
     # print("### result_v2")
     # print(result_v2)
-    print("### result_v3")
-    print(result_v3)
+    # print("### result_v3")
+    # print(result_v3)
 
-    # assert endpoints._deep_compare(result, result_v2) == True
+    assert endpoints._deep_compare(result, result_v2) == True
     assert endpoints._deep_compare(result, result_v3) == True
 
 
@@ -866,12 +866,12 @@ def test_cumulative_prevalence_by_location_2():
     result_v3 = endpoints._get_endpoint(url_v3)
     result_v3 = result_v3.json()
 
-    print("### result")
-    print(result)
-    print("### result_v2")
-    print(result_v2)
-    print("### result_v3")
-    print(result_v3)
+    # print("### result")
+    # print(result)
+    # print("### result_v2")
+    # print(result_v2)
+    # print("### result_v3")
+    # print(result_v3)
 
     assert endpoints._deep_compare(result, result_v2) == True
     assert endpoints._deep_compare(result, result_v3) == True
@@ -891,12 +891,12 @@ def test_cumulative_prevalence_by_location_3():
     result_v3 = endpoints._get_endpoint(url_v3)
     result_v3 = result_v3.json()
 
-    print("### result")
-    print(result)
-    print("### result_v2")
-    print(result_v2)
-    print("### result_v3")
-    print(result_v3)
+    # print("### result")
+    # print(result)
+    # print("### result_v2")
+    # print(result_v2)
+    # print("### result_v3")
+    # print(result_v3)
 
     assert endpoints._deep_compare(result, result_v2) == True
     assert endpoints._deep_compare(result, result_v3) == True

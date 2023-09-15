@@ -44,7 +44,7 @@ class CumulativePrevalenceByLocationHandler(BaseHandlerV3):
 
         async def process_query(query_lineage, query_mutation):
             admin_level, query = helper.create_query(params, query_lineage, query_mutation, self.size)
-            resp = await self.asynchronous_fetch_lineages_index(query)
+            resp = await self.asynchronous_fetch_lineages(query)
 
             buckets = resp["aggregations"]["sub_date_buckets"]["buckets"]
             # Get all paginated results
@@ -52,7 +52,7 @@ class CumulativePrevalenceByLocationHandler(BaseHandlerV3):
                 query["aggs"]["sub_date_buckets"]["composite"]["after"] = resp["aggregations"][
                     "sub_date_buckets"
                 ]["after_key"]
-                resp = await self.asynchronous_fetch_lineages_index(query)
+                resp = await self.asynchronous_fetch_lineages(query)
                 buckets.extend(resp["aggregations"]["sub_date_buckets"]["buckets"])
             parsed_resp.update(helper.parse_response(resp, params, admin_level, query_lineage, buckets, self.size))
 

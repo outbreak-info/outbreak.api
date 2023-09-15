@@ -23,7 +23,7 @@ class LineageMutationsHandler(BaseHandlerV3):
         parsed_resp= {}
         if (params["lineages"] is not None and params["lineages"] != "") or (params["mutations"] is not None and params["mutations"] != ""):
             query = helper.create_query(lineages=params["lineages"], mutations=params["mutations"])
-            resp = await self.asynchronous_fetch(query=query)
+            resp = await self.asynchronous_fetch_lineages(query=query)
             parsed_resp = helper.parse_response(
                 resp=resp, frequency=params["frequency"], lineages=params["lineages"], genes=params["genes"]
             )
@@ -33,7 +33,7 @@ class LineageMutationsHandler(BaseHandlerV3):
             async def process_query_q(idx, query_filter):
                 query = helper.create_query_q(query_filter, self.size)
                 self.observability.log("ES_QUERY", query)
-                query_resp = await self.asynchronous_fetch(query)
+                query_resp = await self.asynchronous_fetch_lineages(query)
                 # self.observability.log("ES_RESPONSE", query_resp)
                 parsed_resp.update(helper.parse_response_q(resp=query_resp, idx=idx, params=params))
 
