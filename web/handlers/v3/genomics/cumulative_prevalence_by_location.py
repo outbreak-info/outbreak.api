@@ -5,9 +5,6 @@ import web.handlers.v3.genomics.helpers.cumulative_prevalence_by_location_helper
 
 from web.handlers.genomics.util import (
     create_iterator,
-    # create_nested_mutation_query,
-    # parse_location_id_to_query,
-    transform_prevalence_by_location_and_tiime,
 )
 
 
@@ -45,7 +42,6 @@ class CumulativePrevalenceByLocationHandler(BaseHandlerV3):
         async def process_query(query_lineage, query_mutation):
             admin_level, query = helper.create_query(params, query_lineage, query_mutation, self.size)
             resp = await self.asynchronous_fetch_lineages(query)
-
             buckets = resp["aggregations"]["sub_date_buckets"]["buckets"]
             # Get all paginated results
             while "after_key" in resp["aggregations"]["sub_date_buckets"]:
@@ -55,7 +51,6 @@ class CumulativePrevalenceByLocationHandler(BaseHandlerV3):
                 resp = await self.asynchronous_fetch_lineages(query)
                 buckets.extend(resp["aggregations"]["sub_date_buckets"]["buckets"])
             parsed_resp.update(helper.parse_response(resp, params, admin_level, query_lineage, buckets, self.size))
-
 
         tasks = [process_query(query_lineage, query_mutation) for query_lineage, query_mutation in create_iterator(params["query_pangolin_lineage"], params["query_mutations"])]
         await asyncio.gather(*tasks)

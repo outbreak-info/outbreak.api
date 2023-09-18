@@ -3,7 +3,7 @@ from typing import Dict, List
 from web.handlers.genomics.util import (
 # from web.handlers.v3.genomics.util import (
     # create_iterator,
-    create_nested_mutation_query,
+    # create_nested_mutation_query,
     parse_location_id_to_query,
     transform_prevalence_by_location_and_tiime,
 )
@@ -22,6 +22,48 @@ def params_adapter(args: Dict = None) -> Dict:
     params["query_ndays"] = args.ndays
 
     return params
+
+
+def create_mutation_query(location_id = None, lineages = [], mutations = []):
+    # For multiple lineages and mutations: (Lineage 1 AND mutation 1 AND mutation 2..) OR (Lineage 2 AND mutation 1 AND mutation 2..) ...
+    query_obj = {
+        "bool": {
+            "should": []
+        }
+    }
+    bool_should = []
+    for i in lineages:
+        bool_must = {
+            "bool": {
+                "must": []
+            }
+        }
+        bool_must["bool"]["must"].append({
+            "term": {
+                "pangolin_lineage": i
+            }
+        })
+        bool_should.append(bool_must)
+    bool_mutations = []
+    for i in mutations:
+        bool_mutations.append({
+            "term" : { "mutations" : i }
+        })
+    if len(bool_mutations) > 0: # If mutations specified
+        if len(bool_should) > 0: # If lineage and mutations specified
+            for i in bool_should:
+                i["bool"]["must"].extend(bool_mutations)
+            query_obj["bool"]["should"] = bool_should
+        else:                   # If only mutations are specified
+            query_obj = {
+                "bool": {
+                    "must": bool_mutations
+                }
+            }
+    else:                       # If only lineage specified
+        query_obj["bool"]["should"] = bool_should
+    parse_location_id_to_query(location_id, query_obj)
+    return query_obj
 
 
 def create_query(params: Dict = None, query_lineage: str = "", query_mutation: List = [], size: int = None) -> Dict:
@@ -65,12 +107,13 @@ def create_query(params: Dict = None, query_lineage: str = "", query_mutation: L
         )
         admin_level = 1
     query_lineages = query_lineage.split(" OR ") if query_lineage is not None else []
-    query_obj = create_nested_mutation_query(
-        lineages=query_lineages, mutations=query_mutation
+    query_obj = create_mutation_query(
+        location_id=params["query_location"], lineages=query_lineages, mutations=query_mutation
     )
     query["aggs"]["sub_date_buckets"]["aggregations"]["lineage_count"]["filter"] = query_obj
 
     return admin_level, query
+
 
 def parse_response(resp: Dict = None, params: Dict = {}, admin_level: int = 0, query_lineage: str = "", buckets: Dict = {}, size: int = None) -> Dict:
     results = {}
