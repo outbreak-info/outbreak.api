@@ -3,9 +3,11 @@ from typing import Dict
 
 from web.handlers.v3.genomics.util import (
     create_query_filter_key,
+    escape_special_characters,
     parse_location_id_to_query,
     transform_prevalence,
 )
+
 
 def params_adapter(args: Dict = None) -> Dict:
     params = {}
@@ -44,47 +46,30 @@ def params_adapter(args: Dict = None) -> Dict:
     return params
 
 
-def create_mutation_query(location_id = None, lineages = [], mutations = []):
+def create_mutation_query(location_id=None, lineages=None, mutations=None):
     # For multiple lineages and mutations: (Lineage 1 AND mutation 1 AND mutation 2..) OR (Lineage 2 AND mutation 1 AND mutation 2..) ...
-    query_obj = {
-        "bool": {
-            "should": []
-        }
-    }
+    query_obj = {"bool": {"should": []}}
     bool_should = []
 
     for i in lineages:
-        bool_must = {
-            "bool": {
-                "must": []
-            }
-        }
-        bool_must["bool"]["must"].append({
-            "term": {
-                "pangolin_lineage": i
-            }
-        })
+        bool_must = {"bool": {"must": []}}
+        bool_must["bool"]["must"].append({"term": {"pangolin_lineage": i}})
         bool_should.append(bool_must)
     bool_mutations = []
     for i in mutations:
-        bool_mutations.append({
-            "term" : { "mutations" : i }
-        })
-    if len(bool_mutations) > 0: # If mutations specified
-        if len(bool_should) > 0: # If lineage and mutations specified
+        bool_mutations.append({"term": {"mutations": i}})
+    if len(bool_mutations) > 0:  # If mutations specified
+        if len(bool_should) > 0:  # If lineage and mutations specified
             for i in bool_should:
                 i["bool"]["must"].extend(bool_mutations)
             query_obj["bool"]["should"] = bool_should
-        else:                   # If only mutations are specified
-            query_obj = {
-                "bool": {
-                    "must": bool_mutations
-                }
-            }
-    else:                       # If only lineage specified
+        else:  # If only mutations are specified
+            query_obj = {"bool": {"must": bool_mutations}}
+    else:  # If only lineage specified
         query_obj["bool"]["should"] = bool_should
     parse_location_id_to_query(location_id, query_obj)
     return query_obj
+
 
 def create_query_filter(lineages="", mutations="", locations=""):
     filters = []
@@ -93,7 +78,8 @@ def create_query_filter(lineages="", mutations="", locations=""):
         lineages = "pangolin_lineage: {}".format(lineages)
         filters.append(lineages)
     if mutations and len(mutations) > 0:
-        mutations = mutations.replace(":", "\\:")
+        # mutations = mutations.replace(":", "\\:")
+        mutations = escape_special_characters(mutations)
         # mutations = "mutations: ({})".format(mutations)
         mutations = "mutations: {}".format(mutations)
         filters.append(mutations)

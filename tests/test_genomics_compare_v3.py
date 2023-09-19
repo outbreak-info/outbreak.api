@@ -576,6 +576,34 @@ def test_mutations_by_lineage_2_1_with_comma_lineage_and_date_filter():
     )
 
 
+def test_mutations_by_lineage_2_2_with_comma_lineage_and_date_filter():
+    # WARNING: Changed the way of mutations parameter is used
+    # In the v2 version there are the rules below related to the mutation querystring param:
+    # - the "," character is considered as "AND" operand
+    # --- Ex: "mutation=S:E484K,S:S477N" will be used as "S:E484K AND S:S477N"
+    # --- Ex: when "mutation=S:E484K AND S:S477N" will be created one ES query for each mutation"
+    # - the "AND" operand is considered to split in many queries
+    # In v3 version the logic was inverted when considering "," and "AND" operands.
+
+    url = "mutations-by-lineage?mutations=S:E484K%20AND%20ORF1a:DEL3675/3677&frequency=0.5"
+    result = endpoints._get_endpoint(url)
+    result = result.json()
+
+    url = "mutations-by-lineage?mutations=S:E484K,ORF1a:DEL3675/3677&frequency=0.5"
+    url = "v3/" + url
+    result_v3 = endpoints._get_endpoint(url)
+    result_v3 = result_v3.json()
+
+    assert (
+        endpoints._deep_compare(result["results"]["S:E484K"], result_v3["results"]["S:E484K"])
+        == True
+    )
+    assert (
+        endpoints._deep_compare(result["results"]["S:S477N"], result_v3["results"]["S:S477N"])
+        == True
+    )
+
+
 def test_mutations_by_lineage_q():
     url = "mutations-by-lineage?mutations=S:E484K AND S:S477N&pangolin_lineage=BA.2"
     url = "v3/" + url

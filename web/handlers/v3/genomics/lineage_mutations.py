@@ -20,12 +20,17 @@ class LineageMutationsHandler(BaseHandlerV3):
     async def _get(self):
         params = helper.params_adapter(self.args)
 
-        parsed_resp= {}
-        if (params["lineages"] is not None and params["lineages"] != "") or (params["mutations"] is not None and params["mutations"] != ""):
+        parsed_resp = {}
+        if (params["lineages"] is not None and params["lineages"] != "") or (
+            params["mutations"] is not None and params["mutations"] != ""
+        ):
             query = helper.create_query(lineages=params["lineages"], mutations=params["mutations"])
             resp = await self.asynchronous_fetch_lineages(query=query)
             parsed_resp = helper.parse_response(
-                resp=resp, frequency=params["frequency"], lineages=params["lineages"], genes=params["genes"]
+                resp=resp,
+                frequency=params["frequency"],
+                lineages=params["lineages"],
+                genes=params["genes"],
             )
 
         if "q" in params and params["q"] is not None:
@@ -37,7 +42,10 @@ class LineageMutationsHandler(BaseHandlerV3):
                 # self.observability.log("ES_RESPONSE", query_resp)
                 parsed_resp.update(helper.parse_response_q(resp=query_resp, idx=idx, params=params))
 
-            tasks = [process_query_q(idx, query_filter) for idx, query_filter in create_iterator_q(params["query_string_list"])]
+            tasks = [
+                process_query_q(idx, query_filter)
+                for idx, query_filter in create_iterator_q(params["query_string_list"])
+            ]
             await asyncio.gather(*tasks)
 
         result = {"success": True, "results": parsed_resp}

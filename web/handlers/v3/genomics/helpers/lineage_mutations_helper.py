@@ -1,6 +1,7 @@
 # from elasticsearch_dsl import Search, Q, A
 import re
 from typing import Dict, List, Optional
+from web.handlers.v3.genomics.util import escape_special_characters
 
 import pandas as pd
 
@@ -57,7 +58,8 @@ def create_query_filter(lineages: str = "", mutations: str = "") -> Dict:
         lineages = "pangolin_lineage: ({})".format(lineages)
         filters.append(lineages)
     if len(mutations) > 0:
-        mutations = mutations.replace(":", "\\:")
+        # mutations = mutations.replace(":", "\\:")
+        mutations = escape_special_characters(mutations)
         mutations = "mutations: ({})".format(mutations)
         filters.append(mutations)
     query_filters = " AND ".join(filters)
@@ -103,6 +105,7 @@ def create_query_q(query_filters: str = "", size: int = 10000) -> Dict:
         "aggs": {"mutations": {"terms": {"field": "mutations", "size": size}}},
     }
     return query
+
 
 def parse_response(
     resp: Dict = None, frequency: int = 1, lineages: str = "", genes: Optional[List[str]] = None

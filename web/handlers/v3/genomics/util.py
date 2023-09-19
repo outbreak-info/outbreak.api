@@ -1,4 +1,6 @@
 import pandas as pd
+
+# Third-party imports
 from scipy.stats import beta
 
 
@@ -16,6 +18,32 @@ def calculate_proportion(_x, _n):
     return est_proportion, ci_low, ci_upp
 
 
+def escape_special_characters(query_string):
+    # List of characters to escape and their replacements
+    special_characters = {
+        "\\": "\\\\",
+        ":": "\\:",
+        # '"': '\\"',
+        # "*": "\\*",
+        # "?": "\\?",
+        "/": "\\/",
+        # "[": "\\[",
+        # "]": "\\]",
+        # "(": "\\(",
+        # ")": "\\)",
+        # "{": "\\{",
+        # "}": "\\}",
+        # "^": "\\^",
+        # "-": "\\-",
+    }
+
+    # Replace special characters in the query string
+    for char, replacement in special_characters.items():
+        query_string = query_string.replace(char, replacement)
+
+    return query_string
+
+
 # TODO: Improve this function
 def create_query_filter(lineages="", mutations="", locations=""):
     filters = []
@@ -23,7 +51,8 @@ def create_query_filter(lineages="", mutations="", locations=""):
         lineages = "pangolin_lineage: ({})".format(lineages)
         filters.append(lineages)
     if mutations and len(mutations) > 0:
-        mutations = mutations.replace(":", "\\:")
+        # mutations = mutations.replace(":", "\\:")
+        mutations = escape_special_characters(mutations)
         mutations = "mutations: ({})".format(mutations)
         filters.append(mutations)
     # if locations and len(locations) > 0:
@@ -34,6 +63,7 @@ def create_query_filter(lineages="", mutations="", locations=""):
     if not lineages and not mutations and not locations:
         query_filters = "*"
     return query_filters
+
 
 # TODO: Improve this function
 def create_query_filter_key(lineages="", mutations="", locations=""):
@@ -88,7 +118,7 @@ def compute_rolling_mean(df, index_col, col, new_col):
     return df
 
 
-def transform_prevalence(resp, path_to_results=[], cumulative=False):
+def transform_prevalence(resp, path_to_results=None, cumulative=False):
     buckets = resp
     for i in path_to_results:
         buckets = buckets[i]

@@ -20,7 +20,8 @@ class MutationsByLineage(BaseHandlerV3):
         params = helper.params_adapter(self.args)
         parsed_resp = {}
 
-        if (params["mutations"] is not None and params["mutations"] != ""):
+        if params["mutations"] is not None and params["mutations"] != "":
+
             async def process_query(mutation):
                 query = helper.create_query(mutation, params, self.size)
                 self.observability.log(query)
@@ -41,7 +42,10 @@ class MutationsByLineage(BaseHandlerV3):
                 # self.observability.log("ES_RESPONSE", query_resp)
                 parsed_resp.update(helper.parse_response_q(resp=query_resp, idx=idx, params=params))
 
-            tasks = [process_query_q(idx, query_filter) for idx, query_filter in create_iterator_q(params["query_string_list"])]
+            tasks = [
+                process_query_q(idx, query_filter)
+                for idx, query_filter in create_iterator_q(params["query_string_list"])
+            ]
             await asyncio.gather(*tasks)
 
         resp = {"success": True, "results": parsed_resp}

@@ -1,9 +1,6 @@
 from typing import Dict, List
 
-from web.handlers.genomics.util import (
-# from web.handlers.v3.genomics.util import (
-    # create_iterator,
-    # create_nested_mutation_query,
+from web.handlers.genomics.util import (  # from web.handlers.v3.genomics.util import (; create_iterator,; create_nested_mutation_query,
     parse_location_id_to_query,
     transform_prevalence_by_location_and_tiime,
 )
@@ -13,60 +10,48 @@ def params_adapter(args: Dict = None) -> Dict:
     params = {}
     params["query_pangolin_lineage"] = args.pangolin_lineage
     params["query_pangolin_lineage"] = (
-        params["query_pangolin_lineage"].split(",") if params["query_pangolin_lineage"] is not None else []
+        params["query_pangolin_lineage"].split(",")
+        if params["query_pangolin_lineage"] is not None
+        else []
     )
     params["query_detected"] = args.detected
     params["query_mutations"] = args.mutations
     params["query_location"] = args.location_id
-    params["query_mutations"] = params["query_mutations"].split(" AND ") if params["query_mutations"] is not None else []
+    params["query_mutations"] = (
+        params["query_mutations"].split(" AND ") if params["query_mutations"] is not None else []
+    )
     params["query_ndays"] = args.ndays
 
     return params
 
 
-def create_mutation_query(location_id = None, lineages = [], mutations = []):
+def create_mutation_query(location_id=None, lineages=None, mutations=None):
     # For multiple lineages and mutations: (Lineage 1 AND mutation 1 AND mutation 2..) OR (Lineage 2 AND mutation 1 AND mutation 2..) ...
-    query_obj = {
-        "bool": {
-            "should": []
-        }
-    }
+    query_obj = {"bool": {"should": []}}
     bool_should = []
     for i in lineages:
-        bool_must = {
-            "bool": {
-                "must": []
-            }
-        }
-        bool_must["bool"]["must"].append({
-            "term": {
-                "pangolin_lineage": i
-            }
-        })
+        bool_must = {"bool": {"must": []}}
+        bool_must["bool"]["must"].append({"term": {"pangolin_lineage": i}})
         bool_should.append(bool_must)
     bool_mutations = []
     for i in mutations:
-        bool_mutations.append({
-            "term" : { "mutations" : i }
-        })
-    if len(bool_mutations) > 0: # If mutations specified
-        if len(bool_should) > 0: # If lineage and mutations specified
+        bool_mutations.append({"term": {"mutations": i}})
+    if len(bool_mutations) > 0:  # If mutations specified
+        if len(bool_should) > 0:  # If lineage and mutations specified
             for i in bool_should:
                 i["bool"]["must"].extend(bool_mutations)
             query_obj["bool"]["should"] = bool_should
-        else:                   # If only mutations are specified
-            query_obj = {
-                "bool": {
-                    "must": bool_mutations
-                }
-            }
-    else:                       # If only lineage specified
+        else:  # If only mutations are specified
+            query_obj = {"bool": {"must": bool_mutations}}
+    else:  # If only lineage specified
         query_obj["bool"]["should"] = bool_should
     parse_location_id_to_query(location_id, query_obj)
     return query_obj
 
 
-def create_query(params: Dict = None, query_lineage: str = "", query_mutation: List = [], size: int = None) -> Dict:
+def create_query(
+    params: Dict = None, query_lineage: str = "", query_mutation: List = None, size: int = None
+) -> Dict:
     query = {
         "size": 0,
         "aggs": {
@@ -115,17 +100,21 @@ def create_query(params: Dict = None, query_lineage: str = "", query_mutation: L
     return admin_level, query
 
 
-def parse_response(resp: Dict = None, params: Dict = {}, admin_level: int = 0, query_lineage: str = "", buckets: Dict = {}, size: int = None) -> Dict:
+def parse_response(
+    resp: Dict = None,
+    params: Dict = None,
+    admin_level: int = 0,
+    query_lineage: str = "",
+    buckets: Dict = None,
+    size: int = None,
+) -> Dict:
     results = {}
     query_lineages = query_lineage.split(" OR ") if query_lineage is not None else []
     dict_response = {}
     if len(buckets) > 0:
         flattened_response = []
         for i in buckets:
-            if (
-                len(i["key"]["date_collected"].split("-")) < 3
-                or "XX" in i["key"]["date_collected"]
-            ):
+            if len(i["key"]["date_collected"].split("-")) < 3 or "XX" in i["key"]["date_collected"]:
                 continue
             # Check for None and out of state
             if i["key"]["sub"].lower().replace("-", "").replace(" ", "") == "outofstate":
@@ -155,9 +144,7 @@ def parse_response(resp: Dict = None, params: Dict = {}, admin_level: int = 0, q
             flattened_response, params["query_ndays"], params["query_detected"]
         )
     res_key = None
-    if (
-        query_lineage is not None
-    ):  # create_iterator will never return empty list for lineages
+    if query_lineage is not None:  # create_iterator will never return empty list for lineages
         res_key = " OR ".join(query_lineages)
     if len(params["query_mutations"]) > 0:
         res_key = (
@@ -421,4 +408,4 @@ country_iso3_to_iso2 = {
     "UKR": "UA",
     "QAT": "QA",
     "MOZ": "MZ",
-}  # TODO: Move to separate class.
+}

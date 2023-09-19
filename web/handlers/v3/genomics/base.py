@@ -1,6 +1,6 @@
-import abc
 import observability
 
+# Third-party imports
 from web.handlers.genomics.base import BaseHandler
 
 
@@ -25,7 +25,10 @@ class BaseHandlerV3(BaseHandler):
         print("### query NEW")
         print(query)
         response = await self.biothings.elasticsearch.async_client.search(
-            index=self.biothings.config.genomics.ES_MUTLESS_INDEX, body=query, size=0, request_timeout=90
+            index=self.biothings.config.genomics.ES_MUTLESS_INDEX,
+            body=query,
+            size=0,
+            request_timeout=90,
         )
         return response
 
@@ -34,7 +37,10 @@ class BaseHandlerV3(BaseHandler):
         print("### query NEW")
         print(query)
         response = await self.biothings.elasticsearch.async_client.search(
-            index=self.biothings.config.genomics.ES_MUTS_INDEX, body=query, size=0, request_timeout=90
+            index=self.biothings.config.genomics.ES_MUTS_INDEX,
+            body=query,
+            size=0,
+            request_timeout=90,
         )
         return response
 

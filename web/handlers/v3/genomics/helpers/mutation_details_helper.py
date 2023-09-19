@@ -1,4 +1,5 @@
 from typing import Dict
+from web.handlers.v3.genomics.util import escape_special_characters
 
 
 def params_adapter(args: Dict = None) -> Dict:
@@ -9,7 +10,8 @@ def params_adapter(args: Dict = None) -> Dict:
 
 
 def create_query_filter(params: Dict = None) -> Dict:
-    mutations = params["mutations"].replace(":", "\\:")
+    # mutations = params["mutations"].replace(":", "\\:")
+    mutations = escape_special_characters(params["mutations"])
     query_filters = "mutation: ({})".format(mutations)
     return query_filters
 

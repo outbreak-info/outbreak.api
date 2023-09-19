@@ -24,9 +24,7 @@ def create_query(params: Dict = None, size: int = None) -> Dict:
     lineages = params["pangolin_lineage"] if params["pangolin_lineage"] else ""
     mutations = params["mutations"] if params["mutations"] else ""
     # query_obj = create_nested_mutation_query(lineages=lineages, mutations=mutations)
-    query_filters = create_query_filter(
-        lineages=lineages, mutations=mutations, locations=None
-    )
+    query_filters = create_query_filter(lineages=lineages, mutations=mutations, locations=None)
     query_obj = {
         "bool": {
             "must": [

@@ -57,9 +57,7 @@ def create_query(mutation: str = None, params: Dict = None, size: int = None) ->
         else:
             query["query"] = {"term": {"pangolin_lineage": params["pangolin_lineage"]}}
 
-    query_filters = create_query_filter(
-        lineages=None, mutations=mutation, locations=None
-    )
+    query_filters = create_query_filter(lineages=None, mutations=mutation, locations=None)
     query_obj = {
         "bool": {
             "must": [
@@ -84,35 +82,20 @@ def create_query_q(query_filter: str = None, params: Dict = None, size: int = No
         "size": 0,
         "aggs": {
             "lineage": {
-                "terms": {
-                    "field": "pangolin_lineage",
-                    "size": size
-                },
+                "terms": {"field": "pangolin_lineage", "size": size},
                 "aggs": {
                     "mutations": {
-                        "filter": {
-                            "bool": {
-                                "must": [
-                                    {
-                                        "query_string": {
-                                            "query": query_filter
-                                        }
-                                    }
-                                ]
-                            }
-                        }
+                        "filter": {"bool": {"must": [{"query_string": {"query": query_filter}}]}}
                     },
                     "filter_by_pangolin_lineage": {
                         "bucket_selector": {
-                            "buckets_path": {
-                                "totalDocCount": "mutations._count"
-                            },
-                            "script": "params.totalDocCount > 0"
+                            "buckets_path": {"totalDocCount": "mutations._count"},
+                            "script": "params.totalDocCount > 0",
                         }
-                    }
-                }
+                    },
+                },
             }
-        }
+        },
     }
 
     if params["location_id"] is not None:
