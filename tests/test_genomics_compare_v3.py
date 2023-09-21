@@ -599,7 +599,7 @@ def test_mutations_by_lineage_2_2_with_comma_lineage_and_date_filter():
         == True
     )
     assert (
-        endpoints._deep_compare(result["results"]["S:S477N"], result_v3["results"]["S:S477N"])
+        endpoints._deep_compare(result["results"]["ORF1a:DEL3675/3677"], result_v3["results"]["ORF1a:DEL3675/3677"])
         == True
     )
 
