@@ -503,24 +503,6 @@ def test_mutations_by_lineage_2_with_and():
     )
 
 
-# def test_mutations_by_lineage_2_with_lineage():
-#     # WARNING: Getting error when use "pangolin_lineage" param in the v2 version
-#     url = 'mutations-by-lineage?mutations=S:E484K,S:S477N&pangolin_lineage=AY.1&location_id=USA'
-#     result = endpoints._get_endpoint(url)
-#     result = result.json()
-#     print("### result")
-#     print(result)
-
-#     url = 'mutations-by-lineage?mutations=S:E484K AND S:S477N&pangolin_lineage=AY.1&location_id=USA'
-#     url = 'v3/' + url
-#     result_v3 = endpoints._get_endpoint(url)
-#     result_v3 = result_v3.json()
-#     print("### result_v3")
-#     print(result_v3)
-
-#     assert endpoints._deep_compare(result['results']['S:E484K,S:S477N'], result_v3['results']['S:E484K AND S:S477N']) == True
-
-
 def test_mutations_by_lineage_2_with_comma():
     # WARNING: Changed the way of mutations parameter is used
     # In the v2 version there are the rules below related to the mutation querystring param:
