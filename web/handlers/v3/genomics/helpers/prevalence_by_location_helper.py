@@ -119,10 +119,13 @@ def create_query(idx: int = None, params: Dict = None, size: int = None) -> Dict
 
     parse_location_id_to_query(params["location_id"], query["aggs"]["prevalence"]["filter"])
 
-    lineages = (
-        params["pangolin_lineage"][idx] if params["pangolin_lineage"][idx] is not None else ""
-    )
-    lineages = lineages.split(" OR ") if lineages is not None else []
+    lineages = []
+    if params["pangolin_lineage"] is not None and len(params["pangolin_lineage"])>0:
+        lineages = (
+            params["pangolin_lineage"][idx] if params["pangolin_lineage"][idx] is not None else ""
+        )
+        lineages = lineages.split(" OR ") if lineages is not None else []
+
     mutations = params["query_mutations"] if params["query_mutations"] is not None else ""
 
     query_obj = create_mutation_query(
@@ -197,9 +200,11 @@ def parse_response(resp: Dict = None, idx: int = 0, params: Dict = None) -> Dict
     results = {}
     path_to_results = ["aggregations", "prevalence", "count", "buckets"]
     resp = transform_prevalence(resp, path_to_results, params["cumulative"])
-    lineages = (
-        params["pangolin_lineage"][idx] if params["pangolin_lineage"][idx] is not None else ""
-    )
+    lineages = []
+    if params["pangolin_lineage"] is not None and len(params["pangolin_lineage"])>0:
+        lineages = (
+            params["pangolin_lineage"][idx] if params["pangolin_lineage"][idx] is not None else ""
+        )
     mutations = params["mutations"] if params["mutations"] is not None else ""
     # TODO: Trying to keep a similar behavior for `res_key` for now.
     res_key = create_query_filter_key(
