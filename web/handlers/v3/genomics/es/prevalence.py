@@ -18,7 +18,6 @@ def create_query_filter(params: Dict = None) -> Dict:
         filters.append(lineages)
     if mutations is not None and len(mutations) > 0:
         mutations = params["mutations"]
-        # mutations = mutations.replace(":", "\\:")
         mutations = escape_special_characters(mutations)
         mutations = "mutations: ({})".format(mutations)
         filters.append(mutations)

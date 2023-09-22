@@ -8,7 +8,6 @@ def create_query_filter(lineages: str = "", mutations: str = "") -> Dict:
         lineages = "pangolin_lineage: ({})".format(lineages)
         filters.append(lineages)
     if len(mutations) > 0:
-        # mutations = mutations.replace(":", "\\:")
         mutations = escape_special_characters(mutations)
         mutations = "mutations: ({})".format(mutations)
         filters.append(mutations)

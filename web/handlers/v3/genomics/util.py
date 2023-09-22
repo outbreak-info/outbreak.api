@@ -52,7 +52,6 @@ def create_query_filter(lineages="", mutations="", locations=""):
         lineages = "pangolin_lineage: ({})".format(lineages)
         filters.append(lineages)
     if mutations and len(mutations) > 0:
-        # mutations = mutations.replace(":", "\\:")
         mutations = escape_special_characters(mutations)
         mutations = "mutations: ({})".format(mutations)
         filters.append(mutations)

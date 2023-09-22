@@ -1,12 +1,6 @@
 ES_INDEX = "outbreak-genomics"
-
-# ES_MUTLESS_INDEX = "genomics_api_local_mutless"
-# ES_MUTS_INDEX = "genomics_api_local_muts"
 ES_MUTLESS_INDEX = "outbreak-genomics-mutless"
 ES_MUTS_INDEX = "outbreak-genomics-muts"
-ES_INDEX_V3 = [ES_MUTLESS_INDEX, ES_MUTS_INDEX]
-ES_INDEX_V3 = "outbreak-genomics-mut*"
-
 
 API_PREFIX = "genomics"
 API_VERSION = "v2"
