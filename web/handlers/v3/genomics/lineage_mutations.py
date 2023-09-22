@@ -1,6 +1,8 @@
 import asyncio
 
-import web.handlers.v3.genomics.helpers.lineage_mutations_helper as helper
+import web.handlers.v3.genomics.adapters_in.lineage_mutations as adapters_in
+import web.handlers.v3.genomics.adapters_out.lineage_mutations as adapters_out
+import web.handlers.v3.genomics.es.lineage_mutations as es
 from web.handlers.v3.genomics.base import BaseHandlerV3
 from web.handlers.v3.genomics.util import create_iterator_q
 
@@ -18,15 +20,15 @@ class LineageMutationsHandler(BaseHandlerV3):
     }
 
     async def _get(self):
-        params = helper.params_adapter(self.args)
+        params = adapters_in.params_adapter(self.args)
 
         parsed_resp = {}
         if (params["lineages"] is not None and params["lineages"] != "") or (
             params["mutations"] is not None and params["mutations"] != ""
         ):
-            query = helper.create_query(lineages=params["lineages"], mutations=params["mutations"])
+            query = es.create_query(lineages=params["lineages"], mutations=params["mutations"])
             resp = await self.asynchronous_fetch_lineages(query=query)
-            parsed_resp = helper.parse_response(
+            parsed_resp = adapters_out.parse_response(
                 resp=resp,
                 frequency=params["frequency"],
                 lineages=params["lineages"],
@@ -36,11 +38,11 @@ class LineageMutationsHandler(BaseHandlerV3):
         if "q" in params and params["q"] is not None:
 
             async def process_query_q(idx, query_filter):
-                query = helper.create_query_q(query_filter, self.size)
+                query = es.create_query_q(query_filter, self.size)
                 self.observability.log("ES_QUERY", query)
                 query_resp = await self.asynchronous_fetch_lineages(query)
                 # self.observability.log("ES_RESPONSE", query_resp)
-                parsed_resp.update(helper.parse_response_q(resp=query_resp, idx=idx, params=params))
+                parsed_resp.update(adapters_out.parse_response_q(resp=query_resp, idx=idx, params=params))
 
             tasks = [
                 process_query_q(idx, query_filter)

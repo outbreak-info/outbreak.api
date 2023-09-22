@@ -1,4 +1,6 @@
-import web.handlers.v3.genomics.helpers.sequence_count_helper as helper
+import web.handlers.v3.genomics.adapters_in.sequence_count as adapter_in
+import web.handlers.v3.genomics.adapters_out.sequence_count as adapter_out
+import web.handlers.v3.genomics.es.sequence_count as es
 from web.handlers.v3.genomics.base import BaseHandlerV3
 
 
@@ -12,9 +14,9 @@ class SequenceCountHandler(BaseHandlerV3):
     }
 
     async def _get(self):
-        params = helper.params_adapter(self.args)
-        query = helper.create_query(params, self.size)
+        params = adapter_in.params_adapter(self.args)
+        query = es.create_query(params, self.size)
         query_resp = await self.asynchronous_fetch_lineages(query)
-        parsed_resp = helper.parse_response(query_resp, params)
+        parsed_resp = adapter_out.parse_response(query_resp, params)
         resp = {"success": True, "results": parsed_resp}
         return resp

@@ -1,7 +1,5 @@
-# from elasticsearch_dsl import Search, Q, A
 import re
 from typing import Dict, List, Optional
-from web.handlers.v3.genomics.util import escape_special_characters
 
 import pandas as pd
 
@@ -22,89 +20,6 @@ def gene_mapping() -> Dict:
         "orf10": "ORF10",
     }
     return gene_mapping
-
-
-def params_adapter(args: Dict = None) -> Dict:
-    params = {}
-    if args.q is not None:
-        params["q"] = args.q or None
-
-        queries_delimiter = "|"
-        params["q_list"] = args.q.split(queries_delimiter) if args.q is not None else []
-
-        params["query_string_list"] = []
-        for q in params["q_list"]:
-            q_formatted = q.replace("lineages", "pangolin_lineage")
-            keywords = ["mutations", "pangolin_lineage"]
-            pattern = rf'({"|".join(keywords)}):|:'
-            q_formatted = re.sub(
-                pattern, lambda match: match.group(0) if match.group(1) else r"\:", q_formatted
-            )
-            params["query_string_list"].append(q_formatted)
-
-    params["lineages"] = args.lineages if args.lineages else ""
-    if params["lineages"] is None or params["lineages"] == "":
-        params["lineages"] = args.pangolin_lineage if args.pangolin_lineage else ""
-    params["mutations"] = args.mutations if args.mutations else ""
-    params["frequency"] = args.frequency
-    params["genes"] = args.gene.lower().split(",") if args.gene else []
-
-    return params
-
-
-def create_query_filter(lineages: str = "", mutations: str = "") -> Dict:
-    filters = []
-    if len(lineages) > 0:
-        lineages = "pangolin_lineage: ({})".format(lineages)
-        filters.append(lineages)
-    if len(mutations) > 0:
-        # mutations = mutations.replace(":", "\\:")
-        mutations = escape_special_characters(mutations)
-        mutations = "mutations: ({})".format(mutations)
-        filters.append(mutations)
-    query_filters = " AND ".join(filters)
-    return query_filters
-
-
-def create_query(lineages: str = "", mutations: str = "") -> Dict:
-    query_filters = create_query_filter(lineages=lineages, mutations=mutations)
-    query = {
-        "size": 0,
-        "track_total_hits": True,
-        "query": {
-            "bool": {
-                "filter": [
-                    {
-                        "query_string": {
-                            "query": query_filters  # Ex: (pangolin_lineage : BA.2) AND (mutations : NOT(MUTATION) OR MUTATION)
-                        }
-                    }
-                ]
-            }
-        },
-        "aggs": {"mutations": {"terms": {"field": "mutations", "size": 10000}}},
-    }
-    return query
-
-
-def create_query_q(query_filters: str = "", size: int = 10000) -> Dict:
-    query = {
-        "size": 0,
-        "track_total_hits": True,
-        "query": {
-            "bool": {
-                "filter": [
-                    {
-                        "query_string": {
-                            "query": query_filters  # Ex: (pangolin_lineage : BA.2) AND (mutations : NOT(MUTATION) OR MUTATION)
-                        }
-                    }
-                ]
-            }
-        },
-        "aggs": {"mutations": {"terms": {"field": "mutations", "size": size}}},
-    }
-    return query
 
 
 def parse_response(

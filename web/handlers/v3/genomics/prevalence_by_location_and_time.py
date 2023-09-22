@@ -1,6 +1,8 @@
 import asyncio
 
-import web.handlers.v3.genomics.helpers.prevalence_by_location_helper as helper
+import web.handlers.v3.genomics.es.prevalence_by_location as es
+import web.handlers.v3.genomics.adapters_in.prevalence_by_location as adapters_in
+import web.handlers.v3.genomics.adapters_out.prevalence_by_location as adapters_out
 from web.handlers.v3.genomics.base import BaseHandlerV3
 from web.handlers.v3.genomics.util import create_iterator, create_iterator_q
 
@@ -19,13 +21,13 @@ class PrevalenceByLocationAndTimeHandler(BaseHandlerV3):
     }
 
     async def _get(self):
-        params = helper.params_adapter(self.args)
+        params = adapters_in.params_adapter(self.args)
         parsed_resp = {}
 
         async def process_query(idx, i, j):
-            query = helper.create_query(idx, params, self.size)
+            query = es.create_query(idx, params, self.size)
             query_resp = await self.asynchronous_fetch_lineages(query)
-            parsed_resp.update(helper.parse_response(resp=query_resp, idx=idx, params=params))
+            parsed_resp.update(adapters_out.parse_response(resp=query_resp, idx=idx, params=params))
             idx = idx + 1
 
         tasks = [
@@ -37,9 +39,9 @@ class PrevalenceByLocationAndTimeHandler(BaseHandlerV3):
         if "q" in params and params["q"] is not None:
 
             async def process_query_q(idx, i):
-                query = helper.create_query_q(idx, params, self.size)
+                query = es.create_query_q(idx, params, self.size)
                 query_resp = await self.asynchronous_fetch_lineages(query)
-                parsed_resp.update(helper.parse_response_q(resp=query_resp, idx=idx, params=params))
+                parsed_resp.update(adapters_out.parse_response_q(resp=query_resp, idx=idx, params=params))
 
             tasks = [process_query_q(idx, i) for idx, i in create_iterator_q(params["q_list"])]
             await asyncio.gather(*tasks)

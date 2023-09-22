@@ -1,7 +1,7 @@
-import web.handlers.v3.genomics.helpers.prevalence_helper as helper
+import web.handlers.v3.genomics.adapters_in.prevalence as adapters_in
+import web.handlers.v3.genomics.adapters_out.prevalence as adapters_out
+import web.handlers.v3.genomics.es.prevalence as es
 from web.handlers.v3.genomics.base import BaseHandlerV3
-
-from .util import transform_prevalence
 
 
 # Get global prevalence of lineage by date
@@ -15,10 +15,9 @@ class GlobalPrevalenceByTimeHandler(BaseHandlerV3):
     }
 
     async def _get(self):
-        params = helper.params_adapter(self.args)
-        query = helper.create_query(params, self.size)
+        params = adapters_in.params_adapter(self.args)
+        query = es.create_query(params, self.size)
         query_resp = await self.asynchronous_fetch_lineages(query)
-        path_to_results = ["aggregations", "prevalence", "buckets"]
-        resp = transform_prevalence(query_resp, path_to_results, params["cumulative"])
+        resp = adapters_out.parse_response(query_resp=query_resp, params=params)
         resp = {"success": True, "results": resp}
         return resp
