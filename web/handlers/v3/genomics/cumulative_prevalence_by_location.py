@@ -11,7 +11,7 @@ class CumulativePrevalenceByLocationHandler(BaseHandlerV3):
     name = "lineage-by-sub-admin-most-recent"
     kwargs = dict(BaseHandlerV3.kwargs)
     kwargs["GET"] = {
-        "pangolin_lineage": {"type": str, "required": True},
+        "pangolin_lineage": {"type": str},
         "detected": {"type": bool, "default": False},
         "mutations": {"type": str, "default": None},
         "location_id": {"type": str, "default": None},

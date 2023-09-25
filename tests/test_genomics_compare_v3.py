@@ -225,7 +225,7 @@ def test_prev_by_location_2_4_1():
     )
 
 
-def test_prev_by_location_2_4_22():
+def test_prev_by_location_2_4_2():
     # WARNING: The key in the result was changed adding parenthesis.
     # Ex: from 'BA.1' to '(BA.1)'
     url = (
@@ -244,7 +244,25 @@ def test_prev_by_location_2_4_22():
     )
 
 
-def test_prev_by_location_2_4_2():
+def test_prev_by_location_2_4_3():
+    # WARNING: The key in the result was changed adding parenthesis.
+    # Ex: from 'BA.1' to '(BA.1)'
+    url = (
+        "prevalence-by-location?mutations=s:d405n%20AND%20s:r408s&location_id=GBR&cumulative=true"
+    )
+    result = endpoints._get_endpoint(url)
+    result = result.json()
+
+    url = "v3/" + url
+    result_v3 = endpoints._get_endpoint(url)
+    result_v3 = result_v3.json()
+
+    assert (
+        endpoints._deep_compare(result["results"]["s:d405n AND s:r408s"], result_v3["results"]["s:d405n AND s:r408s"]) == True
+    )
+
+
+def test_prev_by_location_2_4_4():
     url = "prevalence-by-location?cumulative=true&pangolin_lineage=BA.2.86&mutations=s:n764k"
     result = endpoints._get_endpoint(url)
     result = result.json()
@@ -256,7 +274,7 @@ def test_prev_by_location_2_4_2():
     assert endpoints._deep_compare(result, result_v3) == True
 
 
-def test_prev_by_location_2_4_3():
+def test_prev_by_location_2_4_5():
     # WARNING: This is a new functionallity.
     # Now it's possible to use logic operators.
     # Ex: BA.1 OR BA.2
@@ -269,7 +287,7 @@ def test_prev_by_location_2_4_3():
     assert result_v3["results"]["BA.1 OR BA.2"] is not None
 
 
-def test_prev_by_location_2_4_4():
+def test_prev_by_location_2_4_6():
     # WARNING: This is a new functionallity.
     # Now it's possible to use a list of logic operators.
     # Ex: BA.1 OR BA.2,AY.1 OR AY.2
@@ -283,7 +301,7 @@ def test_prev_by_location_2_4_4():
     assert result_v3["results"]["AY.1 OR AY.2"] is not None
 
 
-def test_prev_by_location_2_4_5():
+def test_prev_by_location_2_4_7():
     # WARNING: This is a new functionallity.
     # Now it's possible to use a list of logic operators.
     # Ex: BA.1 OR BA.2,AY.1 OR AY.2
@@ -404,7 +422,6 @@ def test_prev_by_location_q_3_2():
     endpoints._test_success(result_v3, url)
 
     assert result_v3["results"]["lineages: AY.1 OR AY.2 AND mutations: s:n764k"] is not None
-    # assert result_v3['results']['(AY.1 OR AY.2) AND (s:n764k OR ORF1a:A735A)'] is not None
 
 
 def test_heavy_query():
@@ -871,7 +888,6 @@ def test_seq_counts_2_3():
 
 def test_cumulative_prevalence_by_location_1():
     url = "lineage-by-sub-admin-most-recent?pangolin_lineage=XBB.1.16%20OR%20FU.1%20OR%20FU.2%20OR%20FU.2.1%20OR%20FU.3%20OR%20FU.3.1%20OR%20FU.4%20OR%20FU.5%20OR%20GY.1%20OR%20GY.2%20OR%20GY.2.1%20OR%20GY.3%20OR%20GY.4%20OR%20GY.5%20OR%20GY.6%20OR%20GY.7%20OR%20GY.8%20OR%20HF.1%20OR%20HF.1.1%20OR%20HF.1.2%20OR%20JF.1%20OR%20JF.2%20OR%20XBB.1.16.1%20OR%20XBB.1.16.2%20OR%20XBB.1.16.3%20OR%20XBB.1.16.4%20OR%20XBB.1.16.5%20OR%20XBB.1.16.6%20OR%20XBB.1.16.7%20OR%20XBB.1.16.8%20OR%20XBB.1.16.9%20OR%20XBB.1.16.10%20OR%20XBB.1.16.11%20OR%20XBB.1.16.12%20OR%20XBB.1.16.13%20OR%20XBB.1.16.14%20OR%20XBB.1.16.15%20OR%20XBB.1.16.16%20OR%20XBB.1.16.17%20OR%20XBB.1.16.18%20OR%20XBB.1.16.19%20OR%20XBB.1.16.20%20OR%20XBB.1.16.21%20OR%20XBB.1.16.22%20OR%20XBB.1.16.23%20OR%20XBB.1.16.24&detected=true"
-    # url = "lineage-by-sub-admin-most-recent?pangolin_lineage=XBB.1.16%20OR%20FU.1&detected=true"
 
     result = endpoints._get_endpoint(url)
     result = result.json()
@@ -924,21 +940,45 @@ def test_cumulative_prevalence_by_location_3():
     assert endpoints._deep_compare(result, result_v3) == True
 
 
-def test_cumulative_prevalence_by_location_4():
-    url = "lineage-by-sub-admin-most-recent?location_id=DEU&pangolin_lineage=EG.5.1&mutations=s:l24s&ndays=60"
-
+def test_cumulative_prevalence_by_location_no_lineage_1():
+    # url = "lineage-by-sub-admin-most-recent?mutations=s:q52h&detected=true"
+    url = "lineage-by-sub-admin-most-recent?mutations=s:d405n%20AND%20s:r408s&detected=true"
     result = endpoints._get_endpoint(url)
     result = result.json()
-
-    url_v2 = "v2/" + url
-    result_v2 = endpoints._get_endpoint(url_v2)
-    result_v2 = result_v2.json()
 
     url_v3 = "v3/" + url
     result_v3 = endpoints._get_endpoint(url_v3)
     result_v3 = result_v3.json()
 
-    assert endpoints._deep_compare(result, result_v2) == True
+    assert endpoints._deep_compare(result, result_v3) == True
+
+
+def test_cumulative_prevalence_by_location_no_lineage_2():
+    # url = "lineage-by-sub-admin-most-recent?mutations=s:q52h&detected=true&location_id=USA"
+    url = "lineage-by-sub-admin-most-recent?mutations=s:d405n%20AND%20s:r408s&detected=true&location_id=USA"
+
+
+    result = endpoints._get_endpoint(url)
+    result = result.json()
+
+    url_v3 = "v3/" + url
+    result_v3 = endpoints._get_endpoint(url_v3)
+    result_v3 = result_v3.json()
+
+    assert endpoints._deep_compare(result, result_v3) == True
+
+
+def test_cumulative_prevalence_by_location_no_lineage_3():
+    # url = "lineage-by-sub-admin-most-recent?location_id=FRA&mutations=s:q52h&ndays=60"
+    url = "lineage-by-sub-admin-most-recent?location_id=FRA&mutations=s:d405n%20AND%20s:r408s&ndays=60"
+
+    result = endpoints._get_endpoint(url)
+    result = result.json()
+
+    url_v3 = "v3/" + url
+    result_v3 = endpoints._get_endpoint(url_v3)
+    result_v3 = result_v3.json()
+
     assert endpoints._deep_compare(result, result_v3) == True
 
 
