@@ -130,4 +130,11 @@ class LineageMutationsHandler(BaseHandler):
                     df_response = df_response[df_response["gene"].str.lower().isin(genes)]
                 dict_response[query_lineage] = df_response.to_dict(orient="records")
         resp = {"success": True, "results": dict_response}
+      query_lineages = ['XBB.1.5', 'XBB.1.16', 'XBB.1.22.2']
+  frequency = 0.75
+  gene = None
+  result = lineage_mutations_handler_sim_modified(query_lineages, frequency, gene)
+  print (result)
+  print(json.dumps(result, indent=0))
         return resp
+      
