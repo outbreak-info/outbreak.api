@@ -24,18 +24,7 @@ def escape_special_characters(query_string):
     special_characters = {
         "\\": "\\\\",
         ":": "\\:",
-        # '"': '\\"',
-        # "*": "\\*",
-        # "?": "\\?",
         "/": "\\/",
-        # "[": "\\[",
-        # "]": "\\]",
-        # "(": "\\(",
-        # ")": "\\)",
-        # "{": "\\{",
-        # "}": "\\}",
-        # "^": "\\^",
-        # "-": "\\-",
     }
 
     # Replace special characters in the query string
@@ -55,9 +44,6 @@ def create_query_filter(lineages="", mutations="", locations=""):
         mutations = escape_special_characters(mutations)
         mutations = "mutations: ({})".format(mutations)
         filters.append(mutations)
-    # if locations and len(locations) > 0:
-    #     locations = "country_id: ({})".format(locations)
-    #     filters.append(locations)
     query_filters = " AND ".join(filters)
 
     if not lineages and not mutations and not locations:
@@ -141,7 +127,6 @@ def transform_prevalence(resp, path_to_results=None, cumulative=False):
     first_date = df_response[df_response["lineage_count"] > 0]["date"].min()
     dict_response = {}
     if not cumulative:
-        # df_response = df_response[pd.to_datetime(df_response["date"]) >= first_date - pd.to_timedelta(6, unit='d')] # Go back 6 days for total_rolling
         df_response = df_response[
             df_response["date"] >= first_date - pd.to_timedelta(6, unit="d")
         ]  # Go back 6 days for total_rolling

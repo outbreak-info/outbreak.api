@@ -40,10 +40,6 @@ def create_query(mutation: str = None, params: Dict = None, size: int = None) ->
         }
     }
     query["aggs"]["lineage"]["aggs"]["mutations"]["filter"] = query_obj
-
-    # query["aggs"]["lineage"]["aggs"]["mutations"]["filter"] = create_nested_mutation_query(
-    #     mutations=mutation
-    # )
     return query
 
 
@@ -67,8 +63,6 @@ def create_query_q(query_filter: str = None, params: Dict = None, size: int = No
             }
         },
     }
-
     if params["location_id"] is not None:
         query["query"] = parse_location_id_to_query(params["location_id"])
-
     return query

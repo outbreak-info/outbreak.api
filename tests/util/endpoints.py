@@ -3,20 +3,13 @@ from datetime import datetime
 
 from tests.secret import auth_token
 
-# def _get_endpoint(endpoint, prefix='genomics/', host="http://test.outbreak.info/"):
-# def _get_endpoint(endpoint, prefix='genomics/', host="https://dev.outbreak.info/"):
 def _get_endpoint(endpoint, prefix='genomics/', host="http://localhost:8000/"):
-
     url = f'{host}{prefix}{endpoint}'
     if 'genomics' in prefix:
         headers = {"Authorization": f"Bearer {auth_token}"}
     else:
         headers = None
-
     r = requests.get(url, headers=headers)
-    #raise Exception(f"{r.json()}")
-    #
-    #    raise Exception(f"{r.json()['results'][0]}")
     return r
 
 def _test_success(res_json, url):
@@ -56,7 +49,6 @@ def _deep_compare(dict1, dict2):
         if set(dict1.keys()) != set(dict2.keys()):
             print("IT'S DIFFERENT 0: " + str(set(dict1.keys())) + " | " + str(set(dict2.keys())) )
             return False
-
         for key in dict1.keys():
             if not _deep_compare(dict1[key], dict2[key]):
                 print("IT'S DIFFERENT 1: " + str(dict1[key]) + " | " + str(dict2[key]))
