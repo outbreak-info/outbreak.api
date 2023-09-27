@@ -14,7 +14,7 @@ class MutationHandler(BaseHandlerV3):
     async def _get(self):
         params = adapters_in.params_adapter(self.args)
         query = es.create_query(params)
-        query_resp = await self.asynchronous_fetch_mutations(query)
+        query_resp = await self.asynchronous_fetch_lineages(query)
         parsed_resp = adapters_out.parse_response(resp=query_resp)
         resp = {"success": True, "results": parsed_resp}
         return resp

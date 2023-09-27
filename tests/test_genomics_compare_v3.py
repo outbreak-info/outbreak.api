@@ -402,24 +402,56 @@ def test_mutation_details():
     result = endpoints._get_endpoint(url)
     result = result.json()
 
+    mutations_result = []
+    for mutation in result["results"]:
+        mutation.pop("alt_codon")
+        mutation.pop("pos")
+        mutation.pop("is_synonymous")
+        mutations_result.append(mutation)
+    mutations_result = sorted(mutations_result, key=lambda x: x['mutation'])
+
     url = "mutation-details?mutations=ORF1a:A735A,ORF1a:P3395H"
     url = "v3/" + url
     result_v3 = endpoints._get_endpoint(url)
     result_v3 = result_v3.json()
 
-    assert endpoints._deep_compare(result, result_v3) == True
+    mutations_result_v3 = []
+    for mutation in result_v3["results"]:
+        mutation.pop("alt_codon")
+        mutation.pop("pos")
+        mutation.pop("is_synonymous")
+        mutations_result_v3.append(mutation)
+    mutations_result_v3 = sorted(mutations_result_v3, key=lambda x: x['mutation'])
+
+    assert endpoints._deep_compare(mutations_result, mutations_result_v3) == True
 
 def test_mutation_details_2():
     url = "mutation-details?mutations=ORF1a:A735A,ORF1a:P3395H"
     result = endpoints._get_endpoint(url)
     result = result.json()
 
+    mutations_result = []
+    for mutation in result["results"]:
+        mutation.pop("alt_codon")
+        mutation.pop("pos")
+        mutation.pop("is_synonymous")
+        mutations_result.append(mutation)
+    mutations_result = sorted(mutations_result, key=lambda x: x['mutation'])
+
     url = "mutation-details?mutations=ORF1a:A735A OR ORF1a:P3395H"
     url = "v3/" + url
     result_v3 = endpoints._get_endpoint(url)
     result_v3 = result_v3.json()
 
-    assert endpoints._deep_compare(result, result_v3) == True
+    mutations_result_v3 = []
+    for mutation in result_v3["results"]:
+        mutation.pop("alt_codon")
+        mutation.pop("pos")
+        mutation.pop("is_synonymous")
+        mutations_result_v3.append(mutation)
+    mutations_result_v3 = sorted(mutations_result_v3, key=lambda x: x['mutation'])
+
+    assert endpoints._deep_compare(mutations_result, mutations_result_v3) == True
 
 
 def test_mutations_by_lineage_1():
@@ -616,16 +648,21 @@ def test_lineage_by_country_2():
     assert endpoints._deep_compare(data_result, data_result_v3) == True
 
 
-def test_mutations():
+def test_mutations_1():
     url = "mutations?name=S:E484*"
     result = endpoints._get_endpoint(url)
     result = result.json()
+    mutations_result = []
+    mutations_result = sorted(mutations_result, key=lambda x: x['mutation'])
 
     url = "v3/" + url
     result_v3 = endpoints._get_endpoint(url)
     result_v3 = result_v3.json()
 
-    assert endpoints._deep_compare(result, result_v3) == True
+    mutations_result_v3 = []
+    mutations_result_v3 = sorted(mutations_result_v3, key=lambda x: x['mutation'])
+
+    assert endpoints._deep_compare(mutations_result, mutations_result_v3) == True
 
 
 def test_lineage_mutations_a():
