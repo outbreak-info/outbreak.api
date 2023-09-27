@@ -1,7 +1,8 @@
-from web.handlers.v3.genomics.util import escape_special_characters
-
-from elasticsearch_dsl import Search, Q
 from typing import Dict
+
+from elasticsearch_dsl import Q, Search
+
+from web.handlers.v3.genomics.util import escape_special_characters
 
 
 def create_query_filter(params: Dict = None) -> Dict:

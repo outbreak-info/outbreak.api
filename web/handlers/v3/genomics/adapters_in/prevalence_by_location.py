@@ -1,6 +1,7 @@
 import re
 from typing import Dict
 
+
 def params_adapter(args: Dict = None) -> Dict:
     params = {}
     if args.q is not None:

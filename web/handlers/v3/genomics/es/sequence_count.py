@@ -1,7 +1,8 @@
-from web.handlers.v3.genomics.util import parse_location_id_to_query
-from elasticsearch_dsl import Search, Q
-
 from typing import Dict
+
+from elasticsearch_dsl import Q, Search
+
+from web.handlers.v3.genomics.util import parse_location_id_to_query
 
 
 def create_query(params: Dict = None, size: int = None) -> Dict:

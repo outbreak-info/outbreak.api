@@ -1,9 +1,6 @@
 from typing import Dict
 
-from web.handlers.v3.genomics.util import (
-    escape_special_characters,
-    parse_location_id_to_query,
-)
+from web.handlers.v3.genomics.util import escape_special_characters, parse_location_id_to_query
 
 
 def create_mutation_query(location_id=None, lineages=None, mutations=None):
@@ -74,7 +71,7 @@ def create_query(idx: int = None, params: Dict = None, size: int = None) -> Dict
     parse_location_id_to_query(params["location_id"], query["aggs"]["prevalence"]["filter"])
 
     lineages = []
-    if params["pangolin_lineage"] is not None and len(params["pangolin_lineage"])>0:
+    if params["pangolin_lineage"] is not None and len(params["pangolin_lineage"]) > 0:
         lineages = (
             params["pangolin_lineage"][idx] if params["pangolin_lineage"][idx] is not None else ""
         )

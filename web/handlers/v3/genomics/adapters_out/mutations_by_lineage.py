@@ -2,9 +2,7 @@ from typing import Dict
 
 import pandas as pd
 
-from web.handlers.v3.genomics.util import (
-    calculate_proportion,
-)
+from web.handlers.v3.genomics.util import calculate_proportion
 
 
 def parse_response(resp: Dict = None, mutation: str = None, params: Dict = None) -> Dict:

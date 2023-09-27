@@ -1,9 +1,6 @@
 from typing import Dict
 
-from web.handlers.v3.genomics.util import (
-    create_query_filter_key,
-    transform_prevalence,
-)
+from web.handlers.v3.genomics.util import create_query_filter_key, transform_prevalence
 
 
 def parse_response(resp: Dict = None, idx: int = 0, params: Dict = None) -> Dict:
@@ -11,7 +8,7 @@ def parse_response(resp: Dict = None, idx: int = 0, params: Dict = None) -> Dict
     path_to_results = ["aggregations", "prevalence", "count", "buckets"]
     resp = transform_prevalence(resp, path_to_results, params["cumulative"])
     lineages = []
-    if params["pangolin_lineage"] is not None and len(params["pangolin_lineage"])>0:
+    if params["pangolin_lineage"] is not None and len(params["pangolin_lineage"]) > 0:
         lineages = (
             params["pangolin_lineage"][idx] if params["pangolin_lineage"][idx] is not None else ""
         )

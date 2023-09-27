@@ -1,8 +1,6 @@
 from typing import Dict
 
-from web.handlers.v3.genomics.util import (
-    transform_prevalence_by_location_and_time,
-)
+from web.handlers.v3.genomics.util import transform_prevalence_by_location_and_time
 
 
 def parse_response(

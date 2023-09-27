@@ -1,4 +1,5 @@
 from typing import Dict
+
 from web.handlers.v3.genomics.util import escape_special_characters
 
 

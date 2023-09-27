@@ -23,9 +23,7 @@ class CumulativePrevalenceByLocationHandler(BaseHandlerV3):
         parsed_resp = {}
 
         async def process_query(query_lineage, query_mutation):
-            admin_level, query = es.create_query(
-                params, query_lineage, query_mutation, self.size
-            )
+            admin_level, query = es.create_query(params, query_lineage, query_mutation, self.size)
             resp = await self.asynchronous_fetch_lineages(query)
             resp_buckets = resp["aggregations"]["sub_date_buckets"]["buckets"]
             # Get all paginated results

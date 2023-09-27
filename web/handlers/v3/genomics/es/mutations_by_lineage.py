@@ -1,10 +1,6 @@
 from typing import Dict
 
-
-from web.handlers.v3.genomics.util import (
-    create_query_filter,
-    parse_location_id_to_query,
-)
+from web.handlers.v3.genomics.util import create_query_filter, parse_location_id_to_query
 
 
 def create_query(mutation: str = None, params: Dict = None, size: int = None) -> Dict:

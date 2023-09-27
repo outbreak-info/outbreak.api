@@ -1,8 +1,8 @@
 import asyncio
 
-import web.handlers.v3.genomics.es.prevalence_by_location as es
 import web.handlers.v3.genomics.adapters_in.prevalence_by_location as adapters_in
 import web.handlers.v3.genomics.adapters_out.prevalence_by_location as adapters_out
+import web.handlers.v3.genomics.es.prevalence_by_location as es
 from web.handlers.v3.genomics.base import BaseHandlerV3
 from web.handlers.v3.genomics.util import create_iterator, create_iterator_q
 
@@ -41,7 +41,9 @@ class PrevalenceByLocationAndTimeHandler(BaseHandlerV3):
             async def process_query_q(idx, i):
                 query = es.create_query_q(idx, params, self.size)
                 query_resp = await self.asynchronous_fetch_lineages(query)
-                parsed_resp.update(adapters_out.parse_response_q(resp=query_resp, idx=idx, params=params))
+                parsed_resp.update(
+                    adapters_out.parse_response_q(resp=query_resp, idx=idx, params=params)
+                )
 
             tasks = [process_query_q(idx, i) for idx, i in create_iterator_q(params["q_list"])]
             await asyncio.gather(*tasks)

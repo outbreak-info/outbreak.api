@@ -1,8 +1,6 @@
 from typing import Dict, List
 
-from web.handlers.genomics.util import (
-    parse_location_id_to_query,
-)
+from web.handlers.genomics.util import parse_location_id_to_query
 
 
 def create_mutation_query(location_id=None, lineages=None, mutations=None):

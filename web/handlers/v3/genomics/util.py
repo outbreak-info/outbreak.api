@@ -1,4 +1,5 @@
-from datetime import timedelta, datetime as dt
+from datetime import datetime as dt, timedelta
+
 import pandas as pd
 
 # Third-party imports
@@ -203,21 +204,23 @@ def compute_cumulative(grp, cols):
         return grp.tail(1)
 
 
-def transform_prevalence_by_location_and_time(flattened_response, ndays = None, query_detected = False):
+def transform_prevalence_by_location_and_time(flattened_response, ndays=None, query_detected=False):
     df_response = (
         pd.DataFrame(flattened_response)
-        .assign(date = lambda x: pd.to_datetime(x["date"], format="%Y-%m-%d"))
+        .assign(date=lambda x: pd.to_datetime(x["date"], format="%Y-%m-%d"))
         .sort_values("date")
     )
     dict_response = {}
     if not query_detected:
         if ndays is not None:
-            date_limit = dt.today() - timedelta(days = ndays)
+            date_limit = dt.today() - timedelta(days=ndays)
             df_response = df_response[df_response["date"] >= date_limit]
         if df_response.shape[0] == 0:
             return []
-        df_response =  df_response.groupby("name").apply(compute_cumulative, ["total_count", "lineage_count"])
-        df_response.loc[:,"date"] = df_response["date"].apply(lambda x: x.strftime("%Y-%m-%d"))
+        df_response = df_response.groupby("name").apply(
+            compute_cumulative, ["total_count", "lineage_count"]
+        )
+        df_response.loc[:, "date"] = df_response["date"].apply(lambda x: x.strftime("%Y-%m-%d"))
         d = calculate_proportion(df_response["cum_lineage_count"], df_response["cum_total_count"])
         df_response.loc[:, "proportion"] = d[0]
         df_response.loc[:, "proportion_ci_lower"] = d[1]

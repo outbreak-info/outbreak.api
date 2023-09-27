@@ -39,7 +39,9 @@ class MutationsByLineage(BaseHandlerV3):
             async def process_query_q(idx, query_filter):
                 query = es.create_query_q(query_filter, params, self.size)
                 query_resp = await self.asynchronous_fetch_lineages(query)
-                parsed_resp.update(adapters_out.parse_response_q(resp=query_resp, idx=idx, params=params))
+                parsed_resp.update(
+                    adapters_out.parse_response_q(resp=query_resp, idx=idx, params=params)
+                )
 
             tasks = [
                 process_query_q(idx, query_filter)
