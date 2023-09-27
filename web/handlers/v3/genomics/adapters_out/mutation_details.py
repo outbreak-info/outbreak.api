@@ -14,7 +14,7 @@ def parse_response(resp: Dict = None) -> Dict:
                 if k in tmp and tmp[k] != "None":
                     tmp[k] = int(float(tmp[k]))
             # TODO: These .pop could be removed after deleting them from datasource
-            tmp.pop("is_synyonymous", None)
+            tmp.pop("count", None)
             tmp.pop("id", None)
             flattened_response.append(tmp)
     return flattened_response
