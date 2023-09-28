@@ -3,7 +3,7 @@ from typing import Dict
 from web.handlers.v3.genomics.util import escape_special_characters, parse_location_id_to_query
 
 
-def create_mutation_query(location_id=None, lineages=None, mutations=None):
+def create_mutation_query(location_id: str = None, lineages: Dict = None, mutations: Dict = None):
     # For multiple lineages and mutations: (Lineage 1 AND mutation 1 AND mutation 2..) OR (Lineage 2 AND mutation 1 AND mutation 2..) ...
     query_obj = {"bool": {"should": []}}
     bool_should = []
@@ -28,7 +28,7 @@ def create_mutation_query(location_id=None, lineages=None, mutations=None):
     return query_obj
 
 
-def create_query_filter(lineages="", mutations="", locations=""):
+def create_query_filter(lineages: str = None, mutations: str = None, locations: str = None):
     filters = []
     if lineages and len(lineages) > 0:
         lineages = "pangolin_lineage: {}".format(lineages)
