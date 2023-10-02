@@ -209,47 +209,27 @@ def get_major_lineage_prevalence(df, index_col = "date", min_date = None, max_da
    
     df['prevalence'] = df['total_count']/df['lineage_count']
     df = df.sort_values(by="date") #Sort date values
-    min_date = dt.strptime(min_date, "%Y-%m-%d")
-    max_date = dt.strptime(max_date, "%Y-%m-%d")
+    
     
     if min_date and max_date:
         df = df[(df["date"].between(min_date, max_date)) & (df["prevalence"] >= prevalence_threshold)]
-              
+        num_unique_dates = df[df["date"] >= min_date]["date"].unique().shape[0] #counts # of unique days lineage is found
     elif min_date:
-        date_limit = dt.strptime(min_date, "%Y-%m-%d") + timedelta(days=ndays)
+        date_limit = dt.strptime(min_date, "%Y-%m-%d") + timedelta(days=ndays) # searches from min_date to ndays forward
         df = df[(df["prevalence"] >= prevalence_threshold) & (df['date'] > min_date) & (df['date'] < date_limit)]
-        
-    elif max_date:
-        date_limit = dt.strptime(max_date, "%Y-%m-%d") - timedelta(days=ndays)
-        df = df[(df["prevalence"] >= prevalence_threshold) & (df['date'] < max_date) & (df['date'] > date_limit)]
-    
-        
-    if df["date"].iloc[-1] < dt.today():
-            date = df["date"].iloc[-1]
+        num_unique_dates = df[df["date"] <= date_limit]["date"].unique().shape[0] 
     else:
-            date = dt.today()
-            date_range = date - timedelta(days = ndays)
-            df = df[(df["prevalence"] >= prevalence_threshold) & (df['date'] > date_range) & (df['date'] < date)]
+        date_limit = dt.strptime(max_date, "%Y-%m-%d") - timedelta(days=ndays) # searches from max_date to ndays back
+        df = df[(df["prevalence"] >= prevalence_threshold) & (df['date'] < max_date) & (df['date'] > date_limit)]
+        num_unique_dates = df[df["date"] >= date_limit]["date"].unique().shape[0]
     
-    date_limit = date - timedelta(days = ndays)
-    num_unique_dates = df[df["date"] >= date_limit]["date"].unique().shape[0]
-    if num_unique_dates < nday_threshold: 
-         nday_threshold = round((nday_threshold/ndays) * num_unique_dates)
-         
-    date_range = date - timedelta(days = nday_threshold) #Finding lineages nday_threshold days in the date range
-    lineages_to_retain = df[(df["prevalence"] >= prevalence_threshold) & (df['date'] > date_range) & (df['date'] < date)]
-    lineages_to_retain = lineages_to_retain['lineage'].to_list()
-    keep_lineages.append(lineages_to_retain)
-    
-    df = df.groupby(index_col).apply(classify_other_category, keep_lineages)
-
+    if num_unique_dates < nday_threshold:
+        nday_threshold = round((nday_threshold/ndays) * num_unique_dates) 
+    lineage_counts = df["lineage"].value_counts() #number of times lineage is found in df
+    lineages_to_retain = lineage_counts[lineage_counts >= nday_threshold].index.to_list() #lineages found at least [nday_threshold] times won't be grouped
+    keep_lineages.extend(lineages_to_retain)
+    df = df.groupby(index_col).apply(classify_other_category, lineages_to_retain)
     return df
-
- # In order to be considered important enough to not be grouped into the "other" lineage, 
- # a lineage needs to appear on at least nday_threshold days in the date range -- 
- # so num_unique_dates > nday_threshold.
-    
-
 
 def parse_location_id_to_query(query_id, query_obj = None):
     if query_id == None:
