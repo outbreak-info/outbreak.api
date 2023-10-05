@@ -1101,6 +1101,30 @@ def test_lineage_mutations_v3_2():
     endpoints._test_success(res_json, url)
 
 
+def test_lineage_mutations_q_v3():
+    url = "v3/lineage-mutations?q=pangolin_lineage_crumbs:B.1.351.2*"
+    res = endpoints._get_endpoint(url)
+    res_json = res.json()
+    endpoints._test_success(res_json, url)
+    assert len(res_json["results"]["pangolin_lineage_crumbs:B.1.351.2*"]) > 0
+
+
+def test_mutations_by_lineage_q_v3():
+    url = "v3/lineage-mutations?q=pangolin_lineage_crumbs:B.1.351.2*"
+    res = endpoints._get_endpoint(url)
+    res_json = res.json()
+    endpoints._test_success(res_json, url)
+    assert len(res_json["results"]["pangolin_lineage_crumbs:B.1.351.2*"]) > 0
+
+
+def test_prev_by_location_q_v3():
+    url = "v3/prevalence-by-location?q=pangolin_lineage_crumbs:B.1.351.2*"
+    res = endpoints._get_endpoint(url)
+    res_json = res.json()
+    endpoints._test_success(res_json, url)
+    assert len(res_json["results"]["pangolin_lineage_crumbs:B.1.351.2*"]) > 0
+
+
 URLS_TESTED = [
     "mutations?name=S:E484*",
     "location?name=united*",

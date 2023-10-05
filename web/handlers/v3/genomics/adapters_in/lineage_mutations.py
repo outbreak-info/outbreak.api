@@ -13,7 +13,7 @@ def params_adapter(args: Dict = None) -> Dict:
         params["query_string_list"] = []
         for q in params["q_list"]:
             q_formatted = q.replace("lineages", "pangolin_lineage")
-            keywords = ["mutations", "pangolin_lineage"]
+            keywords = ["mutations", "pangolin_lineage", "pangolin_lineage_crumbs"]
             pattern = rf'({"|".join(keywords)}):|:'
             q_formatted = re.sub(
                 pattern, lambda match: match.group(0) if match.group(1) else r"\:", q_formatted
