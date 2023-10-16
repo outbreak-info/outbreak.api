@@ -210,22 +210,20 @@ def get_major_lineage_prevalence(df, index_col = "date", min_date = None, max_da
     df['prevalence'] = df['total_count']/df['lineage_count']
     df = df.sort_values(by="date") #Sort date values
     
-    
     if min_date and max_date:
-        df = df[(df["date"].between(min_date, max_date)) & (df["prevalence"] >= prevalence_threshold)]
-        num_unique_dates = df[df["date"] >= min_date]["date"].unique().shape[0] #counts # of unique days lineage is found
+        df = df[(df["date"].between(min_date, max_date))]
     elif min_date:
         date_limit = dt.strptime(min_date, "%Y-%m-%d") + timedelta(days=ndays) # searches from min_date to ndays forward
-        df = df[(df["prevalence"] >= prevalence_threshold) & (df['date'] > min_date) & (df['date'] < date_limit)]
-        num_unique_dates = df[df["date"] <= date_limit]["date"].unique().shape[0] 
+        df = df[(df['date'] >= min_date) & (df['date'] <= date_limit)]
     else:
         date_limit = dt.strptime(max_date, "%Y-%m-%d") - timedelta(days=ndays) # searches from max_date to ndays back
-        df = df[(df["prevalence"] >= prevalence_threshold) & (df['date'] < max_date) & (df['date'] > date_limit)]
-        num_unique_dates = df[df["date"] >= date_limit]["date"].unique().shape[0]
+        df = df[(df['date'] <= max_date) & (df['date'] >= date_limit)]
+        
+    num_unique_dates = df["date"].unique().shape[0]  #counts # of unique days lineage is found
     
     if num_unique_dates < nday_threshold:
         nday_threshold = round((nday_threshold/ndays) * num_unique_dates) 
-    lineage_counts = df["lineage"].value_counts() #number of times lineage is found in df
+    lineage_counts = df[(df["prevalence"] >= prevalence_threshold)]["lineage"].value_counts() #number of times lineage is found in df
     lineages_to_retain = lineage_counts[lineage_counts >= nday_threshold].index.to_list() #lineages found at least [nday_threshold] times won't be grouped
     keep_lineages.extend(lineages_to_retain)
     df = df.groupby(index_col).apply(classify_other_category, lineages_to_retain)
@@ -243,7 +241,7 @@ def parse_location_id_to_query(query_id, query_obj = None):
         }
     location_types = ["country_id", "division_id", "location_id"]
     for i in range(min(3, len(location_codes))):
-        if i == 1 and len(location_codes[i].split("-")) > 1:              # For division remove iso2 code if present
+        if i == 1 and len(location_codes[i].split("-")) > 1:  # For division remove iso2 code if present
             location_codes[i] = location_codes[i].split("-")[1]
         if "must" in query_obj["bool"]:
             query_obj["bool"]["must"].append({
