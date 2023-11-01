@@ -3,7 +3,7 @@ ES_MUTLESS_INDEX = "outbreak-genomics-mutless"
 ES_MUTS_INDEX = "outbreak-genomics-muts"
 
 API_PREFIX = "genomics"
-API_VERSION = "v2"
+API_VERSION = "v3"
 
 APP_LIST_SWITCHED_TO_V3 = [
     (
