@@ -1,3 +1,5 @@
+from biothings.web.settings.default import APP_LIST
+
 ES_INDEX = "outbreak-genomics"
 ES_MUTLESS_INDEX = "outbreak-genomics-mutless"
 ES_MUTS_INDEX = "outbreak-genomics-muts"
@@ -216,4 +218,5 @@ APP_LIST = [
     *APP_LIST_ORIGIN,
     *APP_LIST_V3,
     *APP_LIST_SWITCHED_TO_V3,
+    *APP_LIST,
 ]
