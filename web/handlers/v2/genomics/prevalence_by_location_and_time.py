@@ -60,8 +60,6 @@ class PrevalenceByLocationAndTimeHandler(BaseHandler):
             query["aggs"]["prevalence"]["aggs"]["count"]["aggs"]["lineage_count"][
                 "filter"
             ] = query_obj
-            # import json
-            # print(json.dumps(query))
             resp = await self.asynchronous_fetch(query)
             path_to_results = ["aggregations", "prevalence", "count", "buckets"]
             resp = transform_prevalence(resp, path_to_results, cumulative)
@@ -75,4 +73,5 @@ class PrevalenceByLocationAndTimeHandler(BaseHandler):
                     else " AND ".join(query_mutations)
                 )
             results[res_key] = resp
+
         return {"success": True, "results": results}

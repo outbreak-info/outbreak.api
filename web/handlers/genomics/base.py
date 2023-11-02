@@ -4,7 +4,6 @@ from biothings.web.handlers import BaseAPIHandler
 
 from .gisaid_auth import gisaid_authorized
 
-
 class BaseHandler(BaseAPIHandler):
     __metaclass__ = abc.ABCMeta
 

@@ -59,8 +59,6 @@ class PrevalenceAllLineagesByLocationHandler(BaseHandler):
         query_obj = parse_time_window_to_query(date_range_filter, query_obj=query_obj)
         if query_obj:
             query["query"] = query_obj
-        # import json
-        # print(json.dumps(query))
         resp = await self.asynchronous_fetch(query)
         buckets = resp
         path_to_results = ["aggregations", "count", "buckets"]
