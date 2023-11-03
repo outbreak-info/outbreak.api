@@ -188,6 +188,20 @@ def test_lineages_mutations_2():
     endpoints._test_success(res_json, url)
 
 
+def test_lineages_mutations_3():
+    url = "lineage-mutations?pangolin_lineage=CH.1.1*%20%5BOmicron%20(CH.1.1.X)%5D&frequency=0&gene=ORF1a,ORF1b,S"
+    res = endpoints._get_endpoint(url)
+    res_json = res.json()
+    endpoints._test_success(res_json, url)
+
+
+def test_lineages_mutations_4():
+    url = "lineage-mutations?lineages=CH.1.1*%20%5BOmicron%20(CH.1.1.X)%5D&frequency=0.75&gene=5UTR,ORF1a,ORF1b,S,ORF3a,E,M,ORF6,ORF7a,ORF7b,ORF8,N,ORF10,3UTR"
+    res = endpoints._get_endpoint(url)
+    res_json = res.json()
+    endpoints._test_success(res_json, url)
+
+
 # ################################################
 # ############ V3
 # ################################################

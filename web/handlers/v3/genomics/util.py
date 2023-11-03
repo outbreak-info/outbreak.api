@@ -26,6 +26,8 @@ def escape_special_characters(query_string):
         "\\": "\\\\",
         ":": "\\:",
         "/": "\\/",
+        "[": "\\[",
+        "]": "\\]",
     }
 
     # Replace special characters in the query string
