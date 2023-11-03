@@ -17,18 +17,8 @@ from config_web import (
     WHITELIST_KEYS,
 )
 
-
-# Define a coroutine function to create the aiohttp.ClientSession
-async def create_gisaid_gps_api_http_client():
-    # 15 seconds may or may not be a reasonable default
-    return aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(15.0))
-
-
-# Use asyncio.run to create the client session when the module is executed
-if __name__ == "__main__":
-    import asyncio
-
-    _gisaid_gps_api_http_client = asyncio.run(create_gisaid_gps_api_http_client())
+# 15 seconds may or may not be a reasonable default
+_gisaid_gps_api_http_client = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(15.0))
 
 
 def gisaid_authorized(
