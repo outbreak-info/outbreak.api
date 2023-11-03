@@ -1,5 +1,3 @@
-from biothings.web.settings.default import APP_LIST
-
 ES_MUTLESS_INDEX = "outbreak-genomics-mutless"
 ES_MUTS_INDEX = "outbreak-genomics-muts"
 ES_INDEX = [ES_MUTLESS_INDEX, ES_MUTS_INDEX]
@@ -209,6 +207,7 @@ APP_LIST_ORIGIN = [
     (r"/{pre}/metadata", "web.handlers.genomics.MetadataHandler"),
     (r"/{pre}/gisaid-id-lookup", "web.handlers.genomics.GisaidIDHandler"),
     (r"/{pre}/get-auth-token", "web.handlers.genomics.GISAIDTokenHandler"),
+    (r"/{pre}/status", "biothings.web.handlers.StatusHandler"),
 ]
 
 APP_LIST = [
@@ -218,5 +217,4 @@ APP_LIST = [
     *APP_LIST_ORIGIN,
     *APP_LIST_V3,
     *APP_LIST_SWITCHED_TO_V3,
-    *APP_LIST,
 ]
