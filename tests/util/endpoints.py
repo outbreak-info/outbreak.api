@@ -3,6 +3,11 @@ from datetime import datetime
 
 from tests.secret import auth_token
 
+def _post_auth_token(endpoint, prefix='genomics/', host="http://localhost:8000/"):
+    url = f'{host}{prefix}{endpoint}'
+    r = requests.post(url)
+    return r
+
 def _get_endpoint(endpoint, prefix='genomics/', host="http://localhost:8000/"):
     url = f'{host}{prefix}{endpoint}'
     if 'genomics' in prefix:

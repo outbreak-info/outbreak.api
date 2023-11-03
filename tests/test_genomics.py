@@ -5,7 +5,6 @@ def test_status():
     url = "status"
     res = endpoints._get_endpoint(url)
     res_json = res.json()
-    print(res_json)
     endpoints._test_success(res_json, url)
     assert res_json["success"] == True
     assert res_json["status"] == "green"
@@ -15,11 +14,18 @@ def test_metadata():
     url = "metadata"
     res = endpoints._get_endpoint(url)
     res_json = res.json()
-    print(res_json)
     assert res_json["build_date"], f"{url} no results"
     assert res_json["biothing_type"] == "dataset"
     assert res_json["src"]["genomics_muts"]["upload_date"]["genomics_data_muts"], f"{url} no results"
     assert res_json["src"]["genomics_muts"]["upload_date"]["genomics_data_mutless"], f"{url} no results"
+
+
+def test_get_auth_token_post_method():
+    url = "get-auth-token"
+    res = endpoints._post_auth_token(url)
+    res_json = res.json()
+    assert res_json["authn_token"] is not None, f"{url} did not return token"
+    assert res_json["authn_url"] is not None, f"{url} did not return token"
 
 
 def test_seq_counts_1():
