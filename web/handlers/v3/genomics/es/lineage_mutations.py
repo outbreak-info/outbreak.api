@@ -30,6 +30,7 @@ def create_query_base(query_filters: str = "", size: int = 10000) -> Dict:
 def create_query_filter(lineages: str = "", mutations: str = "") -> Dict:
     filters = []
     if len(lineages) > 0:
+        lineages = escape_special_characters(lineages)
         lineages = "pangolin_lineage: ({})".format(lineages)
         filters.append(lineages)
     if len(mutations) > 0:
