@@ -1,8 +1,8 @@
 from biothings.web.settings.default import APP_LIST
 
-ES_INDEX = "outbreak-genomics"
 ES_MUTLESS_INDEX = "outbreak-genomics-mutless"
 ES_MUTS_INDEX = "outbreak-genomics-muts"
+ES_INDEX = [ES_MUTLESS_INDEX, ES_MUTS_INDEX]
 
 API_PREFIX = "genomics"
 API_VERSION = "v3"

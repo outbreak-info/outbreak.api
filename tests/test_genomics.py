@@ -1,6 +1,27 @@
 from tests.util import endpoints
 
 
+def test_status():
+    url = "status"
+    res = endpoints._get_endpoint(url)
+    res_json = res.json()
+    print(res_json)
+    endpoints._test_success(res_json, url)
+    assert res_json["success"] == True
+    assert res_json["status"] == "green"
+
+
+def test_metadata():
+    url = "metadata"
+    res = endpoints._get_endpoint(url)
+    res_json = res.json()
+    print(res_json)
+    assert res_json["build_date"], f"{url} no results"
+    assert res_json["biothing_type"] == "dataset"
+    assert res_json["src"]["genomics_muts"]["upload_date"]["genomics_data_muts"], f"{url} no results"
+    assert res_json["src"]["genomics_muts"]["upload_date"]["genomics_data_mutless"], f"{url} no results"
+
+
 def test_seq_counts_1():
     url = "sequence-count"
     result = endpoints._generic_api_test(url)
@@ -109,9 +130,8 @@ def test_lineage_by_country():
     url = "lineage-by-country"
     res = endpoints._get_endpoint(url)
     res_json = res.json()
-    assert len(res_json["aggregations"]["prevalence"]["country"]["buckets"]), f"{url} no results"
-    assert res_json["aggregations"]["prevalence"].get("doc_count"), f"{url} no results"
-    assert res_json["aggregations"]["prevalence"]["country"]["buckets"][0].get(
+    assert len(res_json["results"]), f"{url} no results"
+    assert res_json["results"][0].get(
         "key"
     ), f"{url} no results"
 
@@ -120,9 +140,8 @@ def test_lineage_by_country_2():
     url = "lineage-by-country?pangolin_lineage=BA.2"
     res = endpoints._get_endpoint(url)
     res_json = res.json()
-    assert len(res_json["aggregations"]["prevalence"]["country"]["buckets"]), f"{url} no results"
-    assert res_json["aggregations"]["prevalence"].get("doc_count"), f"{url} no results"
-    assert res_json["aggregations"]["prevalence"]["country"]["buckets"][0].get(
+    assert len(res_json["results"]), f"{url} no results"
+    assert res_json["results"][0].get(
         "key"
     ), f"{url} no results"
 
@@ -235,8 +254,8 @@ def test_prev_by_location_2_v3():
     res_json = res.json()
     assert res_json.get("results"), f"{url} no results"
     assert len(res_json["results"]), f"{url} no results"
-    assert res_json["results"].get("(BA.2)"), f"{url} no BA.2"
-    assert len(res_json["results"]["(BA.2)"]), f"{url} no results for BA.2"
+    assert res_json["results"].get("BA.2"), f"{url} no BA.2"
+    assert len(res_json["results"]["BA.2"]), f"{url} no results for BA.2"
 
 
 def test_prev_by_location_2_1_v3():
@@ -351,4 +370,4 @@ ENDPOINTS_TESTED = [
     "lineage-mutations"
 ]
 
-ENDPOINTS_NOT_TESTED = ["get-auth-token" "lineage-by-sub-admin-most-recent" "metadata" "status"]
+ENDPOINTS_NOT_TESTED = ["get-auth-token" "lineage-by-sub-admin-most-recent"]
