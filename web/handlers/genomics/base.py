@@ -20,7 +20,7 @@ class BaseHandler(BaseAPIHandler):
     async def asynchronous_fetch(self, query):
         query["track_total_hits"] = True
         response = await self.biothings.elasticsearch.async_client.search(
-            index=self.biothings.config.genomics.ES_INDEX, body=query, size=0, request_timeout=90
+            index=self.biothings.config.genomics.ES_INDEX, body=query, size=0, request_timeout=150
         )
         return response
 
