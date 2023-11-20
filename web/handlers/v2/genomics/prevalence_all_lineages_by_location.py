@@ -41,6 +41,8 @@ class PrevalenceAllLineagesByLocationHandler(BaseHandler):
             query_other_exclude.split(",") if query_other_exclude is not None else []
         )
         query_cumulative = self.args.cumulative
+        min_date = self.args.min_date
+        max_date = self.args.max_date
         query = {
             "size": 0,
             "aggs": {
@@ -54,7 +56,7 @@ class PrevalenceAllLineagesByLocationHandler(BaseHandler):
         }
         query_obj = parse_location_id_to_query(query_location)
         date_range_filter = create_date_range_filter(
-            "date_collected", self.args.min_date, self.args.max_date
+            "date_collected", min_date, max_date
         )
         query_obj = parse_time_window_to_query(date_range_filter, query_obj=query_obj)
         if query_obj:
@@ -96,6 +98,8 @@ class PrevalenceAllLineagesByLocationHandler(BaseHandler):
         df_response = get_major_lineage_prevalence(
             df_response,
             "date",
+            min_date,
+            max_date,
             query_other_exclude,
             query_other_threshold,
             query_nday_threshold,
@@ -136,7 +140,7 @@ class PrevalenceAllLineagesByLocationHandler(BaseHandler):
             ]
         else:
             df_response = (
-                df_response.groupby("lineage")
+                df_response.groupby("lineage", group_keys=False)
                 .apply(
                     expand_dates,
                     df_response["date"].min(),

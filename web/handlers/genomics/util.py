@@ -19,7 +19,6 @@ def expand_dates(df, date_min, date_max, index_col, grp_col):
         df
         .set_index(index_col)
         .reindex(idx, fill_value = 0)
-        .drop(grp_col, axis = 1)
         .reset_index()
         .rename(
             columns = {
@@ -205,9 +204,14 @@ def classify_other_category(grp, keep_lineages):
     })
     return grp
 
-def get_major_lineage_prevalence(df, index_col, keep_lineages = [], prevalence_threshold = 0.05, nday_threshold = 10, ndays = 180):
+def get_major_lineage_prevalence(df, index_col, min_date = None, max_date = None, keep_lineages = [], prevalence_threshold = 0.05, nday_threshold = 10, ndays = 180):
     date_limit = dt.today() - timedelta(days = ndays)
-    lineages_to_retain = df[(df["prevalence"] >= prevalence_threshold) & (df["date"] >= date_limit)]["lineage"].value_counts()
+    lineages_to_retain = df[
+        (df["prevalence"] >= prevalence_threshold)
+        & (df["date"] >= date_limit)
+        & ((min_date is None) | (df["date"] >= min_date))
+        & ((max_date is None) | (df["date"] <= max_date))
+    ]["lineage"].value_counts()
     num_unique_dates = df[df["date"] >= date_limit]["date"].unique().shape[0]
     if num_unique_dates < nday_threshold:
         nday_threshold = round((nday_threshold/ndays) * num_unique_dates)

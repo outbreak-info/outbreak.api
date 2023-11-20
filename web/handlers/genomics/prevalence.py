@@ -264,7 +264,7 @@ class PrevalenceAllLineagesByLocationHandler(BaseHandler):
         )
         if query_window is not None:
             df_response = df_response[df_response["date"] >= (dt.now() - timedelta(days = query_window))]
-        df_response = get_major_lineage_prevalence(df_response, "date", query_other_exclude, query_other_threshold, query_nday_threshold, query_ndays)
+        df_response = get_major_lineage_prevalence(df_response, "date", None, None, query_other_exclude, query_other_threshold, query_nday_threshold, query_ndays)
         if not query_cumulative:
             df_response = df_response.groupby("lineage").apply(compute_rolling_mean_all_lineages, "date", "lineage_count", "lineage_count_rolling", "lineage").reset_index()
             df_response = df_response.groupby("date").apply(compute_total_count, "lineage_count_rolling", "total_count_rolling")
@@ -274,7 +274,7 @@ class PrevalenceAllLineagesByLocationHandler(BaseHandler):
             df_response = df_response.fillna("None")
             df_response = df_response[["date", "total_count", "lineage_count", "lineage", "prevalence", "prevalence_rolling"]]
         else:
-            df_response = df_response.groupby("lineage").apply(expand_dates, df_response["date"].min(), df_response["date"].max(), "date", "lineage").reset_index()
+            df_response = df_response.groupby("lineage", group_keys=False).apply(expand_dates, df_response["date"].min(), df_response["date"].max(), "date", "lineage").reset_index()
             df_response = df_response.groupby("date").apply(compute_total_count, "lineage_count", "total_count").reset_index()
             df_response = df_response.groupby("lineage").agg({"total_count": "sum", "lineage_count": "sum"}).reset_index()
             df_response.loc[:,"prevalence"] = df_response["lineage_count"]/df_response["total_count"]
