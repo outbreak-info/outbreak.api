@@ -136,7 +136,7 @@ class PrevalenceAllLineagesByLocationHandler(BaseHandler):
             ]
         else:
             df_response = (
-                df_response.groupby("lineage")
+                df_response.groupby("lineage", group_keys=False)
                 .apply(
                     expand_dates,
                     df_response["date"].min(),
