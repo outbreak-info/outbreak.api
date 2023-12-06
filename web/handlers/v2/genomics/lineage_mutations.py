@@ -3,7 +3,12 @@ import re
 import pandas as pd
 
 from web.handlers.genomics.base import BaseHandler
-from web.handlers.genomics.util import create_nested_mutation_query, get_total_hits
+from web.handlers.genomics.util import (
+    create_date_range_filter,
+    create_nested_mutation_query,
+    get_total_hits,
+    parse_time_window_to_query,
+)
 
 
 class LineageMutationsHandler(BaseHandler):
@@ -28,6 +33,8 @@ class LineageMutationsHandler(BaseHandler):
         "pangolin_lineage": {"type": str, "required": True},
         "frequency": {"type": float, "default": 0.8, "min": 0, "max": 1},
         "gene": {"type": str, "default": None},
+        "min_date": {"type": str, "default": None, "date_format": "%Y-%m-%d"},
+        "max_date": {"type": str, "default": None, "date_format": "%Y-%m-%d"},
     }
 
     async def _get(self):
@@ -38,6 +45,11 @@ class LineageMutationsHandler(BaseHandler):
             genes = gene.lower().split(",")
         else:
             genes = []
+
+        date_range_filter = create_date_range_filter(
+            "date_collected", self.args.min_date, self.args.max_date
+        )
+
         dict_response = {}
         # Query structure: Lineage 1 OR Lineage 2 OR Lineage 3 AND Mutation 1 AND Mutation 2, Lineage 4 AND Mutation 2, Lineage 5 ....
         for query_lineage in pangolin_lineage.split(","):
@@ -66,7 +78,7 @@ class LineageMutationsHandler(BaseHandler):
             query["query"] = create_nested_mutation_query(
                 lineages=query_pangolin_lineage, mutations=query_mutations
             )
-            # print(query)
+            parse_time_window_to_query(date_range_filter, query["query"])
             resp = await self.asynchronous_fetch(query)
             path_to_results = ["aggregations", "mutations", "mutations", "buckets"]
             buckets = resp
