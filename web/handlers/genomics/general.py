@@ -1,7 +1,7 @@
 import pandas as pd
 from .base import BaseHandler
 from tornado import gen
-from .util import create_nested_mutation_query, parse_location_id_to_query
+from .util import create_nested_mutation_query, parse_location_id_to_query, get_total_hits
 
 class SequenceCountHandler(BaseHandler):
 
@@ -68,7 +68,7 @@ class SequenceCountHandler(BaseHandler):
             else:
                 resp = yield self.asynchronous_fetch(query)
                 flattened_response = {
-                    "total_count": resp["hits"]["total"]
+                    "total_count": get_total_hits(resp)
                 }
         resp = {"success": True, "results": flattened_response}
         return resp
@@ -117,7 +117,7 @@ class MostRecentDateHandler(BaseHandler):
         query_obj = create_nested_mutation_query(lineages = query_pangolin_lineage, mutations = query_mutations, location_id = query_location)
         query["query"] = query_obj
         resp = yield self.asynchronous_fetch(query)
-        print(resp)
+        #print(resp)
         path_to_results = ["aggregations", "date_collected", "buckets"]
         buckets = resp
         for i in path_to_results:
@@ -233,6 +233,7 @@ class LocationHandler(BaseHandler):
     @gen.coroutine
     def _get(self):
         query_str = self.get_argument("name", None)
+        size = self.get_argument("size", None)
         flattened_response = []
         for loc in self.location_types:
             query = {
@@ -312,6 +313,12 @@ class LocationHandler(BaseHandler):
                         "total_count": rec["doc_count"]
                     })
         flattened_response = sorted(flattened_response, key = lambda x: -x["total_count"])
+        if size:
+            try:
+                size = int(size)
+            except Exception:
+                return {"success": False, "results": [], "errors": "Invalide size value"}
+            flattened_response = flattened_response[:size]
         resp = {"success": True, "results": flattened_response}
         return resp
 
@@ -403,7 +410,9 @@ class MetadataHandler(BaseHandler):
     @gen.coroutine
     def _get(self):
         mapping = yield self.get_mapping()
-        mapping = mapping["outbreak-genomics"]["mappings"]
+        
+        # mapping dict key is name of index, unknown here.
+        mapping = [val for val in mapping.values()][0]['mappings']
         res = None
         if "mutation" in mapping:
             res = mapping['mutation']['_meta']

@@ -1,7 +1,7 @@
 from .base import BaseHandler
 from tornado import gen
 import pandas as pd
-from .util import create_nested_mutation_query, calculate_proportion, parse_location_id_to_query, create_lineage_concat_query
+from .util import create_nested_mutation_query, calculate_proportion, parse_location_id_to_query, get_total_hits
 
 import re
 
@@ -104,6 +104,7 @@ class LineageHandler(BaseHandler):
     @gen.coroutine
     def _get(self):
         query_str = self.get_argument("name", None)
+        size = self.get_argument("size", None)
         query = {
                 "size": 0,
                 "query": {
@@ -131,6 +132,13 @@ class LineageHandler(BaseHandler):
             "name": i["key"],
             "total_count": i["doc_count"]
             } for i in buckets]
+        if size:
+            try:
+                size = int(size)
+            except Exception:
+                return {"success": False, "results": [], "errors": "Invalide size value"}
+            flattened_response = sorted(flattened_response, key=lambda x: -x["total_count"])
+            flattened_response = flattened_response[:size]
         resp = {"success": True, "results": flattened_response}
         return resp
 
@@ -173,6 +181,11 @@ class LineageMutationsHandler(BaseHandler):
                                 "terms": {
                                     "field": "mutations.mutation",
                                     "size": 10000
+                                },
+                                "aggs": {
+                                    "genomes": {
+                                        "reverse_nested": {}
+                                    }
                                 }
                             }
                         }
@@ -185,6 +198,7 @@ class LineageMutationsHandler(BaseHandler):
             if len(query_lineage_split) > 1:
                 query_mutations = query_lineage_split[1:] # First parameter is always lineage
             query["query"] = create_nested_mutation_query(lineages = query_pangolin_lineage, mutations = query_mutations)
+            #print(query)
             resp = yield self.asynchronous_fetch(query)
             path_to_results = ["aggregations", "mutations", "mutations", "buckets"]
             buckets = resp
@@ -192,8 +206,8 @@ class LineageMutationsHandler(BaseHandler):
                 buckets = buckets[i]
             flattened_response = [{
                 "mutation": i["key"],
-                "mutation_count": i["doc_count"],
-                "lineage_count": resp["hits"]["total"]["value"] if isinstance(resp["hits"]["total"], dict) else resp["hits"]["total"], # To account for difference in ES versions 7.12.0 vs 6.8.13
+                "mutation_count": i["genomes"]["doc_count"],
+                "lineage_count": get_total_hits(resp),
                 "lineage": query_lineage
             } for i in buckets]
             if len(flattened_response) > 0:
@@ -263,7 +277,7 @@ class MutationDetailsHandler(BaseHandler):
             for j in i["by_nested"]["hits"]["hits"]:
                 tmp = j["_source"]
                 for k in ["change_length_nt", "codon_num", "pos"]:
-                    if tmp[k] != "None":
+                    if k in tmp and tmp[k] != "None":
                         tmp[k] = int(float(tmp[k]))
                 flattened_response.append(tmp)
         resp = {"success": True, "results": flattened_response}

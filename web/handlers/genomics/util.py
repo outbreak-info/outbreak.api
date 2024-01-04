@@ -247,6 +247,25 @@ def parse_location_id_to_query(query_id, query_obj = None):
                 })
     return query_obj
 
+
+def parse_time_window_to_query(date_range_filter=None, query_obj=None):
+    if date_range_filter is None:
+        return query_obj
+    if query_obj is None:
+        query_obj = {
+            "bool": {
+                "must": []
+            }
+        }
+
+    if "must" in query_obj["bool"]:
+        query_obj["bool"]["must"].append(date_range_filter)
+    elif "should" in query_obj["bool"] and len(query_obj["bool"]["should"]) > 0:
+        for bool_must in query_obj["bool"]["should"]:
+            bool_must["bool"]["must"].append(date_range_filter)
+    return query_obj
+
+
 def create_lineage_concat_query(queries, query_tmpl):
     queries = queries.split(",")
     if len(queries) == 1:
@@ -268,10 +287,24 @@ def create_lineage_concat_query(queries, query_tmpl):
         }
 
 def create_iterator(lineages, mutations):
-    print(lineages)
-    print(mutations)
+    #print(lineages)
+    #print(mutations)
     if len(lineages) > 0:
         return zip(lineages, [mutations] * len(lineages))
     if len(lineages) == 0 and len(mutations) > 0:
         return zip([None], [mutations])
     return zip([], [])
+
+def get_total_hits(d): # To account for difference in ES versions 7.12.0 vs 6.8.13
+    return d["hits"]["total"]["value"] if isinstance(d["hits"]["total"], dict) else d["hits"]["total"]
+
+
+def create_date_range_filter(field_name, min_date=None, max_date=None):
+    date_range_filter = {"range": {field_name: {}}}
+    if not max_date and not min_date:
+        return None
+    if max_date:
+        date_range_filter["range"][field_name]["lte"] = max_date
+    if min_date:
+        date_range_filter["range"][field_name]["gte"] = min_date
+    return date_range_filter

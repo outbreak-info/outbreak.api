@@ -2,7 +2,7 @@
 # *****************************************************************************
 # Elasticsearch variables
 # *****************************************************************************
-ES_HOST = 'localhost:9200'
+# ES_HOST = 'localhost:9200'
 ES_INDEX = 'outbreak-covid19'
 ES_DOC_TYPE = 'outbreak_info'
 
@@ -18,7 +18,6 @@ API_VERSION = ''
 # *****************************************************************************
 
 STATUS_CHECK = {
-    'id': 'USA_US-CA_06073_2020-03-01',  # San Diego County
-    'index': 'outbreak-covid19',
-    'doc_type': 'outbreak_info'
+    'id': 'USA_California_SanDiego2021-12-30',
+    'index': 'outbreak-covid19'
 }

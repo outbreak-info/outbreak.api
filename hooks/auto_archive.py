@@ -44,6 +44,7 @@ schedule("0 18 * * *", auto_archive, "pdb", dryrun=False)       # 6pm daily, 2am
 schedule("0 18 * * *", auto_archive, "figshare", dryrun=False)  # 6pm daily, 2am UTC
 schedule("0 18 * * *", auto_archive, "protocolsio", dryrun=False)   # 6pm daily, 2am UTC
 schedule("0 18 * * *", auto_archive, "dataverse", dryrun=False)   # 6pm daily, 2am UTC
+schedule("0 18 * * *", auto_archive, "genomics_api", dryrun=False, days=90)   # 6pm daily, 2am UTC
 
 
 # optionally, we can expose command as an API endpoint

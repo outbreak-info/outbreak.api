@@ -82,7 +82,7 @@ class PrevalenceByLocationAndTimeHandler(BaseHandler):
             parse_location_id_to_query(query_location, query["aggs"]["prevalence"]["filter"])
             lineages = i.split(" OR ") if i is not None else []
             query_obj = create_nested_mutation_query(lineages = lineages, mutations = j, location_id = query_location)
-            print(query_obj)
+            #print(query_obj)
             query["aggs"]["prevalence"]["aggs"]["count"]["aggs"]["lineage_count"]["filter"] = query_obj
             resp = yield self.asynchronous_fetch(query)
             path_to_results = ["aggregations", "prevalence", "count", "buckets"]

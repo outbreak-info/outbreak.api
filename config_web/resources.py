@@ -6,7 +6,7 @@ from biothings.web.settings.default import (ANNOTATION_KWARGS, APP_LIST,
 # *****************************************************************************
 # Elasticsearch variables
 # *****************************************************************************
-ES_HOST = 'localhost:9200'
+# ES_HOST = 'localhost:9200'
 ES_INDEX = 'outbreak-resources-*'
 ES_DOC_TYPE = 'resource'
 
