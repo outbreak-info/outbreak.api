@@ -1,9 +1,9 @@
 # *****************************************************************************
 # Elasticsearch variables
 # *****************************************************************************
-ES_INDEX = "outbreak-wastewater"
-API_PREFIX = "wastewater"
-ES_DOC_TYPE = "wastewater"
+ES_INDEX = "outbreak-wastewater-metadata"
+API_PREFIX = "wastewater-metadata"
+ES_DOC_TYPE = "wastewater_metadata"
 API_VERSION = ""
 
 APP_LIST = [

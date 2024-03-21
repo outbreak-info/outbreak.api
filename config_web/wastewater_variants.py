@@ -1,0 +1,12 @@
+# *****************************************************************************
+# Elasticsearch variables
+# *****************************************************************************
+ES_INDEX = "outbreak-wastewater-variants"
+API_PREFIX = "wastewater-variants"
+ES_DOC_TYPE = "wastewater_variants"
+API_VERSION = ""
+
+APP_LIST = [
+    (r"/{pre}/{ver}/metadata/?", "web.handlers.GRMetadataSourceHandler"),
+    (r"/{pre}/{ver}/query/?", "web.handlers.GRQueryHandler"),
+]
