@@ -2,7 +2,7 @@
 # Elasticsearch variables
 # *****************************************************************************
 ES_INDEX = "outbreak-wastewater-metadata"
-API_PREFIX = "wastewater-metadata"
+API_PREFIX = "wastewater_metadata"
 ES_DOC_TYPE = "wastewater_metadata"
 API_VERSION = ""
 

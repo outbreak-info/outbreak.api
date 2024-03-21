@@ -2,7 +2,7 @@
 # Elasticsearch variables
 # *****************************************************************************
 ES_INDEX = "outbreak-wastewater-demix"
-API_PREFIX = "wastewater-demix"
+API_PREFIX = "wastewater_demix"
 ES_DOC_TYPE = "wastewater_demix"
 API_VERSION = ""
 
