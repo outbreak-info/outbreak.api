@@ -16,7 +16,6 @@ class BaseHandlerV3(BaseHandler):
         response = await self.biothings.elasticsearch.async_client.search(
             index=self.biothings.config.genomics.ES_MUTLESS_INDEX,
             body=query,
-            size=0,
             request_timeout=150,
         )
         return response
@@ -26,7 +25,6 @@ class BaseHandlerV3(BaseHandler):
         response = await self.biothings.elasticsearch.async_client.search(
             index=self.biothings.config.genomics.ES_MUTS_INDEX,
             body=query,
-            size=0,
             request_timeout=150,
         )
         return response

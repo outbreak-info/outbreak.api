@@ -270,7 +270,6 @@ class LocationHandler(BaseHandler):
         flattened_response = []
         for loc in self.location_types:
             query = {
-                "size": 0,
                 "query": {"wildcard": {"{}_lower".format(loc): {"value": query_str}}},
                 "aggs": {
                     "loc_agg": {
