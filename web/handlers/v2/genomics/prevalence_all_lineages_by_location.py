@@ -42,7 +42,6 @@ class PrevalenceAllLineagesByLocationHandler(BaseHandler):
         )
         query_cumulative = self.args.cumulative
         query = {
-            "size": 0,
             "aggs": {
                 "count": {
                     "terms": {"field": "date_collected", "size": self.size},
