@@ -7,6 +7,6 @@ ES_DOC_TYPE = "wastewater_demix"
 API_VERSION = ""
 
 APP_LIST = [
-    (r"/{pre}/{ver}/metadata/?", "web.handlers.GRMetadataSourceHandler"),
-    (r"/{pre}/{ver}/query/?", "web.handlers.GRQueryHandler"),
+    (r"/{pre}/{ver}/metadata/?", "web.handlers.WWMetadataSourceHandler"),
+    (r"/{pre}/{ver}/query/?", "web.handlers.WWQueryHandler"),
 ]
