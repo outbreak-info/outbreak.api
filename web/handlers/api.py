@@ -27,3 +27,15 @@ class GRMetadataSourceHandler(MetadataSourceHandler):
     @gisaid_authorized
     async def get(self, *args, **kwargs):
         await super().get(*args, **kwargs)
+
+# *****************************************************************************
+# Wastewater Handlers
+# *****************************************************************************
+
+class WWQueryHandler(QueryHandler):
+    async def get(self, *args, **kwargs):
+        await super().get(*args, **kwargs)
+
+class WWMetadataSourceHandler(MetadataSourceHandler):
+    async def get(self, *args, **kwargs):
+        await super().get(*args, **kwargs)
