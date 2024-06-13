@@ -4,6 +4,7 @@ import pandas as pd
 from .util import create_nested_mutation_query, calculate_proportion, parse_location_id_to_query, get_total_hits
 
 import re
+from tornado.web import HTTPError
 
 class LineageByCountryHandler(BaseHandler):
 
@@ -288,6 +289,8 @@ class MutationsByLineage(BaseHandler):
     def _get(self):
         query_location = self.get_argument("location_id", None)
         query_mutations = self.get_argument("mutations", None)
+        if ";" in query_mutations:
+            raise HTTPError(400)
         query_pangolin_lineage = self.get_argument("pangolin_lineage", None)
         query_mutations = [muts.split(",") for muts in query_mutations.split(" AND ")] if query_mutations is not None else []
         query_frequency_threshold = self.get_argument("frequency", None)
@@ -343,7 +346,8 @@ class MutationsByLineage(BaseHandler):
                 df_response.loc[:, "proportion"] = prop[0]
                 df_response.loc[:, "proportion_ci_lower"] = prop[1]
                 df_response.loc[:, "proportion_ci_upper"] = prop[2]
-            df_response = df_response[df_response["proportion"] >= query_frequency_threshold]
+            if "proportion" in df_response:
+                df_response = df_response[df_response["proportion"] >= query_frequency_threshold]
             results[",".join(muts)] = df_response.to_dict(orient="records")
         resp = {"success": True, "results": results}
         return resp
