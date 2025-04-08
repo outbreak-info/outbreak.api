@@ -2,6 +2,7 @@ from datetime import timedelta, datetime as dt
 from scipy.stats import beta
 import pandas as pd
 
+
 def calculate_proportion(_x, _n):
     x = _x.round()
     n = _n.round()
@@ -19,7 +20,6 @@ def expand_dates(df, date_min, date_max, index_col, grp_col):
         df
         .set_index(index_col)
         .reindex(idx, fill_value = 0)
-        .drop(grp_col, axis = 1)
         .reset_index()
         .rename(
             columns = {
@@ -197,7 +197,7 @@ def create_nested_mutation_query(location_id = None, lineages = [], mutations = 
     parse_location_id_to_query(location_id, query_obj)
     return query_obj
 
-def classify_other_category(grp, keep_lineages):
+def classify_other_category(grp, keep_lineages): # Understood as ignores any lineages user want to keep
     grp.loc[(~grp["lineage"].isin(keep_lineages)) | (grp["lineage"] == "none"), "lineage"] = "other" # Temporarily remove none. TODO: Proper fix
     grp = grp.groupby("lineage").agg({
         "total_count": lambda x: x.iloc[0],
@@ -205,17 +205,28 @@ def classify_other_category(grp, keep_lineages):
     })
     return grp
 
-def get_major_lineage_prevalence(df, index_col, keep_lineages = [], prevalence_threshold = 0.05, nday_threshold = 10, ndays = 180):
-    date_limit = dt.today() - timedelta(days = ndays)
-    lineages_to_retain = df[(df["prevalence"] >= prevalence_threshold) & (df["date"] >= date_limit)]["lineage"].value_counts()
-    num_unique_dates = df[df["date"] >= date_limit]["date"].unique().shape[0]
+def get_major_lineage_prevalence(df, index_col = "date", min_date = None, max_date = None, keep_lineages = [], prevalence_threshold = 0.05, nday_threshold = 10, ndays = 180):
+   
+    df['prevalence'] = df['total_count']/df['lineage_count']
+    df = df.sort_values(by="date") #Sort date values
+    
+    if min_date and max_date:
+        df = df[(df["date"].between(min_date, max_date))]
+    elif min_date:
+        date_limit = dt.strptime(min_date, "%Y-%m-%d") + timedelta(days=ndays) # searches from min_date to ndays forward
+        df = df[(df['date'] >= min_date) & (df['date'] <= date_limit)]
+    else:
+        date_limit = dt.strptime(max_date, "%Y-%m-%d") - timedelta(days=ndays) # searches from max_date to ndays back
+        df = df[(df['date'] <= max_date) & (df['date'] >= date_limit)]
+        
+    num_unique_dates = df["date"].unique().shape[0]  #counts # of unique days lineage is found
+    
     if num_unique_dates < nday_threshold:
-        nday_threshold = round((nday_threshold/ndays) * num_unique_dates)
-    lineages_to_retain = lineages_to_retain[lineages_to_retain >= nday_threshold].index.tolist()
-    lineages_to_retain.extend(keep_lineages)
+        nday_threshold = round((nday_threshold/ndays) * num_unique_dates) 
+    lineage_counts = df[(df["prevalence"] >= prevalence_threshold)]["lineage"].value_counts() #number of times lineage is found in df
+    lineages_to_retain = lineage_counts[lineage_counts >= nday_threshold].index.to_list() #lineages found at least [nday_threshold] times won't be grouped
+    keep_lineages.extend(lineages_to_retain)
     df = df.groupby(index_col).apply(classify_other_category, lineages_to_retain)
-    df = df.reset_index()
-    df.loc[:,"prevalence"] = df["lineage_count"]/df["total_count"]
     return df
 
 def parse_location_id_to_query(query_id, query_obj = None):
@@ -230,7 +241,7 @@ def parse_location_id_to_query(query_id, query_obj = None):
         }
     location_types = ["country_id", "division_id", "location_id"]
     for i in range(min(3, len(location_codes))):
-        if i == 1 and len(location_codes[i].split("-")) > 1:              # For division remove iso2 code if present
+        if i == 1 and len(location_codes[i].split("-")) > 1:  # For division remove iso2 code if present
             location_codes[i] = location_codes[i].split("-")[1]
         if "must" in query_obj["bool"]:
             query_obj["bool"]["must"].append({
